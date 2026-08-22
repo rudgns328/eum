@@ -12,9 +12,9 @@
  * 표준값으로 메우면 04 §7.3 오답 처리 대상이 된다.
  */
 
+import type { RequiredDocument, SourceRef } from '@/lib/engines/types';
 import type { InstitutionRule, StandardRule } from './schema';
 import { sourceRefOf } from './schema';
-import type { SourceRef } from '@/lib/engines/types';
 
 export type FieldStatus = 'confirmed' | 'inherited' | 'checking';
 
@@ -167,9 +167,31 @@ export interface DocumentStatus {
   source: SourceRef;
 }
 
+/**
+ * 기관의 제출 서류 전체.
+ *
+ * 신한은행처럼 미내점 상속인 서류를 별도 배열(`non_visiting_heir_documents`)에
+ * 둔 파일이 있다. 조건·대상을 붙여 required_documents와 같은 형태로 합친다.
+ * 기관 ID로 분기하지 않고 필드 유무로만 판단한다.
+ */
+export function requiredDocumentsOf(institution: InstitutionRule): RequiredDocument[] {
+  const base = institution.required_documents ?? [];
+  const nonVisiting = (institution.non_visiting_heir_documents as RequiredDocument[] | undefined)
+    ?? [];
+
+  return [
+    ...base,
+    ...nonVisiting.map((doc) => ({
+      ...doc,
+      target: doc.target ?? '미내점 상속인',
+      condition: doc.condition ?? 'if_non_visiting_heir',
+    })),
+  ];
+}
+
 export function documentStatuses(institution: InstitutionRule): DocumentStatus[] {
   const source = sourceRefOf(institution);
-  return (institution.required_documents ?? []).map((doc) => {
+  return requiredDocumentsOf(institution).map((doc) => {
     const checking = doc.verified === false;
     return {
       doc_id: doc.doc_id,

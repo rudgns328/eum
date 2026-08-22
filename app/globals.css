@@ -1,26 +1,67 @@
 @import "tailwindcss";
 
+/*
+ * 고령 사용자 고려 (설계서 4.2)
+ *  - 기본 폰트 17px 이상
+ *  - 대비 강화: 본문은 순수 회색 대신 진한 먹색
+ *  - 큰 터치 영역: 버튼·체크박스 최소 44px
+ * 다크 모드는 두지 않는다. 대비를 예측 가능하게 유지하기 위해서다.
+ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f7f7f5;
+  --surface: #ffffff;
+  --foreground: #1a1a1a;
+  --muted: #55555f;
+  --line: #d9d9d4;
+  --accent: #1d4ed8;
+  --critical: #b91c1c;
+  --high: #b45309;
+  --medium: #15803d;
+  --checking: #6b21a8;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-critical: var(--critical);
+  --color-high: var(--high);
+  --color-medium: var(--medium);
+  --color-checking: var(--checking);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  font-size: 17px;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family:
+    "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic",
+    system-ui, sans-serif;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+
+button,
+input,
+select,
+a[role="button"] {
+  min-height: 44px;
+}
+
+input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+  min-height: 24px;
+}
+
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
 }
