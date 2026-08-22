@@ -103,6 +103,7 @@ export function ProgressBar({ done, total }: { done: number; total: number }) {
 const NAV = [
   { href: '/dashboard', label: '대시보드' },
   { href: '/plan', label: '실행 계획' },
+  { href: '/upload', label: '서류' },
   { href: '/alerts', label: '확인 항목' },
 ] as const;
 
