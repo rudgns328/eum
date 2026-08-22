@@ -1,0 +1,197 @@
+{
+  "institution_id": "shinhan_bank",
+  "name": "신한은행",
+  "type": "bank",
+  "source_url": "https://www.shinhan.com/hpe/index.jsp#050101030000",
+  "source_url_secondary": "https://www.shinhan.com/hpe/index.jsp#040505020000",
+  "source_title": "고객센터 FAQ — [예금] 상속예금 해지하려면 어떻게 해야 하나요?",
+  "source_forms": [
+    { "name": "위임장(상속)", "form_no": "5-101-0337", "revision": "개인 2014.11.28 개정" },
+    { "name": "상속인 금융거래조회 신청서 (금감원 서식)", "note": "공통 표준 레이어로 standard.json에 별도 정리" },
+    { "name": "위임장 (상속인 금융거래조회용, 금융감독원 귀중)" }
+  ],
+
+  "verification": {
+    "level": "call_verified",
+    "source_confirmed_at": "2026-08-14",
+    "call_verified_at": "2026-08-21",
+    "call_target": "1599-8000",
+    "note": "공식 FAQ 전문 + 서식 3종 확보. 통화 검증 완료. 수집 기관 중 공개 안내 완성도가 가장 높음."
+  },
+
+  "required_documents": [
+    {
+      "doc_id": "heir_id",
+      "name": "신분증",
+      "target": "방문 상속인 전원",
+      "condition": "always"
+    },
+    {
+      "doc_id": "family_cert",
+      "name": "가족관계증명서(상세)",
+      "target": "피상속인",
+      "condition": "always"
+    },
+    {
+      "doc_id": "basic_cert",
+      "name": "기본증명서(일반 또는 상세)",
+      "target": "피상속인",
+      "condition": "always",
+      "note": "사망사실 확인용"
+    },
+    {
+      "doc_id": "passbook",
+      "name": "해지할 통장과 거래도장",
+      "target": "피상속인",
+      "condition": "optional",
+      "note": "생략 가능"
+    },
+    {
+      "doc_id": "heir_seal",
+      "name": "도장 또는 서명",
+      "target": "방문 상속인 전원",
+      "condition": "always"
+    },
+    {
+      "doc_id": "old_family_register",
+      "name": "제적등본",
+      "target": "피상속인",
+      "condition": "if_heirs_unclear",
+      "triggers": [
+        "방문 상속인이 3순위(형제·자매) 이상인 경우",
+        "대습상속으로 가족관계증명서에 상속인이 확인되지 않는 경우",
+        "예금주가 2007.12.31 이전 사망한 경우"
+      ]
+    }
+  ],
+
+  "non_visiting_heir_documents": [
+    {
+      "doc_id": "absent_heir_id",
+      "name": "불참 상속인의 신분증",
+      "copy_allowed": true
+    },
+    {
+      "doc_id": "absent_heir_seal_cert",
+      "name": "불참 상속인의 인감증명서",
+      "issuance_type": "본인발급용",
+      "issuance_type_note": "대리발급용은 인정되지 않음",
+      "alternatives": ["본인서명사실확인서 (통화 확인)"]
+    },
+    {
+      "doc_id": "absent_heir_delegation",
+      "name": "불참 상속인의 인감이 날인된 위임장",
+      "note": "방문 상속인 중 1인을 대리인으로 위임",
+      "critical_rule": "영업점 내에서 위임장 작성 시 인정 불가. 반드시 미리 준비하여 방문."
+    }
+  ],
+
+  "document_validity_days": 90,
+  "requires_original": true,
+  "requires_full_rrn": true,
+  "document_rule_note": "사본으로 명시된 서류 외 모든 서류는 최근 3개월 이내 발급된 원본으로 주민등록번호 13자리가 모두 확인되어야 함.",
+
+  "simplification_type": "consent_relaxation",
+  "amount_basis": "principal",
+  "amount_scope": "피상속인 명의의 상속예금 전체 합계 금액(원금 기준)",
+  "simplification_rules": [
+    {
+      "max_amount": 3000000,
+      "required_heirs": 1,
+      "description": "상속인 중 1인에 의해 해지 요청 가능"
+    },
+    {
+      "min_amount": 3000001,
+      "max_amount": 5000000,
+      "min_total_heirs": 3,
+      "consent_ratio": 0.6667,
+      "consent_type": "physical_visit",
+      "consent_type_note": "'동의'가 아니라 '방문'. 상속인의 2/3 이상이 영업점에 실물 신분증을 지참하고 직접 방문해야 하며 위임장으로 대체 불가 (통화 확인)",
+      "description": "전체 상속인 수가 3인 이상이면서 상속인 중 2/3 이상 방문 시 해지 요청 가능"
+    }
+  ],
+  "simplification_exception": "영업점 방문 시 불참 상속인과 연락이 되지 않거나 상속인 간 분쟁이 예상되는 경우 등에는 1인 또는 일부 상속인에 의한 예금 해지가 불가할 수 있음. 실제 해지 가능 여부는 영업점 상담 필요.",
+
+  "delegation": {
+    "allowed": true,
+    "allowed_for_simplification": false,
+    "allowed_for_simplification_note": "2/3 방문 요건은 위임장으로 대체 불가",
+    "seal_must_match": true,
+    "seal_alternatives": ["본인서명사실확인서 (통화 확인)"],
+    "prepare_in_advance_required": true,
+    "form_location_web": "홈페이지 > 고객센터 > 자료실 > 업무양식 > '위임장(상속)' 검색",
+    "form_location_app": "신한 슈퍼SOL 로그인 > 우측 상단 전체메뉴 > 은행 > 모바일창구 > 서식작성 > 위임장작성",
+    "form_precondition": "손해담보약정서 및 청구서의 자필연서가 불가능한 경우",
+    "form_requirements": [
+      "위임인 본인의 실명확인증표(사본 가능)",
+      "대리인의 실명확인증표",
+      "위임인의 개인인감증명서 첨부 및 인감 날인"
+    ]
+  },
+
+  "remote_processing": {
+    "available": true,
+    "channel": "신한 슈퍼SOL",
+    "covers": ["위임장"],
+    "description": "앱에서 위임장 작성 후 발급된 접수번호를 방문 상속인에게 전달하면 불참 상속인의 위임서류를 대체",
+    "fully_remote": false,
+    "receipt_number_validity_days": null,
+    "receipt_number_validity_note": "접수번호 유효기간 미확인"
+  },
+
+  "visit_required": true,
+  "visit_principle": "상속인 전원 영업점 방문이 원칙. 불참 상속인이 있는 경우 위임서류 추가 준비.",
+  "min_visiting_heirs": 1,
+  "estimated_visits": 1,
+
+  "processing_days": {
+    "simplified": null,
+    "standard_min": 5,
+    "standard_max": 5,
+    "unit": "business_days",
+    "source": "call_verified",
+    "note": "영업일 기준 5일 (통화 확인). 소액/일반 구분 없이 답변받음."
+  },
+
+  "special_case_documents": [
+    {
+      "case": "minor_heir",
+      "label": "미성년자 상속인",
+      "documents_minor": [
+        "미성년자 본인의 기본증명서(상세)",
+        "미성년자 본인의 가족관계증명서(상세)"
+      ],
+      "documents_guardian": ["방문하는 부모(친권자)의 신분증"],
+      "requirements": "주민등록번호 13자리 전원 노출, 3개월 이내 발급분",
+      "source": "call_verified",
+      "public_page_note": "공식 FAQ는 '고객상담센터로 연락하여 방문서류 확인'으로만 안내. 서류 목록은 통화로 확보."
+    },
+    {
+      "case": "death_before_2008",
+      "label": "피상속인이 2007.12.31 이전 사망",
+      "documents": ["제적등본 (가족관계증명서 대체)"],
+      "source": "call_verified",
+      "public_page_note": "공식 FAQ는 '고객상담센터로 연락' 안내만 존재."
+    }
+  ],
+
+  "contact": "1599-8000",
+
+  "discrepancies": [
+    {
+      "field": "special_case_documents",
+      "type": "public_defers_to_call",
+      "public_page": "2007.12.31 이전 사망 또는 미성년자 포함 시 '고객상담센터로 연락'",
+      "call_result": "구체적 서류 목록 확보",
+      "impact": "표준 플로우 밖 케이스는 공개 안내가 존재하지 않음"
+    }
+  ],
+
+  "call_log": [
+    { "q": "2/3 이상 '방문'인데 위임장으로 대체 가능한가?", "a": "상속인의 2/3 이상이 영업점에 실물 신분증을 지참하여 직접 방문해야 함" },
+    { "q": "인감증명서 대신 본인서명사실확인서도 되나?", "a": "본인서명사실확인서도 가능" },
+    { "q": "접수부터 지급까지 소요 기간은?", "a": "영업일 기준 5일" },
+    { "q": "미성년자 상속인이 있으면 어떤 서류가 추가되나?", "a": "미성년자 본인 기준 서류: 기본증명서(상세), 가족관계증명서(상세) — 주민등록번호 13자리 전원 노출 및 3개월 이내 발급분. 법정대리인(부모) 서류: 방문하는 부모(친권자)의 신분증" },
+    { "q": "2007.12.31 이전 사망이면 서류가 어떻게 달라지나?", "a": "제적등본으로 대체" }
+  ]
+}

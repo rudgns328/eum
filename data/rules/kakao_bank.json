@@ -1,0 +1,161 @@
+{
+  "institution_id": "kakao_bank",
+  "name": "카카오뱅크",
+  "type": "bank",
+  "subtype": "internet_only_bank",
+  "source_url": "https://www.kakaobank.com/Help/Guide/Faq",
+  "source_title": "고객센터 FAQ — 예금 상속 처리 절차 / 소액예금 상속 처리 절차",
+  "source_secondary": "카카오뱅크 앱 AI 상담챗봇 (소액 상속 문의 / 예금 상속 문의 / 상속인 금융거래 조회)",
+  "source_secondary_note": "챗봇 답변과 FAQ 문구가 동일. 교차검증은 되었으나 추가 정보는 없음.",
+
+  "verification": {
+    "level": "source_confirmed",
+    "source_confirmed_at": "2026-08-14",
+    "call_verified_at": null,
+    "call_status": "unavailable_by_policy",
+    "call_status_note": "카카오뱅크는 실제 사망 발생 후 개인정보 조회를 거쳐야 상담이 가능하다고 안내. 사전 문의로는 상담 자체가 불가하여 통화 검증 경로가 막혀 있음.",
+    "note": "FAQ 전문 확보. 통화 검증은 기관 정책상 수행 불가."
+  },
+
+  "required_documents": [
+    {
+      "doc_id": "family_cert",
+      "name": "가족관계증명서(상세)",
+      "target": "피상속인",
+      "condition": "always"
+    },
+    {
+      "doc_id": "basic_cert",
+      "name": "기본증명서",
+      "target": "피상속인",
+      "condition": "always"
+    },
+    {
+      "doc_id": "heir_id",
+      "name": "실명확인증표",
+      "target": "대표 상속인",
+      "condition": "always"
+    },
+    {
+      "doc_id": "delegation",
+      "name": "위임장",
+      "target": "위임 상속인",
+      "condition": "if_non_visiting_heir"
+    },
+    {
+      "doc_id": "seal_cert",
+      "name": "인감증명서",
+      "target": "위임 상속인",
+      "condition": "if_non_visiting_heir"
+    },
+    {
+      "doc_id": "death_cert",
+      "name": "사망확인(진단)서",
+      "target": "피상속인",
+      "condition": "optional",
+      "note": "FAQ상 '임의서류'로 분류"
+    },
+    {
+      "doc_id": "old_family_register",
+      "name": "제적등본",
+      "target": "피상속인",
+      "condition": "optional",
+      "note": "FAQ상 '임의서류'로 분류"
+    },
+    {
+      "doc_id": "claim_form",
+      "name": "상속예금 명의변경 및 지급의뢰서",
+      "target": "공동상속인 전원",
+      "condition": "always",
+      "note": "공동상속인 전원이 서명 또는 날인. 해지·명의변경 모두 동일 서식.",
+      "form_source": null,
+      "form_source_note": "양식 배포 위치 미확인"
+    }
+  ],
+
+  "query_service_documents": [
+    { "doc_id": "applicant_id", "name": "신청인의 실명확인증표" },
+    { "doc_id": "applicant_seal_cert", "name": "신청인의 인감증명서 원본", "condition": "if_postal_request", "note": "우편 요청 시" },
+    { "doc_id": "family_cert", "name": "피상속인의 가족관계증명서(상세)" }
+  ],
+  "query_service_note": "상속인 금융거래 정보 제공 요청 시 서류. 우편 경로가 존재함을 시사하나 예금 상속 자체의 접수 채널은 미확인.",
+
+  "document_validity_days": null,
+  "document_validity_note": "미확인. standard.json의 90일을 상속하되 UI에 '확인 중' 표기.",
+  "requires_original": null,
+  "requires_full_rrn": null,
+
+  "simplification_type": "consent_relaxation",
+  "amount_basis": "principal",
+  "amount_scope": "피상속인의 상속재산 총액(원금 기준)",
+  "simplification_rules": [
+    {
+      "max_amount": 3000000,
+      "required_heirs": 1,
+      "description": "상속인 중 1인 이상의 요청이 있는 경우"
+    },
+    {
+      "max_amount": 5000000,
+      "min_total_heirs": 3,
+      "consent_ratio": 0.5,
+      "consent_type": "consent_and_delegation",
+      "consent_type_note": "공동상속인 1/2 이상의 동의 및 위임 의사가 확인되어야 함",
+      "consent_basis": null,
+      "consent_basis_note": "인원 기준인지 상속분 기준인지 미확인",
+      "description": "상속재산 총액 500만원 이하이며 공동상속인이 3인 이상일 경우"
+    }
+  ],
+  "simplification_effect": null,
+  "simplification_effect_note": "FAQ는 '간소화된 서류 제출로 지급 요청 가능'이라고만 기재. 구체적으로 어떤 서류가 면제되는지 미확인.",
+  "simplification_exception": null,
+
+  "delegation": {
+    "allowed": true,
+    "requires_seal_cert": true,
+    "seal_alternatives": null,
+    "form_location": null,
+    "verified": false
+  },
+
+  "remote_processing": {
+    "available": null,
+    "channel": null,
+    "description": null,
+    "verified": false,
+    "note": "지점이 없는 인터넷전문은행임에도 상속 서류 제출 채널이 안내에 전혀 기재되어 있지 않음. 우편·앱 여부 미확인."
+  },
+
+  "visit_required": null,
+  "min_visiting_heirs": null,
+  "estimated_visits": null,
+
+  "processing_days": {
+    "simplified": null,
+    "standard_min": null,
+    "standard_max": null,
+    "unit": "business_days",
+    "verified": false
+  },
+
+  "contact": "1599-3333",
+
+  "discrepancies": [
+    {
+      "field": "verification.call_status",
+      "type": "access_blocked",
+      "public_page": "'자세한 내용은 고객센터로 문의' 반복 안내",
+      "call_result": "실제 사망 발생 후 개인정보 조회를 해야 상담 가능",
+      "impact": "사망 전 사전 준비가 구조적으로 불가능. 비대면 은행인데 정보 접근성이 가장 낮음."
+    }
+  ],
+
+  "unresolved_fields": [
+    "document_validity_days",
+    "remote_processing",
+    "simplification_effect",
+    "processing_days",
+    "visit_required",
+    "delegation.form_location"
+  ],
+  "unresolved_note": "위 필드는 기관 정책상 통화 검증 경로가 막혀 있어 MVP 기간 내 확보 불가. UI에 '확인 중' 배지를 표시하고 데모 시나리오에서 제외한다."
+}

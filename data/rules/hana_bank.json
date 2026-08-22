@@ -1,0 +1,241 @@
+{
+  "institution_id": "hana_bank",
+  "name": "하나은행",
+  "type": "bank",
+  "source_url": "https://www.kebhana.com/cont/customer/customer01/customer0102/customer010201/index.jsp",
+  "source_title": "FAQ — 예금주 사망으로 인한 통장 상속은 어떤 식으로 이루어지나요?",
+  "source_forms": [
+    {
+      "name": "상속예금 명의변경(지급) 의뢰서 및 손해담보 확약서 (상속예금 지급 위임장 겸용)",
+      "form_no": "5-08-0084(2-1), 5-08-0084(2-2)",
+      "revision": "2025.11 개정",
+      "retention": "처리일로부터 5년"
+    }
+  ],
+  "verification": {
+    "level": "call_verified",
+    "source_confirmed_at": "2026-08-14",
+    "call_verified_at": "2026-08-21",
+    "call_target": "1599-1111",
+    "note": "FAQ 원문 + 서식 PDF 확보. 통화 검증 3회 완료. 소액 기준·효과 모두 공개 안내에 없으며 통화로만 확인됨."
+  },
+  "required_documents": [
+    {
+      "doc_id": "family_cert",
+      "name": "가족관계증명서(상세)",
+      "target": "피상속인",
+      "condition": "always"
+    },
+    {
+      "doc_id": "basic_cert",
+      "name": "기본증명서(일반 또는 상세)",
+      "target": "피상속인",
+      "condition": "always"
+    },
+    {
+      "doc_id": "old_family_register",
+      "name": "제적등본",
+      "target": "피상속인",
+      "condition": "if_heirs_unclear"
+    },
+    {
+      "doc_id": "heir_family_cert",
+      "name": "상속인 각자의 가족관계증명서 및 제적등본",
+      "target": "상속인 전원",
+      "condition": "conditional",
+      "condition_note": "FAQ에는 필수 항목으로 기재되어 있으나, 통화에서는 '피상속인의 가족관계증명서·기본증명서만 필요'하다는 답변. 실제 요건은 영업점 판단으로 보이며 미확정.",
+      "verified": false
+    },
+    {
+      "doc_id": "claim_form",
+      "name": "상속예금 명의변경(지급) 의뢰서 및 손해담보 확약서",
+      "target": "공동상속인 전원",
+      "condition": "always",
+      "note": "공동상속인 전원 자필연서 필요. 위임장 겸용 서식."
+    },
+    {
+      "doc_id": "deposit_claim",
+      "name": "예금 청구서",
+      "target": "상속인",
+      "condition": "if_termination",
+      "note": "예금 해지 시"
+    }
+  ],
+  "procedure_note": "예금 지급정지가 선행되어야 함. 해지는 전원 자필연서 후 상속인 공동명의, 계속거래는 전원 자필연서 후 공동상속인이 정한 주된 상속인 명의로 변경.",
+  "document_validity_days": 90,
+  "requires_original": null,
+  "requires_full_rrn": true,
+  "document_rule_note": "모든 증명 서류는 발급일로부터 3개월 이내이며 주민등록번호 13자리가 모두 나와야 함 (통화 확인). 서식에는 인감증명서·본인서명사실확인서에 대해서만 '최근 3개월 이내 발급분' 명시.",
+  "simplification_type": "consent_relaxation",
+  "amount_basis": "principal",
+  "amount_scope": "소액지급은 원금기준 (서식 명시)",
+  "simplification_rules": [
+    {
+      "max_amount": 1000000,
+      "required_heirs": 1,
+      "description": "상속인 1인 단독 신청 가능",
+      "effect": "미내점 상속인의 위임장·인감증명서 제출 면제. 상속인 측 서류는 방문 상속인의 신분증만. 피상속인의 가족관계증명서는 소액이어도 필요.",
+      "effect_source": "call_verified",
+      "public_disclosure": false,
+      "public_disclosure_note": "홈페이지·FAQ·서식 어디에도 금액 기준과 효과가 없음. 고객센터 통화로만 확인됨.",
+      "source": "call_verified",
+      "effect_note": "소액 여부와 무관하게 피상속인 서류(가족관계증명서, 기본증명서)는 유지된다. 간소화되는 것은 상속인 측 서류뿐이다. (통화 확인)"
+    }
+  ],
+  "simplification_note": "서식에 '지급구분: □지급 □분할지급 □소액지급(금액 기재)' 항목과 '소액지급은 원금기준임' 문구는 존재하나, 금액 구간·동의 요건은 공개 문서에 없음.",
+  "simplification_exception": null,
+  "payment_modes": [
+    {
+      "mode": "지급",
+      "description": "전액 지급"
+    },
+    {
+      "mode": "분할지급",
+      "description": "상속인 전원이 공동으로 지급청구를 할 수 없어 부득이 본인만의 상속지분을 청구·수령",
+      "liability": "향후 다른 상속인이 은행에 이의를 제기할 경우 신청인이 연대하여 책임",
+      "availability": "고객센터 확인 불가. 영업점 방문 필요 (통화 확인)",
+      "verified": false
+    },
+    {
+      "mode": "소액지급",
+      "description": "소액상속인 본인이 상속인 전원을 대표하여 청구",
+      "liability": "추후 분쟁 발생 시 소액상속인 본인이 책임"
+    }
+  ],
+  "delegation": {
+    "allowed": true,
+    "form_is_combined": true,
+    "form_note": "본 서식(위임장)은 주된 상속인 앞 위임 시에만 작성 가능",
+    "third_party_delegation": {
+      "allowed": true,
+      "extra_documents": [
+        "별도 위임장",
+        "인감증명서 또는 본인서명사실확인서",
+        "신분증 사본"
+      ]
+    },
+    "seal_alternatives": [
+      "인감증명서(최근 3개월 이내)",
+      "본인서명사실확인서(최근 3개월 이내)"
+    ],
+    "handwriting_required": true,
+    "handwriting_note": "성명·생년월일 자필 기재 후 서명 또는 날인"
+  },
+  "form_capacity": {
+    "heir_rows": 6,
+    "overflow_handling": "영업점 방문 문의 또는 두 장으로 나눠서 신청 (통화 확인)",
+    "note": "상속인 7명 이상 케이스에서 발생. 대습상속 시나리오에서 빈번."
+  },
+  "remote_processing": {
+    "available": false,
+    "channel": null,
+    "description": "비대면 신청 불가 (통화 확인)",
+    "fully_remote": false
+  },
+  "visit_required": true,
+  "min_visiting_heirs": 1,
+  "estimated_visits": 1,
+  "processing_days": {
+    "simplified": 0,
+    "simplified_note": "소액 상속이거나 단순 예금인 경우 당일 지급 가능",
+    "standard_min": 2,
+    "standard_max": 5,
+    "unit": "business_days",
+    "source": "call_verified"
+  },
+  "unpaid_reason_codes": [
+    {
+      "code": "01",
+      "label": "연결계좌 미해지"
+    },
+    {
+      "code": "02",
+      "label": "여신 미정리"
+    },
+    {
+      "code": "03",
+      "label": "지급제한 미해제"
+    },
+    {
+      "code": "04",
+      "label": "당좌 미정리"
+    },
+    {
+      "code": "05",
+      "label": "상속인요청"
+    },
+    {
+      "code": "99",
+      "label": "기타사유(별도 기재)"
+    }
+  ],
+  "unpaid_reason_note": "서식 5장 '미지급 상속예금 확인'. 서류를 모두 갖춰도 지급이 보류되는 사유 목록. 누락·지연 탐지 규칙의 근거 데이터.",
+  "safe_deposit_box": {
+    "rule": "대여금고 개문/해지는 공동상속인 전원의 내점(또는 공동상속인 위임장 징구) 시 가능"
+  },
+  "interest_income_rule": {
+    "before_death": "상속개시일 전일까지의 이자소득은 피상속인의 소득",
+    "after_death": "상속개시일 이후 발생한 이자소득은 주된 상속인(소액상속인·분할상속인)의 소득",
+    "consequence": "상속인간 소득정산 및 종합소득세 신고는 상속인 책임"
+  },
+  "contact": "1599-1111",
+  "discrepancies": [
+    {
+      "field": "simplification_rules.max_amount",
+      "type": "undisclosed_in_public",
+      "public_page": "금액 기준 없음",
+      "call_result": "100만원 이하",
+      "impact": "고객이 홈페이지만으로는 소액 간소화 가능 여부를 알 수 없음"
+    },
+    {
+      "field": "required_documents.heir_family_cert",
+      "type": "public_stricter_than_practice",
+      "public_page": "상속인 각자의 가족관계증명서 및 제적등본",
+      "call_result": "피상속인의 가족관계증명서, 기본증명서만 필요",
+      "impact": "안내문 기준으로 준비하면 불필요한 서류를 발급하게 됨"
+    }
+  ],
+  "call_log": [
+    {
+      "q": "소액지급 기준 금액과 동의 요건은?",
+      "a": "소액 기준은 100만원 이하"
+    },
+    {
+      "q": "상속인 각자의 가족관계증명서·제적등본도 항상 필요한가?",
+      "a": "피상속인의 가족관계증명서, 기본증명서만 필요함"
+    },
+    {
+      "q": "서식 상속인 칸이 6개인데 7명 이상이면?",
+      "a": "영업점 방문해서 문의하거나, 두 장으로 나눠서 신청"
+    },
+    {
+      "q": "분할지급은 어떤 경우에 신청하나?",
+      "a": "고객센터에서 확인 불가함. 영업점 방문해야 됨"
+    },
+    {
+      "q": "가족관계증명서·기본증명서도 3개월 이내 발급분이어야 하나?",
+      "a": "모든 증명 서류는 발급일로부터 3개월 이내"
+    },
+    {
+      "q": "비대면으로 상속 처리가 가능한가?",
+      "a": "비대면 신청 불가능함"
+    },
+    {
+      "q": "접수부터 지급까지 소요 기간은?",
+      "a": "소액이거나 단순 예금인 경우 당일 지급도 가능. 고액이거나 상황에 따라 영업일 기준 2~5일"
+    },
+    {
+      "q": "100만원 이하 소액이면 상속인 1인 단독 신청이 가능한가? 위임장·인감증명서는 면제되나?",
+      "a": "소액 간소화 신청일 때 1명만 있으면 되고, 방문자 본인의 서류(신분증)만 있으면 됨"
+    },
+    {
+      "q": "제출 서류에 주민등록번호 13자리가 모두 나와야 하나?",
+      "a": "주민등록번호 13자리가 다 나와야 함"
+    },
+    {
+      "q": "100만원 이하 소액이어도 피상속인의 가족관계증명서는 가져가야 하나?",
+      "a": "소액이어도 피상속인의 가족관계증명서는 필요함"
+    }
+  ],
+  "min_visiting_heirs_source": "call_verified"
+}

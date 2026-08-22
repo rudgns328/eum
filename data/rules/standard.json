@@ -1,0 +1,128 @@
+{
+  "standard_id": "fss_standard",
+  "name": "금융감독원 상속인 금융거래조회 서비스 / 표준 제출서류",
+  "source": "금융감독원 상속인 금융거래조회 신청서 및 안내문 (신한은행 배포본)",
+  "source_note": "전 금융권 공통 레이어. 기관 JSON에 값이 없으면 이 값을 상속한다.",
+  "verification": {
+    "level": "source_confirmed",
+    "source_confirmed_at": "2026-08-14",
+    "call_verified_at": null,
+    "note": "금감원 공식 서식 원문 확보. 통화 검증 미실시."
+  },
+
+  "base_documents": ["basic_cert", "family_cert", "heir_id"],
+
+  "conditional_documents": [
+    {
+      "doc_id": "death_cert",
+      "name": "사망진단서",
+      "condition": "if_basic_cert_unavailable",
+      "note": "기본증명서로 사망시기 확인 불가 시에만"
+    },
+    {
+      "doc_id": "old_family_register",
+      "name": "제적등본",
+      "condition": "if_heirs_unclear",
+      "note": "가족관계증명서로 상속인 확인 곤란 시에만"
+    }
+  ],
+
+  "fss_query": {
+    "name": "상속인 금융거래조회 서비스",
+    "application_channel": "visit_only",
+    "application_channel_note": "내방접수만 가능. 온라인 신청 불가.",
+    "accept_locations": [
+      "금융감독원 본원·지원·출장소",
+      "전 은행(수출입은행, 외국은행 국내지점 제외)",
+      "농협·수협 단위조합",
+      "우체국",
+      "삼성생명 고객프라자",
+      "한화생명 고객센터",
+      "KB생명 고객플라자",
+      "교보생명 고객플라자",
+      "삼성화재 고객플라자",
+      "유안타증권"
+    ],
+    "accept_note": "접수처인 금융회사에 사망자의 금융거래가 없어도 신청 가능",
+
+    "required_documents": [
+      { "doc_id": "applicant_id", "name": "신청인(대리인) 신분증", "condition": "always" },
+      {
+        "doc_id": "delegation_for_query",
+        "name": "상속위임장 및 본인서명사실확인서 또는 인감증명서",
+        "condition": "if_agent_applies"
+      },
+      {
+        "doc_id": "old_family_register",
+        "name": "제적등본",
+        "condition": "if_death_before_2008",
+        "note": "피상속인이 2008.1.1. 이전 사망 시"
+      },
+      {
+        "doc_id": "death_proof",
+        "name": "사망진단서 또는 기본증명서(사망일 기재)",
+        "condition": "if_death_after_2008",
+        "note": "사망자 주민번호 기재 필요"
+      },
+      {
+        "doc_id": "family_cert",
+        "name": "가족관계증명서(3개월 이내 발급, 주민번호 기재)",
+        "condition": "if_death_after_2008",
+        "alternatives": ["가족관계증명서 열람(지자체)", "제적등본(필요시)"]
+      }
+    ],
+
+    "special_status_documents": {
+      "missing_person": "법원 심판문(실종선고) 및 확정증명원, 또는 판결내용이 기재된 기본증명서",
+      "guardianship": "성년(한정)후견개시 심판문 및 확정증명원, 또는 후견등기사항전부증명서",
+      "estate_administrator": "법원심판문(상속재산관리선임) 및 확정증명원"
+    },
+
+    "minor_applicant_rule": {
+      "age_14_or_over": "본인 또는 법정대리인(후견인) 신청 가능",
+      "under_14": "법정대리인(후견인)만 신청 가능"
+    },
+
+    "result_retention_months": 3,
+    "result_retention_note": "접수일로부터 3개월간만 금감원·협회 홈페이지에서 조회 가능. 서면 통보 없음.",
+    "receipt_usage_months": 3,
+    "receipt_usage_note": "신청서·접수증에 기재된 상속인은 접수증과 신분증만으로 신청일로부터 3개월 내 해당 금융회사에서 거래정보 제공 가능. 대리인은 금융사가 요구하는 위임서류 추가 지참.",
+
+    "critical_side_effect": {
+      "flag": "account_freeze_on_query",
+      "description": "조회 신청 사실을 통보받은 금융회사는 통상 해당 계좌에 임의로 거래정지 조치를 취하며, 입출금·자동이체가 제한될 수 있다. 이후 예금지급은 원칙적으로 상속인 전원의 청구에 의해서만 가능하다.",
+      "implication": "소액 간소화(1인 단독 청구) 경로가 조회 신청으로 인해 닫힐 수 있다. 조회와 인출의 선후 관계가 결과를 바꾼다.",
+      "source_quote_ref": "금감원 상속인 금융거래조회서비스 안내문"
+    },
+
+    "association_processing_times": [
+      { "association": "예금보험공사", "scope": "영업정지 등 보험사고 발생 부보 금융회사", "min_days": 3, "max_days": 10, "contact": "02-758-0114" },
+      { "association": "전국은행연합회", "scope": "은행, 수협, 농축협", "min_days": 10, "max_days": 15, "contact": "02-3705-5000" },
+      { "association": "한국신용정보원", "scope": "신보, 기신보, 주금공 등", "min_days": 10, "max_days": 15, "contact": "1544-1040" },
+      { "association": "생명보험협회", "scope": "생명보험", "min_days": 6, "max_days": 10, "contact": "02-2262-6600" },
+      { "association": "손해보험협회", "scope": "손해보험", "min_days": 3, "max_days": 7, "contact": "02-3702-8500" },
+      { "association": "금융투자협회", "scope": "금융투자회사", "min_days": 7, "max_days": 10, "contact": "02-2003-9000" },
+      { "association": "여신금융협회", "scope": "카드, 리스, 할부금융", "min_days": 15, "max_days": 20, "contact": "02-2011-0700" },
+      { "association": "저축은행중앙회", "scope": "저축은행", "min_days": 15, "max_days": 20, "contact": "02-397-8600" },
+      { "association": "신협중앙회", "scope": "신용협동조합", "min_days": 10, "max_days": 15, "contact": "042-720-1000" },
+      { "association": "새마을금고중앙회", "scope": "새마을금고", "min_days": 10, "max_days": 15, "contact": "02-2145-9205" },
+      { "association": "산림조합중앙회", "scope": "산림조합", "min_days": 10, "max_days": 15, "contact": "1544-4200" },
+      { "association": "한국예탁결제원", "scope": "증권", "min_days": 10, "max_days": 15, "contact": "051-519-1500" },
+      { "association": "우체국", "scope": "우체국", "min_days": 7, "max_days": 10, "contact": "02-2195-1376" },
+      { "association": "한국대부금융협회", "scope": "대부업체", "min_days": 7, "max_days": 14, "contact": "02-3487-5800" }
+    ],
+    "association_processing_times_note": "원문에 '예상소요기간'으로만 표기되어 있고 영업일/달력일 구분이 없다. 엔진에서는 보수적으로 달력일이 아닌 '영업일'로 간주하되, UI에는 '기관 안내 기준'으로 표기할 것. 전산사정에 따라 초과 가능하다고 원문에 명시됨.",
+    "max_expected_days": 20,
+    "max_expected_days_source": "여신금융협회·저축은행중앙회 15~20일",
+
+    "sangjo_lookup_rule": "상조회사 가입사실은 피상속인의 성명·생년월일·휴대폰번호 3개 정보가 모두 일치하는 경우에만 확인 가능. 지자체 접수 시 휴대폰번호 미기재면 확인 불가.",
+    "agent_result_exception": "대리인이 신청하면 결과는 대리인에게 통지되나, 공무원연금·사학연금·국민연금·군인연금·근로복지공단은 상속인 본인에게만 제공."
+  },
+
+  "safe_inheritance": {
+    "name": "안심상속 원스톱서비스",
+    "channels": ["정부24 온라인", "시청·구청·읍면동 주민센터"],
+    "deadline_note": "사망일이 속한 달의 말일로부터 1년 이내에만 신청 가능",
+    "extra_scope": ["지방세(체납·고지세액)", "자동차 소유내역", "토지 소유내역"]
+  }
+}

@@ -1,0 +1,306 @@
+{
+  "_meta": {
+    "name": "대한민국 공휴일·금융기관 휴무일 (영업일 계산용)",
+    "coverage": "2026-01-01 ~ 2027-12-31",
+    "generated_at": "2026-08-22",
+    "notes": [
+      "토·일요일은 이 파일에 포함하지 않는다. 엔진에서 요일 연산으로 별도 처리할 것.",
+      "2026년부터 노동절(5/1)·제헌절(7/17)이 관공서 공휴일로 신규 지정되었다(관공서의 공휴일에 관한 규정 개정, 2026-04-28 국무회의 의결). 학습 데이터가 오래된 모델이 이 파일을 재생성하면 두 날이 누락된다 — 직접 생성 금지.",
+      "설·추석 연휴는 일요일과 겹칠 때만 대체공휴일이 발생한다(토요일 겹침은 대체 없음). 현충일은 대체공휴일 미적용.",
+      "verified: false 항목은 공식 고시 재확인 전까지 휴일로 간주한다. 휴일 과대 계상은 소요기간 예측을 늘리는 방향이라 보수적이다.",
+      "출처: 인사혁신처 「관공서의 공휴일에 관한 규정」 및 2026·2027년 월력요항 관련 공표 (2026-08-22 확인). 2027년 하반기 항목은 사용 시점에 인사혁신처 고시로 재확인 권장."
+    ]
+  },
+  "holidays": [
+    {
+      "date": "2026-01-01",
+      "name": "신정",
+      "substitute": false,
+      "verified": true
+    },
+    {
+      "date": "2026-02-16",
+      "name": "설날 연휴",
+      "substitute": false,
+      "verified": true
+    },
+    {
+      "date": "2026-02-17",
+      "name": "설날",
+      "substitute": false,
+      "verified": true
+    },
+    {
+      "date": "2026-02-18",
+      "name": "설날 연휴",
+      "substitute": false,
+      "verified": true
+    },
+    {
+      "date": "2026-03-01",
+      "name": "삼일절",
+      "substitute": false,
+      "verified": true
+    },
+    {
+      "date": "2026-03-02",
+      "name": "대체공휴일(삼일절)",
+      "substitute": true,
+      "verified": true
+    },
+    {
+      "date": "2026-05-01",
+      "name": "노동절",
+      "substitute": false,
+      "verified": true,
+      "note": "2026년부터 관공서 공휴일 신규 지정(2026-04-28 국무회의 의결, 2026-05-01 시행). 종전에도 근로자의 날로 금융기관 휴무일이었음"
+    },
+    {
+      "date": "2026-05-05",
+      "name": "어린이날",
+      "substitute": false,
+      "verified": true
+    },
+    {
+      "date": "2026-05-24",
+      "name": "부처님오신날",
+      "substitute": false,
+      "verified": true
+    },
+    {
+      "date": "2026-05-25",
+      "name": "대체공휴일(부처님오신날)",
+      "substitute": true,
+      "verified": true
+    },
+    {
+      "date": "2026-06-03",
+      "name": "제9회 전국동시지방선거일",
+      "substitute": false,
+      "verified": true,
+      "note": "법정공휴일. 은행 등 금융기관 휴무"
+    },
+    {
+      "date": "2026-06-06",
+      "name": "현충일",
+      "substitute": false,
+      "verified": true,
+      "note": "토요일. 현충일은 대체공휴일 미적용 대상"
+    },
+    {
+      "date": "2026-07-17",
+      "name": "제헌절",
+      "substitute": false,
+      "verified": true,
+      "note": "2026-05-11부터 공휴일 재지정(대통령령 제36290호). 대체공휴일 적용 대상"
+    },
+    {
+      "date": "2026-08-15",
+      "name": "광복절",
+      "substitute": false,
+      "verified": true
+    },
+    {
+      "date": "2026-08-17",
+      "name": "대체공휴일(광복절)",
+      "substitute": true,
+      "verified": true
+    },
+    {
+      "date": "2026-09-24",
+      "name": "추석 연휴",
+      "substitute": false,
+      "verified": true
+    },
+    {
+      "date": "2026-09-25",
+      "name": "추석",
+      "substitute": false,
+      "verified": true
+    },
+    {
+      "date": "2026-09-26",
+      "name": "추석 연휴",
+      "substitute": false,
+      "verified": true,
+      "note": "토요일. 설·추석 연휴는 일요일 겹침에만 대체공휴일 발생 — 대체 없음"
+    },
+    {
+      "date": "2026-10-03",
+      "name": "개천절",
+      "substitute": false,
+      "verified": true
+    },
+    {
+      "date": "2026-10-05",
+      "name": "대체공휴일(개천절)",
+      "substitute": true,
+      "verified": true
+    },
+    {
+      "date": "2026-10-09",
+      "name": "한글날",
+      "substitute": false,
+      "verified": true
+    },
+    {
+      "date": "2026-12-25",
+      "name": "성탄절",
+      "substitute": false,
+      "verified": true
+    },
+    {
+      "date": "2027-01-01",
+      "name": "신정",
+      "substitute": false,
+      "verified": true
+    },
+    {
+      "date": "2027-02-06",
+      "name": "설날 연휴",
+      "substitute": false,
+      "verified": true
+    },
+    {
+      "date": "2027-02-07",
+      "name": "설날",
+      "substitute": false,
+      "verified": true
+    },
+    {
+      "date": "2027-02-08",
+      "name": "설날 연휴",
+      "substitute": false,
+      "verified": true
+    },
+    {
+      "date": "2027-02-09",
+      "name": "대체공휴일(설날)",
+      "substitute": true,
+      "verified": true
+    },
+    {
+      "date": "2027-03-01",
+      "name": "삼일절",
+      "substitute": false,
+      "verified": true
+    },
+    {
+      "date": "2027-05-01",
+      "name": "노동절",
+      "substitute": false,
+      "verified": true,
+      "note": "토요일"
+    },
+    {
+      "date": "2027-05-03",
+      "name": "대체공휴일(노동절)",
+      "substitute": true,
+      "verified": false,
+      "note": "노동절 토요일 겹침에 따른 대체 — 2027 월력요항 집계 기반 추정. 사용 전 인사혁신처 고시로 재확인 필수. 휴일로 과대 계상해도 소요기간 예측이 길어지는 보수적 방향임"
+    },
+    {
+      "date": "2027-05-05",
+      "name": "어린이날",
+      "substitute": false,
+      "verified": true
+    },
+    {
+      "date": "2027-05-13",
+      "name": "부처님오신날",
+      "substitute": false,
+      "verified": true
+    },
+    {
+      "date": "2027-06-06",
+      "name": "현충일",
+      "substitute": false,
+      "verified": true,
+      "note": "일요일. 현충일은 대체공휴일 미적용"
+    },
+    {
+      "date": "2027-07-17",
+      "name": "제헌절",
+      "substitute": false,
+      "verified": true,
+      "note": "토요일"
+    },
+    {
+      "date": "2027-07-19",
+      "name": "대체공휴일(제헌절)",
+      "substitute": true,
+      "verified": true,
+      "note": "2026년 재지정 시 대체공휴일 적용 대상에 포함됨"
+    },
+    {
+      "date": "2027-08-15",
+      "name": "광복절",
+      "substitute": false,
+      "verified": true,
+      "note": "일요일"
+    },
+    {
+      "date": "2027-08-16",
+      "name": "대체공휴일(광복절)",
+      "substitute": true,
+      "verified": true
+    },
+    {
+      "date": "2027-09-14",
+      "name": "추석 연휴",
+      "substitute": false,
+      "verified": true
+    },
+    {
+      "date": "2027-09-15",
+      "name": "추석",
+      "substitute": false,
+      "verified": true
+    },
+    {
+      "date": "2027-09-16",
+      "name": "추석 연휴",
+      "substitute": false,
+      "verified": true
+    },
+    {
+      "date": "2027-10-03",
+      "name": "개천절",
+      "substitute": false,
+      "verified": true,
+      "note": "일요일"
+    },
+    {
+      "date": "2027-10-04",
+      "name": "대체공휴일(개천절)",
+      "substitute": true,
+      "verified": true
+    },
+    {
+      "date": "2027-10-09",
+      "name": "한글날",
+      "substitute": false,
+      "verified": true,
+      "note": "토요일"
+    },
+    {
+      "date": "2027-10-11",
+      "name": "대체공휴일(한글날)",
+      "substitute": true,
+      "verified": true
+    },
+    {
+      "date": "2027-12-25",
+      "name": "성탄절",
+      "substitute": false,
+      "verified": true,
+      "note": "토요일"
+    },
+    {
+      "date": "2027-12-27",
+      "name": "대체공휴일(성탄절)",
+      "substitute": true,
+      "verified": true
+    }
+  ]
+}

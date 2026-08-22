@@ -1,0 +1,305 @@
+{
+  "institution_id": "yuanta_sec",
+  "name": "유안타증권",
+  "type": "securities",
+  "source_url": "https://www.myasset.com/myasset/static/customer/bzInfo/CU_0413001_P1.jsp",
+  "source_title": "고객센터 > 업무안내 > 상속 서류 안내",
+  "source_forms": [
+    {
+      "name": "상속인 금융거래정보 제공 요청서",
+      "revision": "2025.10.31"
+    },
+    {
+      "name": "상속계좌 명의변경/지급 요청서",
+      "revision": "2021.5.28"
+    },
+    {
+      "name": "소액 상속재산 지급요청서(300만원 이하)",
+      "revision": "2024.9.27"
+    }
+  ],
+  "verification": {
+    "level": "call_verified",
+    "source_confirmed_at": "2026-08-21",
+    "call_verified_at": "2026-08-21",
+    "call_target": "1588-2600",
+    "note": "안내 페이지 전문 + 서식 3종 확보. 통화 검증 2회 완료. 자사 문서 간 인감증명서 상충 해소됨."
+  },
+  "required_documents": [
+    {
+      "doc_id": "heir_id",
+      "name": "실명확인증표",
+      "target": "내점한 상속인",
+      "condition": "always"
+    },
+    {
+      "doc_id": "family_cert",
+      "name": "가족관계증명서(상세)",
+      "target": "피상속인",
+      "condition": "always"
+    },
+    {
+      "doc_id": "basic_cert",
+      "name": "기본증명서",
+      "target": "피상속인",
+      "condition": "always"
+    },
+    {
+      "doc_id": "seal_cert",
+      "name": "인감증명서 또는 본인서명사실확인서",
+      "target": "미내점 상속인",
+      "condition": "if_non_visiting_heir",
+      "note": "당사 신청서 양식에 인감도장 날인. 내점 상속인은 불필요 (통화 확인).",
+      "conflict_flag": false,
+      "conflict_note": "해소됨. 서식 첨부 문구('상속인들(상속인 대표 포함) 인감증명서 각 1부')는 전원 미내점을 전제로 한 표현이며, 실제로는 내점 상속인은 제출하지 않는다.",
+      "quantity": "미내점 상속인 1인당 1부",
+      "alternatives": [
+        "본인서명사실확인서"
+      ]
+    },
+    {
+      "doc_id": "old_family_register",
+      "name": "제적등본",
+      "target": "피상속인",
+      "condition": "if_heirs_unclear",
+      "triggers": [
+        "청구인이 3·4순위 상속인인 경우",
+        "대습상속 등으로 가족관계증명서에 상속인 전원이 나타나지 않는 경우",
+        "사망자가 '08년 이전 사망하여 가족관계증명서 발급이 불가능한 경우"
+      ]
+    },
+    {
+      "doc_id": "death_cert",
+      "name": "사망확인(진단)서",
+      "target": "피상속인",
+      "condition": "if_basic_cert_unavailable"
+    }
+  ],
+  "form_attachments": {
+    "standard_claim": {
+      "form": "상속계좌 명의변경/지급 요청서",
+      "attachments": [
+        "피상속인의 기본증명서 1부",
+        "피상속인의 가족관계증명서 1부",
+        "미내점 상속인의 인감증명서 또는 본인서명사실확인서 각 1부 (내점 상속인은 불필요 — 통화 확인)",
+        "상속인들 대표 주민등록증 사본 1부"
+      ],
+      "attachment_note": "서식 원문은 '상속인들(상속인 대표 포함) 인감증명서 각 1부'로 기재되어 있으나, 통화 확인 결과 내점 상속인은 제출하지 않는다."
+    },
+    "simplified_claim": {
+      "form": "소액 상속재산 지급요청서(300만원 이하)",
+      "attachments": [
+        "피상속인의 기본증명서 1부",
+        "피상속인의 가족관계증명서 1부",
+        "신청인 신분증 사본 1부"
+      ]
+    },
+    "delta_note": "소액 경로에서는 상속인 전원의 인감증명서(N장)와 대표 주민등록증 사본이 통째로 면제된다. 수집 기관 중 소액 간소화의 실제 효과가 서식 단위로 확정된 유일한 사례."
+  },
+  "special_case_documents": [
+    {
+      "case": "minor_heir",
+      "label": "미성년자·피성년후견인·피한정후견인 상속인",
+      "documents": [
+        "미성년자 기본증명서(특정·상세)",
+        "미성년자 가족관계증명서",
+        "특별대리인선임결정문 (필요시)",
+        "후견등기사항 전부증명서 등 (피후견인인 경우)",
+        "법정대리인의 실명확인증표 및 위임관계서류(미내점시)"
+      ],
+      "critical_rule": "친권자와 미성년자 간의 이해상반행위에 해당하는 경우 특별대리인 선임 필요 (민법 제921조)",
+      "note": "수집 6개 기관 중 민법 제921조를 명시한 유일한 기관"
+    },
+    {
+      "case": "overseas_heir",
+      "label": "해외 거주자 상속인",
+      "documents": [
+        "실명확인증표(여권 등)",
+        "위임장(영사확인, 번역공증 등)",
+        "동일인증명서 등 (동일여부 확인 필요 시)",
+        "납세관리인 신고확인서 (상속인 또는 수유자가 비거주자인 경우, 국세기본법 제82조 6항)"
+      ]
+    },
+    {
+      "case": "agreement_division",
+      "label": "협의분할",
+      "documents_public": [
+        "법원의 재산분할결정문"
+      ],
+      "documents_actual": [
+        "상속인들이 직접 작성하고 서명한 재산분할협의서",
+        "법원의 재산분할결정문"
+      ],
+      "source": "call_verified",
+      "discrepancy": "안내 페이지는 법원 결정문만 기재하나, 실무에서는 상속인 작성 협의서도 인정"
+    },
+    {
+      "case": "renunciation",
+      "label": "상속포기",
+      "documents": [
+        "법원의 상속포기결정문"
+      ]
+    }
+  ],
+  "document_validity_days": 90,
+  "document_validity_note": "관련 서류는 3개월 이내 발급분 '원칙'이며 주민등록번호 13자리가 모두 나와야 함 (통화 확인). '원칙'이라는 표현의 예외 범위는 미확인.",
+  "requires_original": null,
+  "requires_full_rrn": true,
+  "simplification_type": "consent_relaxation",
+  "amount_basis": "valuation",
+  "amount_basis_note": "원금이 아닌 평가액 기준. 은행 4곳과 근본적으로 다른 축.",
+  "amount_scope": "당사 모든 계좌 잔고 평가액 기준",
+  "valuation_date_basis": "application_date",
+  "valuation_date_basis_note": "신청일 기준 (통화 확인). 시장 변동에 따라 소액 경로가 열리고 닫힌다.",
+  "simplification_rules": [
+    {
+      "max_amount": 3000000,
+      "required_heirs": 1,
+      "description": "상속인 중 1인 이상의 요청이 있는 경우",
+      "effect": "미내점 상속인들의 위임서류(인감증명서 등) 제출 생략"
+    }
+  ],
+  "simplification_tiers": 1,
+  "simplification_tiers_note": "300만원 초과 시 예외 없이 일반 상속 절차 적용. 은행과 달리 2구간(500만/1,000만)이 존재하지 않음 (통화 확인).",
+  "simplification_exception": "소액 상속재산 지급요청서 확인사항 3번에 '분쟁 가능성 있음'으로 체크하면 소액 간소화 절차가 즉시 반려됨 (통화 확인)",
+  "self_declaration_questions": [
+    {
+      "no": 1,
+      "question": "신청인 외에 다른 공동 상속인이 있습니까?",
+      "type": "yes_no"
+    },
+    {
+      "no": 2,
+      "question": "(1번에 '예'인 경우) 신청인은 다른 공동상속인들과 상속재산분할에 대한 협의를 하였습니까?",
+      "type": "yes_no_with_text",
+      "text_label": "협의의 결과 또는 협의를 하지 않은 이유"
+    },
+    {
+      "no": 3,
+      "question": "신청인 앞으로 계좌명의를 변경하거나 신청인이 단독으로 지급을 받는 것에 대해 다른 상속인들이 이의를 제기하거나 상속인들 사이에 분쟁이 발생할 가능성이 있습니까?",
+      "type": "yes_no_with_text",
+      "text_label": "구체적 내용",
+      "consequence_if_yes": "소액 간소화 절차 즉시 반려"
+    }
+  ],
+  "self_declaration_note": "KB·신한이 '분쟁 예상 시 불가할 수 있음'으로 모호하게 처리한 조건을 유안타는 서면 자가진술 3문항으로 구조화했다. 서비스 UI의 사전 진단 문항으로 그대로 차용 가능.",
+  "self_declaration_warning": "신청서 기재 내용에 사실과 다른 점이 있을 경우 사기·업무방해 등으로 처벌될 수 있다는 경고가 서식에 명시됨",
+  "securities_handling": {
+    "account_types": [
+      "예탁금",
+      "증권"
+    ],
+    "deposit_method": "지급",
+    "securities_method": "출고(대체이관)",
+    "account_opening_required": true,
+    "account_opening_note": "증권을 출고받으려면 상속인이 유안타증권에 계좌를 개설해야 함 (통화 확인). 은행 예금에는 없는 추가 부담.",
+    "liquidation_allowed": null,
+    "liquidation_note": "매도 후 현금 수령 가능 여부 미확인"
+  },
+  "delegation": {
+    "allowed": true,
+    "separate_form_required": false,
+    "method": "당사 신청서 양식에 인감도장 날인",
+    "method_note": "별도 위임장 서식이 아니라 청구 서식 자체에 미내점 상속인이 날인하는 구조. KB·신한과 다름.",
+    "overseas_exception": "해외거주자는 별도 위임장(영사확인·번역공증) 필요",
+    "seal_alternatives": [
+      "본인서명사실확인서"
+    ],
+    "seal_alternatives_source": "call_verified"
+  },
+  "remote_processing": {
+    "available": false,
+    "channel": null,
+    "description": "비대면 신청 불가 (통화 확인)",
+    "fully_remote": false,
+    "verified": true
+  },
+  "visit_required": true,
+  "min_visiting_heirs": 1,
+  "estimated_visits": 1,
+  "processing_days": {
+    "simplified": 0,
+    "simplified_note": "소액 상속이거나 단순한 경우 당일 지급 가능",
+    "standard_min": 2,
+    "standard_max": 5,
+    "unit": "business_days",
+    "source": "call_verified"
+  },
+  "rejection_rules": [
+    {
+      "trigger": "상속인의 자격 확인서류 또는 관련 필요서류 미제출, 또는 정보제공 요청에 흠결이 있음에도 소정의 기간 내에 보완하지 않은 경우",
+      "consequence": "반송처리",
+      "period_days": null,
+      "period_note": "'소정의 기간'이 며칠인지 미확인",
+      "source_form": "상속인 금융거래정보 제공 요청서"
+    },
+    {
+      "trigger": "동일 내용의 금융거래정보를 반복 요청하거나 상속인의 자격이 없는 것으로 판명되는 경우",
+      "consequence": "회보 없이 종결처리",
+      "source_form": "상속인 금융거래정보 제공 요청서"
+    },
+    {
+      "trigger": "소액 상속재산 지급요청서 3번 문항에 '분쟁 가능성 있음' 체크",
+      "consequence": "소액 간소화 절차 즉시 반려",
+      "source": "call_verified"
+    }
+  ],
+  "contact": "1588-2600",
+  "discrepancies": [
+    {
+      "field": "special_case_documents.agreement_division",
+      "type": "public_stricter_than_practice",
+      "public_page": "협의분할 — 법원의 재산분할결정문",
+      "call_result": "상속인들이 직접 작성하고 서명한 재산분할협의서도 인정됨",
+      "impact": "안내문만 보면 법원 절차가 필수인 것으로 오해하게 됨"
+    },
+    {
+      "field": "required_documents.seal_cert",
+      "type": "internal_conflict",
+      "public_page": "안내 페이지: 인감증명서는 미내점 상속인 항목, '내점 상속인 불필요'",
+      "form": "상속계좌 명의변경/지급 요청서 첨부 3번: '상속인들(상속인 대표 포함) 인감증명서 각 1부'",
+      "call_result": "내점 상속인은 인감증명서 불필요. 미내점 상속인만 1인당 1부. 안내 페이지가 맞음.",
+      "impact": "서식 첨부 문구만 보고 준비하면 불필요한 인감증명서를 발급하게 됨",
+      "resolved": true
+    }
+  ],
+  "call_log": [
+    {
+      "q": "300만원 평가액은 어느 시점 기준인가?",
+      "a": "신청일 기준"
+    },
+    {
+      "q": "주식을 출고받으려면 상속인이 계좌를 새로 만들어야 하나?",
+      "a": "유안타증권 계좌를 개설해야 함"
+    },
+    {
+      "q": "소액 신청서 3번에 '분쟁 가능성 있음'으로 체크하면?",
+      "a": "소액 간소화 절차가 바로 반려됨"
+    },
+    {
+      "q": "협의분할 시 상속인이 쓴 협의서로는 안 되고 법원 결정문만 인정되나?",
+      "a": "상속인들이 직접 작성하고 서명한 재산분할협의서도 인정됨"
+    },
+    {
+      "q": "300만원을 넘으면 완화 규정이 전혀 없나?",
+      "a": "300만원을 초과하면 예외 없이 모든 상속 서류를 갖춰야 하는 일반 상속 절차가 적용됨. 총 잔고평가액 300만원 이하만 소액 상속 간소화 대상"
+    },
+    {
+      "q": "접수부터 지급까지 소요 기간은?",
+      "a": "소액이거나 단순한 경우 당일 지급도 가능. 고액이거나 상황에 따라 영업일 기준 2~5일"
+    },
+    {
+      "q": "안내 페이지는 내점 상속인 인감증명서 불필요인데 서식 첨부는 대표 포함 각 1부다. 어느 쪽이 맞나?",
+      "a": "내점 상속인은 인감증명서가 필요하지 않고, 미내점 상속인들의 인감증명서는 인당 1부가 필요함. 인감증명서 대신 본인서명사실확인서로 대체 가능"
+    },
+    {
+      "q": "비대면 신청이 가능한가? 최소 내점 인원은?",
+      "a": "비대면 신청 불가능. 최소 내점 인원은 1명"
+    },
+    {
+      "q": "제출 서류에 주민등록번호 13자리가 모두 나와야 하나?",
+      "a": "주민등록번호 13자리가 다 나와야 함"
+    }
+  ],
+  "min_visiting_heirs_source": "call_verified"
+}

@@ -1,0 +1,317 @@
+{
+  "institution_id": "samsung_life",
+  "name": "삼성생명",
+  "type": "insurance",
+  "subtype": "life",
+  "source_url": "https://www.samsunglife.com/individual/mysamsunglife/insurance/internet/MDP-MYINT020110M",
+  "source_title": "보험금 청구 — 청구에 필요한 서류 > 사망",
+  "source_forms": [
+    {
+      "name": "사고보험금 청구서류 안내(고객안내용)",
+      "revision": "2026.04.07"
+    },
+    {
+      "name": "보험금 청구서 [개인] 작성 예시",
+      "revision": "2026.04.07",
+      "includes": [
+        "요약 동의서 3면",
+        "상세 동의서 4면",
+        "미성년자 수익자 친권확인서",
+        "보험금 지급절차 안내",
+        "실손보험금 청구 관련 안내",
+        "손해사정사 선임 관련 안내"
+      ]
+    },
+    {
+      "name": "위임장 (자필위임장 예시문)",
+      "revision": "2025.03.07"
+    },
+    {
+      "name": "업무상 사망보험금 법정상속인 확인서",
+      "revision": "2025.01.01"
+    },
+    {
+      "name": "업무외 사망보험금 법정상속인 확인서",
+      "revision": "2025.01.01"
+    }
+  ],
+  "verification": {
+    "level": "call_verified",
+    "source_confirmed_at": "2026-08-14",
+    "call_verified_at": "2026-08-21",
+    "call_target": "1588-3114",
+    "call_target_secondary": "1577-4118 (사고보험금 전용 콜센터)",
+    "note": "안내 페이지 + 서식 5종 확보. 통화 검증 완료. 비대면 가능 여부가 통화로 정정됨."
+  },
+  "beneficiary_rule": {
+    "is_branch_point": true,
+    "designated": {
+      "label": "사망수익자 지정",
+      "legal_nature": "수익자 고유재산",
+      "required_documents": [
+        "보험금청구서",
+        "개인(신용)정보처리동의서",
+        "청구인 신분증(내방시)",
+        "사망진단서(또는 시체검안서) 원본",
+        "기본증명서 또는 말소자등본 원본"
+      ],
+      "inheritance_documents_required": false,
+      "note": "상속관계 확인서류 불필요. 다른 상속인의 동의도 불필요."
+    },
+    "undesignated": {
+      "label": "사망수익자 미지정",
+      "legal_nature": "상속재산",
+      "extra_documents": [
+        "상속관계 확인서류: 가족관계증명서(상세), 혼인증명서(상세), 제적등본 등",
+        "(상속인이 다수인 경우) 위임한 상속인 각각의 위임장 및 인감증명서 또는 본인서명사실확인서",
+        "(사망수익자가 미성년자) 미성년자 기준의 기본증명서(상세), 가족관계증명서(일반)"
+      ],
+      "inheritance_documents_required": true
+    },
+    "engine_note": "보험 자산은 '수익자 지정 여부'를 먼저 물어야 필요 서류가 결정된다. 예금·증권에는 없는 분기이며, 케이스 모델의 assets[].type == 'insurance'에 beneficiary_designated 필드가 필요하다."
+  },
+  "required_documents": [
+    {
+      "doc_id": "claim_form",
+      "name": "보험금청구서",
+      "target": "수익자",
+      "condition": "always",
+      "note": "수익자 계좌번호 기재"
+    },
+    {
+      "doc_id": "privacy_consent",
+      "name": "개인(신용)정보처리동의서",
+      "target": "수익자",
+      "condition": "always",
+      "note": "요약 동의서 또는 상세 동의서 중 선택 작성"
+    },
+    {
+      "doc_id": "claimant_id",
+      "name": "청구인 신분증",
+      "target": "청구인",
+      "condition": "if_visit",
+      "note": "홈페이지·모바일 청구 시 제출 불필요"
+    },
+    {
+      "doc_id": "death_cert",
+      "name": "사망진단서 또는 시체검안서",
+      "target": "피보험자",
+      "condition": "always",
+      "requires_original": true,
+      "note": "사본 제출 시 원본대조필 날인"
+    },
+    {
+      "doc_id": "basic_cert",
+      "name": "기본증명서 또는 말소자등본",
+      "target": "피보험자",
+      "condition": "always",
+      "requires_original": true,
+      "note": "사망사실 기재 필요"
+    },
+    {
+      "doc_id": "inheritance_relation",
+      "name": "상속관계 확인서류",
+      "target": "피보험자",
+      "condition": "if_beneficiary_undesignated",
+      "note": "가족관계증명서(상세), 혼인증명서(상세), 제적등본 등"
+    },
+    {
+      "doc_id": "delegation",
+      "name": "위임장 및 인감증명서 또는 본인서명사실확인서",
+      "target": "위임한 상속인 각각",
+      "condition": "if_multiple_heirs_and_undesignated"
+    },
+    {
+      "doc_id": "agent_delegation",
+      "name": "위임장 및 보험금청구권자의 인감증명서 또는 본인서명사실확인서",
+      "target": "대리인",
+      "condition": "if_agent_claims"
+    }
+  ],
+  "group_insurance_documents": {
+    "applies_to": "단체보험 업무외사망보험수익자지정특약 ('25.1.1일 이후 가입상품에 한함)",
+    "occupational_death": [
+      "근로복지공단의 보험급여지급확인원 (보험사제출용)",
+      "업무상사망보험금 법정상속인 확인서"
+    ],
+    "non_occupational_death": [
+      "업무외사망보험금 법정상속인 확인서"
+    ],
+    "confirmation_form_attachments": [
+      "법정상속인의 인감증명서",
+      "피보험자 기준 가족관계증명서, 기본증명서, 구)제적등본"
+    ],
+    "clawback_risk": {
+      "flag": "insurance_clawback",
+      "description": "'업무외 사망'으로 청구하여 보험금이 지급된 이후, 지급 사유가 된 사망원인이 업무상 사망 등으로 변경된 경우 기존 보험수익자에게 이미 지급된 사망보험금의 반환을 청구할 수 있음",
+      "note": "업무상 사망이면 수익자는 보험계약자(회사), 업무외 사망이면 법정상속인. 수령 후 반환 가능성이 있는 유일한 케이스."
+    }
+  },
+  "document_validity_days": 90,
+  "document_validity_source": "call_verified",
+  "requires_original": true,
+  "requires_original_rule": {
+    "threshold_amount": 10000000,
+    "at_or_below": "사본 가능",
+    "above": "원본만 가능",
+    "source": "call_verified"
+  },
+  "simplification_type": "submission_channel",
+  "simplification_type_note": "은행·증권의 소액 기준이 '누구의 동의가 필요한가'를 정하는 것과 달리, 보험의 금액 기준은 '원본이냐 사본이냐 / 어느 채널로 접수하느냐'를 정한다. 같은 이름의 필드이나 축이 다르므로 엔진에서 분기해야 한다.",
+  "amount_basis": "claim_amount",
+  "amount_scope": "청구금액",
+  "simplification_rules": [
+    {
+      "max_amount": 10000000,
+      "effect": "모바일·홈페이지·FAX 등 사본접수 가능",
+      "conditions": [
+        "장해/진단은 피보험자 = 상해시수익자 계약에 한함",
+        "사망은 사망시수익자 지정계약에 한함"
+      ],
+      "exception": "실손은 금액 제한 없음",
+      "death_claim_applicable": false,
+      "death_claim_applicable_note": "사망보험금은 방문신청만 가능 (통화 확인). 안내표의 사본접수 대상 문구만 읽으면 비대면 가능한 것으로 오해하게 되는 구조."
+    },
+    {
+      "max_amount": 10000000,
+      "effect": "미성년자 수익자 친권확인서로 미성년자 가족관계증명서·기본증명서 등 대체 가능",
+      "scope": "미성년자 수익자 보험금 청구 건"
+    }
+  ],
+  "minor_beneficiary_rule": {
+    "form": "미성년자 수익자 친권확인서(보험금 청구용)",
+    "threshold_amount": 10000000,
+    "effect": "1,000만원 이하 보험금 청구 건에 대해 미성년자 가족관계증명서·기본증명서 등을 대신하여 친권행사자를 확인",
+    "legal_basis": [
+      "미성년자 = 만 19세 미만 (민법 제4조)",
+      "미성년자가 수익자인 경우 법정대리인인 부모가 친권 행사 (민법 제911조)",
+      "부모 이혼 시 협의 또는 가정법원이 친권자 지정 (민법 제909조). 친권자로 지정되지 않은 부 또는 모는 미성년자를 대리하여 보험금 청구 불가",
+      "미성년자도 혼인하면 성년으로 봄 (민법 제826조의2). 법률혼만 해당"
+    ],
+    "checkbox_options": [
+      "다른 친권자의 동의 또는 위임을 받아 친권을 행사 (부모 모두 친권자인 경우)",
+      "친권자 1인 지정 (이혼 등)",
+      "다른 친권자 사망"
+    ],
+    "note": "민법 제4조 기준 만 19세. 금감원 조회 서비스의 만 14세 기준과 다르므로 엔진에서 혼동하지 말 것."
+  },
+  "delegation": {
+    "allowed": true,
+    "requires_seal_cert": true,
+    "seal_alternatives": [
+      "본인서명사실확인서"
+    ],
+    "per_heir": true,
+    "per_heir_note": "상속인이 다수인 경우 위임한 상속인 각각의 위임장 및 인감증명서 필요",
+    "representative_receipt_allowed": true,
+    "representative_receipt_note": "위임장과 인감증명서를 첨부하여 권한을 넘기면 대표 1인이 수령 가능 (통화 확인)",
+    "form_fields": [
+      "위임자 정보 및 개인 인감 날인",
+      "대리인 정보",
+      "계약번호·상품명",
+      "위임내용",
+      "위임일자",
+      "통화일시"
+    ],
+    "phone_confirmation": {
+      "performed": true,
+      "description": "보험사가 위임자에게 확인 전화를 하며, 서식의 '통화일시' 칸은 그 통화 내역을 기록하는 칸 (통화 확인)",
+      "impact": "서류 제출만으로 위임이 완결되지 않는다. 위임자가 전화를 받지 못하면 절차가 지연될 수 있다."
+    }
+  },
+  "remote_processing": {
+    "available": false,
+    "available_for_death_claim": false,
+    "channel": "모바일 / 홈페이지 / FAX (사망 외 청구에 한함)",
+    "description": "청구금액 1,000만원 이하 건은 사본접수가 가능하나, 사망보험금은 방문신청만 가능 (통화 확인)",
+    "fully_remote": false,
+    "visit_hours": "고객플라자 내방 09:00~16:00 (현금성 업무는 15:30까지)"
+  },
+  "visit_required": true,
+  "visit_required_note": "사망보험금은 금액과 무관하게 방문신청. 1,000만원 초과 시에도 방문신청 (통화 확인).",
+  "min_visiting_heirs": 1,
+  "estimated_visits": 1,
+  "processing_days": {
+    "simplified": null,
+    "standard_min": 3,
+    "standard_max": 3,
+    "investigation_days": 10,
+    "unit": "business_days",
+    "source": "공식 안내문 (보험금 지급절차 안내)",
+    "note": "예상 지급기일은 접수일로부터 3영업일, 조사가 필요한 경우 10영업일. 다소 지연될 수 있음.",
+    "delay_compensation": "지급예정일 초과 시 약관에서 정한 지연이자 지급",
+    "advance_payment": "지급기일 내 지급하지 못할 것으로 예상되는 경우 추정 보험금의 50% 이내 선지급 가능"
+  },
+  "prescription": {
+    "years": 3,
+    "base": "보험사고 발생일",
+    "legal_basis": "상법 제662조 및 표준약관",
+    "scope": [
+      "보험금 청구권",
+      "보험료 반환청구권",
+      "해약환급금 청구권",
+      "계약자적립액 반환청구권"
+    ],
+    "consequence": "소멸시효 완성 시 보장이 제한될 수 있음",
+    "engine_note": "수집 6개 기관 중 유일하게 '권리 자체가 소멸하는' 기한. 기한 엔진에 별도 deadline으로 추가 필요."
+  },
+  "non_payment_appeal": {
+    "description": "보험금 지급심사 결과 부지급 사유 발생 시 그 근거를 명시하여 안내. 부지급 결정에 동의하지 않는 경우 심사담당자 또는 사고보험금콜센터로 연락하면 재심사 가능",
+    "contact": "1577-4118"
+  },
+  "field_investigation_risk": {
+    "description": "사망 시 수익자가 타인으로 지정된 개인보험 중 현장심사가 진행될 경우 유족의 동의가 필요하며, 유족 동의가 없어 현장심사를 진행할 수 없는 경우 지급심사가 불가할 수 있음"
+  },
+  "cross_company_lookup": {
+    "description": "타 보험회사에 가입되어 있는 보험계약은 생명보험협회·손해보험협회 홈페이지에서 확인 가능",
+    "urls": [
+      "http://www.klia.or.kr",
+      "http://www.knia.or.kr"
+    ]
+  },
+  "contact": "1588-3114",
+  "contact_claims": "1577-4118",
+  "discrepancies": [
+    {
+      "field": "remote_processing.available",
+      "type": "public_misleading",
+      "public_page": "사본접수 가능 대상: 청구금액 1,000만원 이하 (사망은 사망시수익자 지정계약에 한함)",
+      "call_result": "사망보험금은 방문신청만 가능",
+      "impact": "안내표만 읽으면 비대면 가능으로 오독하게 됨. 통화 없이는 잡히지 않는 항목.",
+      "resolution": "remote_processing.available_for_death_claim = false 로 확정"
+    }
+  ],
+  "call_log": [
+    {
+      "q": "수익자가 '법정상속인'인 경우 상속인 전원이 청구해야 하나? 1인 대표 수령 가능한가?",
+      "a": "위임장과 인감증명서를 첨부하여 권한을 넘기면 대표로 수령 가능"
+    },
+    {
+      "q": "상속관계 확인서류도 발급 후 3개월 이내여야 하나?",
+      "a": "발급 후 3개월 이내. 보험금 1,000만원 이하는 사본 가능, 1,000만원 초과는 원본만 가능"
+    },
+    {
+      "q": "사망보험금도 온라인·모바일 청구가 되나?",
+      "a": "사망보험금은 방문신청만 가능"
+    },
+    {
+      "q": "1,000만원을 넘으면 반드시 고객플라자 방문인가?",
+      "a": "1,000만원 넘으면 방문신청"
+    },
+    {
+      "q": "위임장의 '통화일시' 칸은 무엇인가?",
+      "a": "보험사에서 위임자에게 확인 전화를 하며, 통화일시 칸은 그 통화 내역을 기록하는 칸"
+    },
+    {
+      "q": "최소 내점 인원은 몇 명인가?",
+      "a": "최소 내점 인원은 1명"
+    },
+    {
+      "q": "제출 서류에 주민등록번호 13자리가 모두 나와야 하나?",
+      "a": "주민등록번호 13자리가 다 나와야 함"
+    }
+  ],
+  "requires_full_rrn": true,
+  "document_rrn_note": "제출 서류에 주민등록번호 13자리가 모두 나와야 함 (통화 확인)",
+  "min_visiting_heirs_source": "call_verified"
+}
