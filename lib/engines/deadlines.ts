@@ -20,6 +20,7 @@ import type {
 } from './types';
 
 interface DeadlinesFile {
+  _meta?: { merged_at?: string };
   deadlines: DeadlineRule[];
   processing_times: unknown[];
   time_traps: unknown[];
@@ -29,6 +30,24 @@ const file = deadlinesJson as unknown as DeadlinesFile;
 
 /** data/deadlines.json > deadlines[] 정본 */
 export const DEADLINE_RULES: readonly DeadlineRule[] = file.deadlines;
+
+/** 기한 규정 확정일. 출처 표기의 확인일자로 쓴다 */
+export const DEADLINES_VERIFIED_AT = file._meta?.merged_at ?? '';
+
+/**
+ * 출처 표기 (절대규칙 5 — 모든 사용자 안내에 출처 필수).
+ *
+ * 규정 파일에 source가 있으면 그대로 쓰고, 없으면 근거 조문을 출처로 삼는다.
+ * 법정 기한의 출처는 조문 자체이며, 확인일자는 규정 확정일이다.
+ * data/deadlines.json은 검증된 정본이라 코드에서 값을 수정하지 않는다.
+ */
+function sourceOf(rule: DeadlineRule): SourceRef {
+  if (rule.source) return rule.source;
+  return {
+    institution: rule.legal_basis ?? '이음 기한 규정',
+    verified_at: DEADLINES_VERIFIED_AT,
+  };
+}
 
 /** severity 정렬 우선순위. 값이 작을수록 위에 온다. */
 const SEVERITY_RANK: Record<DeadlineSeverity, number> = {
@@ -122,7 +141,7 @@ export function calculateDeadlines(
       legal_basis: rule.legal_basis,
       consequence: rule.consequence,
       falls_on_non_business_day: !isBusinessDay(dueDate, holidays),
-      source: rule.source as SourceRef | undefined,
+      source: sourceOf(rule),
     });
   }
 

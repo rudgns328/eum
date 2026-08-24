@@ -71,7 +71,8 @@ export interface CalculatedDeadline {
    * 위험을 피하기 위해 당초 날짜를 그대로 기한으로 표시한다(설계서 3.1 처리 로직 7).
    */
   falls_on_non_business_day: boolean;
-  source?: SourceRef;
+  /** 절대규칙 5 — 항상 채워진다. 규정에 없으면 근거 조문이 출처가 된다 */
+  source: SourceRef;
 }
 
 /** 기한 계산 입력 */

@@ -105,6 +105,7 @@ const NAV = [
   { href: '/plan', label: '실행 계획' },
   { href: '/upload', label: '서류' },
   { href: '/alerts', label: '확인 항목' },
+  { href: '/notifications', label: '알림' },
 ] as const;
 
 export function Nav({ current }: { current: string }) {
