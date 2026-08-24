@@ -39,6 +39,12 @@ interface HeirDraft {
   is_visiting: boolean;
 }
 
+interface DebtDraft {
+  key: string;
+  institution_id: string;
+  amount: string;
+}
+
 interface AssetDraft {
   key: string;
   institution_id: string;
@@ -69,11 +75,13 @@ export default function OnboardingPage() {
   const [awarenessDate, setAwarenessDate] = useState('');
   const [fssDate, setFssDate] = useState('');
   const [hasRealEstate, setHasRealEstate] = useState(false);
+  const [hasVehicle, setHasVehicle] = useState(false);
   const [agreement, setAgreement] = useState<'' | 'yes' | 'no'>('');
   const [heirs, setHeirs] = useState<HeirDraft[]>([
     { key: nextKey(), relation: 'spouse', name: '', is_minor: false, is_visiting: true },
   ]);
   const [assets, setAssets] = useState<AssetDraft[]>([]);
+  const [debts, setDebts] = useState<DebtDraft[]>([]);
   const [error, setError] = useState('');
 
   const updateHeir = (key: string, patch: Partial<HeirDraft>) =>
@@ -81,6 +89,9 @@ export default function OnboardingPage() {
 
   const updateAsset = (key: string, patch: Partial<AssetDraft>) =>
     setAssets((prev) => prev.map((a) => (a.key === key ? { ...a, ...patch } : a)));
+
+  const updateDebt = (key: string, patch: Partial<DebtDraft>) =>
+    setDebts((prev) => prev.map((d) => (d.key === key ? { ...d, ...patch } : d)));
 
   const toNumber = (raw: string): number | null => {
     const cleaned = raw.replace(/[^\d]/g, '');
@@ -144,10 +155,17 @@ export default function OnboardingPage() {
       decedent_label: decedentLabel.trim() || '피상속인',
       fss_application_date: fssDate || null,
       has_real_estate: hasRealEstate,
+      has_vehicle: hasVehicle,
       ...(agreement === '' ? {} : { agreement_division: agreement === 'yes' }),
       heirs: caseHeirs,
       assets: caseAssets,
-      debts: [],
+      debts: debts
+        .filter((draft) => draft.institution_id !== '' && toNumber(draft.amount) !== null)
+        .map((draft) => ({
+          institution_id: draft.institution_id,
+          type: 'loan',
+          amount: toNumber(draft.amount) as number,
+        })),
       progress: [],
     };
 
@@ -229,6 +247,14 @@ export default function OnboardingPage() {
                 onChange={(e) => setHasRealEstate(e.target.checked)}
               />
               부동산 보유
+            </label>
+            <label className="flex items-center gap-2 text-base">
+              <input
+                type="checkbox"
+                checked={hasVehicle}
+                onChange={(e) => setHasVehicle(e.target.checked)}
+              />
+              자동차 보유
             </label>
             <div className="flex items-center gap-2 text-base">
               <span className="font-semibold">협의분할</span>
@@ -439,6 +465,56 @@ export default function OnboardingPage() {
             }
           >
             자산 추가
+          </button>
+        </Card>
+
+        <Card>
+          <SectionTitle>부채</SectionTitle>
+          <p className="mb-3 text-base text-muted">
+            부채가 재산을 넘으면 상속포기·한정승인 검토 항목이 확인 항목에 나타납니다.
+          </p>
+          <div className="space-y-3">
+            {debts.map((debt, index) => (
+              <div key={debt.key} className="grid gap-3 rounded-lg border border-line p-3 sm:grid-cols-[1fr_1fr_auto]">
+                <select
+                  className="rounded-lg border border-line bg-surface px-3 py-2"
+                  value={debt.institution_id}
+                  onChange={(e) => updateDebt(debt.key, { institution_id: e.target.value })}
+                  aria-label={`부채 ${index + 1} 기관`}
+                >
+                  <option value="">기관 선택</option>
+                  {institutions.map((i) => (
+                    <option key={i.institution_id} value={i.institution_id}>
+                      {i.name}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  className="rounded-lg border border-line bg-surface px-3 py-2"
+                  inputMode="numeric"
+                  value={debt.amount}
+                  onChange={(e) => updateDebt(debt.key, { amount: e.target.value })}
+                  placeholder="금액 (원)"
+                  aria-label={`부채 ${index + 1} 금액`}
+                />
+                <button
+                  type="button"
+                  className="rounded-lg border border-line px-3 text-base text-muted"
+                  onClick={() => setDebts((prev) => prev.filter((d) => d.key !== debt.key))}
+                >
+                  삭제
+                </button>
+              </div>
+            ))}
+          </div>
+          <button
+            type="button"
+            className="mt-3 rounded-lg border border-line px-4 text-base font-semibold"
+            onClick={() =>
+              setDebts((prev) => [...prev, { key: nextKey(), institution_id: '', amount: '' }])
+            }
+          >
+            부채 추가
           </button>
         </Card>
 

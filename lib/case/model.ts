@@ -49,6 +49,8 @@ export interface Case {
   /** 금감원 상속인 금융거래조회 신청일 */
   fss_application_date?: IsoDate | null;
   has_real_estate: boolean;
+  /** 자동차 보유 여부. 이전등록은 예금·보험과 절차가 분리된다 */
+  has_vehicle?: boolean;
   /** 협의분할 진행 여부. undefined면 미확인 */
   agreement_division?: boolean;
   heirs: CaseHeir[];
