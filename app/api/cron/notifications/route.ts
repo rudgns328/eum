@@ -11,7 +11,7 @@
 
 import { dispatchDue } from '@/lib/notify/dispatch';
 import { siteBaseUrl } from '@/lib/notify/base-url';
-import { defaultSubscriptionStore } from '@/lib/notify/supabase';
+import { defaultSubscriptionStore, SupabaseRequestError } from '@/lib/notify/supabase';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -40,6 +40,9 @@ export async function GET(request: Request): Promise<Response> {
     return Response.json({ today, ...result });
   } catch (error) {
     console.warn('[cron]', error instanceof Error ? error.message : 'unknown');
-    return Response.json({ error: 'dispatch_failed' }, { status: 500 });
+    // 설정 단계에서 원인을 짚을 수 있도록 상태 코드만 함께 돌려준다.
+    // 키나 응답 본문은 싣지 않는다.
+    const supabase = error instanceof SupabaseRequestError ? error.status : null;
+    return Response.json({ error: 'dispatch_failed', supabase_status: supabase }, { status: 500 });
   }
 }

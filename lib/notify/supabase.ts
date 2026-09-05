@@ -19,6 +19,24 @@ import {
 
 const TABLE = 'notification_subscriptions';
 
+/**
+ * 요청 실패. 상태 코드만 담는다 — 키나 응답 본문을 싣지 않는다.
+ *
+ * 설정 단계에서 원인을 가리려면 코드가 필요하다.
+ *   401/403 → 키가 틀렸거나 anon 키를 넣었다
+ *   404     → 테이블이 없다 (schema.sql 미실행)
+ *   그 외    → 프로젝트 일시정지 등
+ */
+export class SupabaseRequestError extends Error {
+  constructor(
+    readonly method: string,
+    readonly status: number,
+  ) {
+    super(`[supabase] ${method} ${TABLE} → ${status}`);
+    this.name = 'SupabaseRequestError';
+  }
+}
+
 export interface SupabaseConfig {
   url: string;
   serviceRoleKey: string;
@@ -70,7 +88,7 @@ export class SupabaseSubscriptionStore implements SubscriptionStore {
     const response = await this.fetchImpl(url, init);
     if (!response.ok) {
       // 본문에 키가 실려 나가지 않도록 상태 코드만 남긴다.
-      throw new Error(`[supabase] ${init.method ?? 'GET'} ${TABLE} → ${response.status}`);
+      throw new SupabaseRequestError(init.method ?? 'GET', response.status);
     }
     return response;
   }
