@@ -24,12 +24,27 @@ export interface SupabaseConfig {
   serviceRoleKey: string;
 }
 
+/**
+ * 프로젝트 주소를 표준형으로 다듬는다.
+ *
+ * Supabase 대시보드의 Data API 화면은 `.../rest/v1/`까지 붙은 주소를 보여준다.
+ * 그대로 넣으면 endpoint()가 경로를 한 번 더 붙여 404가 난다. 설정 실수의
+ * 증상이 조용해서 찾기 어려우므로 여기서 흡수한다.
+ */
+export function normalizeSupabaseUrl(raw: string): string {
+  return raw
+    .trim()
+    .replace(/\/+$/, '')
+    .replace(/\/rest\/v1$/, '')
+    .replace(/\/+$/, '');
+}
+
 /** 환경변수가 없으면 null — 호출자는 구독 기능을 끈 상태로 응답한다 */
 export function supabaseConfig(): SupabaseConfig | null {
   const url = process.env.SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !serviceRoleKey) return null;
-  return { url: url.replace(/\/$/, ''), serviceRoleKey };
+  return { url: normalizeSupabaseUrl(url), serviceRoleKey };
 }
 
 export class SupabaseSubscriptionStore implements SubscriptionStore {

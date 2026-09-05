@@ -14,7 +14,7 @@ import {
   MemorySubscriptionStore,
   toSubscription,
 } from '@/lib/notify/subscription';
-import { SupabaseSubscriptionStore } from '@/lib/notify/supabase';
+import { normalizeSupabaseUrl, SupabaseSubscriptionStore } from '@/lib/notify/supabase';
 
 const TODAY = '2026-09-20';
 const CASE = buildDemoCase(TODAY);
@@ -137,5 +137,32 @@ describe('Supabase 어댑터 — 요청 형태', () => {
     const store = new SupabaseSubscriptionStore(config, f as unknown as typeof fetch);
     await expect(store.listAll()).rejects.toThrow(/401/);
     await expect(store.listAll()).rejects.not.toThrow(/svc-key/);
+  });
+});
+
+describe('프로젝트 주소 정규화 — 설정 실수를 흡수한다', () => {
+  const expected = 'https://abcd.supabase.co';
+
+  it.each([
+    'https://abcd.supabase.co',
+    'https://abcd.supabase.co/',
+    'https://abcd.supabase.co/rest/v1',
+    'https://abcd.supabase.co/rest/v1/',
+    '  https://abcd.supabase.co/rest/v1/  ',
+  ])('%s → 같은 주소로 정리된다', (raw) => {
+    expect(normalizeSupabaseUrl(raw)).toBe(expected);
+  });
+
+  it('정리된 주소로 요청 경로가 한 번만 붙는다', async () => {
+    const f = vi.fn<(url: string, init: RequestInit) => Promise<Response>>(
+      async () => new Response('[]', { status: 200 }),
+    );
+    const store = new SupabaseSubscriptionStore(
+      { url: normalizeSupabaseUrl('https://abcd.supabase.co/rest/v1/'), serviceRoleKey: 'k' },
+      f as unknown as typeof fetch,
+    );
+    await store.listAll();
+    const [url] = f.mock.calls[0];
+    expect(url).toBe('https://abcd.supabase.co/rest/v1/notification_subscriptions?select=*');
   });
 });
