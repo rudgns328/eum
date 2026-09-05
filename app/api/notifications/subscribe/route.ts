@@ -10,7 +10,7 @@
 
 import { isValidEmail } from '@/lib/notify/email';
 import { toSubscription } from '@/lib/notify/subscription';
-import { defaultSubscriptionStore } from '@/lib/notify/supabase';
+import { defaultSubscriptionStore, SupabaseRequestError } from '@/lib/notify/supabase';
 import type { Case } from '@/lib/case/model';
 
 export const runtime = 'nodejs';
@@ -31,7 +31,7 @@ function isCase(value: unknown): value is Case {
 export async function GET(request: Request): Promise<Response> {
   const store = defaultSubscriptionStore();
   // 설정 전에는 '구독 기능이 준비되지 않음'으로 답한다. 화면은 그대로 동작한다.
-  if (!store) return Response.json({ available: false, subscribed: false });
+  if (!store) return Response.json({ available: false, subscribed: false, configured: false });
 
   const caseId = new URL(request.url).searchParams.get('case_id');
   if (!caseId) return Response.json({ error: '케이스 정보가 없습니다.' }, { status: 400 });
@@ -46,7 +46,13 @@ export async function GET(request: Request): Promise<Response> {
     });
   } catch (error) {
     console.warn('[subscribe:get]', error instanceof Error ? error.message : 'unknown');
-    return Response.json({ available: false, subscribed: false });
+    // 설정 단계에서 원인을 짚을 수 있도록 상태 코드만 함께 돌려준다.
+    // 키나 응답 본문은 싣지 않는다.
+    return Response.json({
+      available: false,
+      subscribed: false,
+      supabase_status: error instanceof SupabaseRequestError ? error.status : null,
+    });
   }
 }
 
