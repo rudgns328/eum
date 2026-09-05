@@ -9,16 +9,23 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 
 import {
+  btnOutline,
+  btnPrimary,
+  btnSmall,
   Card,
   CheckingBadge,
+  EmptyState,
   PageShell,
   ProgressBar,
   SectionTitle,
   SeverityTag,
   SourceNote,
+  Disclosure,
+  FieldHelp,
+  GlossaryList,
+  NoticeBox,
 } from '@/app/_components/ui';
 import { useCase } from '@/app/_lib/useCase';
 import { calculateShares } from '@/lib/engines/shares';
@@ -28,14 +35,28 @@ export default function DashboardPage() {
   const router = useRouter();
   const { ready, caseData, deadlines, traps, tasks, progress, toggle, clear } = useCase();
 
-  useEffect(() => {
-    if (ready && !caseData) router.replace('/onboarding');
-  }, [ready, caseData, router]);
-
-  if (!ready || !caseData) {
+  if (!ready) {
     return (
-      <PageShell current="/dashboard">
+      <PageShell current="/dashboard" title="대시보드" description="기한과 확인 항목, 이번에 할 일을 한 화면에 모아 보여줍니다.">
         <p className="text-muted">불러오는 중입니다.</p>
+      </PageShell>
+    );
+  }
+
+  // 케이스가 없어도 화면을 연다. 리다이렉트 대신 이 화면이 무엇을 보여주는지
+  // 설명해, 입력 전에도 메뉴를 자유롭게 둘러볼 수 있게 한다.
+  if (!caseData) {
+    return (
+      <PageShell current="/dashboard" title="대시보드" description="기한과 확인 항목, 이번에 할 일을 한 화면에 모아 보여줍니다.">
+        <EmptyState
+          title="대시보드"
+          description="기한 D-day와 진행률, 확인이 필요한 항목을 한 화면에 모아 보여줍니다."
+          bullets={[
+            '사망일 기준으로 계산한 기한 6종을 중요도 순으로 표시합니다.',
+            '되돌릴 수 없는 항목이 기한이 멀어도 위에 옵니다.',
+            '법정상속분을 민법 조문대로 계산해 보여줍니다.',
+          ]}
+        />
       </PageShell>
     );
   }
@@ -48,19 +69,43 @@ export default function DashboardPage() {
   const openTasks = tasks.filter((t) => !doneIds.has(t.task_id));
 
   return (
-    <PageShell current="/dashboard">
-      <header className="mb-5 flex flex-wrap items-baseline justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {caseData.decedent_label}{' '}
-            <span className="text-muted">({caseData.death_date.replaceAll('-', '.')})</span>
-          </h1>
-          <p className="text-muted">상속인 {caseData.heirs.length}명</p>
+    <PageShell current="/dashboard" title="대시보드" description="기한과 확인 항목, 이번에 할 일을 한 화면에 모아 보여줍니다.">
+      {/* 진행 현황 요약 — 공공 화면의 신청 현황 띠 */}
+      <div className="mb-5 grid gap-px border border-line bg-line sm:grid-cols-[repeat(3,minmax(0,1fr))_18rem]">
+        <div className="bg-subtle px-4 py-3">
+          <p className="text-sm text-muted">피상속인</p>
+          <p className="font-bold">{caseData.decedent_label}</p>
         </div>
-        <div className="w-full sm:w-64">
+        <div className="bg-subtle px-4 py-3">
+          <p className="text-sm text-muted">사망일</p>
+          <p className="font-bold tabular-nums">{caseData.death_date.replaceAll('-', '.')}</p>
+        </div>
+        <div className="bg-subtle px-4 py-3">
+          <p className="text-sm text-muted">상속인</p>
+          <p className="font-bold tabular-nums">{caseData.heirs.length}명</p>
+        </div>
+        <div className="bg-subtle px-4 py-3">
+          <p className="mb-1 text-sm text-muted">진행률</p>
           <ProgressBar done={progress.done} total={progress.total} />
         </div>
-      </header>
+      </div>
+
+      {/* 지금 상태 한 줄 — 이미 화면에 있는 두 값(가장 급한 기한, 미완료 할 일)을
+          한 문장으로 합친 것이다. 새로운 판정을 만들지 않는다. */}
+      {lead && (
+        <div className="mb-5">
+          <NoticeBox tone={lead.expired ? 'warning' : 'info'}>
+            <span className="font-bold">
+              {lead.expired
+                ? `${lead.name} 기한이 지났습니다.`
+                : `${lead.name}까지 D-${lead.d_day}.`}
+            </span>{' '}
+            {openTasks.length > 0
+              ? `아직 하지 않은 일이 ${openTasks.length}건 있습니다.`
+              : '표시된 할 일을 모두 완료했습니다.'}
+          </NoticeBox>
+        </div>
+      )}
 
       <div className="space-y-5">
         {lead && (
@@ -200,25 +245,26 @@ export default function DashboardPage() {
               })}
             </ul>
           )}
-          <p className="mt-3 text-sm text-muted">
-            민법 조문을 기계적으로 적용한 결과입니다. 실제 분할은 협의 내용에 따라 달라집니다.
-          </p>
+          <FieldHelp glossary="statutoryShare" />
         </Card>
 
+        <Disclosure summary="이 화면에 나오는 용어" note="출처와 함께 표시합니다">
+          <GlossaryList />
+        </Disclosure>
+
         <div className="flex flex-wrap gap-3">
-          <Link
-            href="/plan"
-            role="button"
-            className="flex items-center rounded-xl bg-accent px-6 font-bold text-white"
-          >
+          <Link href="/plan" role="button" className={btnPrimary}>
             실행 계획 보기
+          </Link>
+          <Link href="/onboarding" role="button" className={btnOutline}>
+            입력 내용 다시 등록
           </Link>
           <button
             type="button"
-            className="rounded-xl border border-line px-6 font-semibold text-muted"
+            className={btnSmall}
             onClick={() => {
               clear();
-              router.replace('/onboarding');
+              router.replace('/');
             }}
           >
             케이스 초기화

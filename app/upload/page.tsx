@@ -13,9 +13,18 @@
  */
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
-import { Card, CheckingBadge, PageShell, SectionTitle } from '@/app/_components/ui';
+import {
+  btnOutline,
+  btnPrimary,
+  btnSmall,
+  Card,
+  CheckingBadge,
+  EmptyState,
+  PageShell,
+  SectionTitle,
+} from '@/app/_components/ui';
 import { useCase } from '@/app/_lib/useCase';
 import {
   toAssetDrafts,
@@ -42,7 +51,7 @@ const DOC_OPTIONS: Array<{ value: ParsedDocumentType; label: string }> = [
   { value: 'fss_query_result', label: '금융거래 조회 결과' },
 ];
 
-const input = 'rounded-lg border border-line bg-surface px-3 py-2 text-base';
+const input = 'rounded-sm border border-line-strong bg-surface px-3 py-2 text-base';
 
 type Stage = 'select' | 'parsing' | 'review';
 
@@ -59,14 +68,28 @@ export default function UploadPage() {
   const [assets, setAssets] = useState<AssetDraft[]>([]);
   const [dropped, setDropped] = useState<string[]>([]);
 
-  useEffect(() => {
-    if (ready && !caseData) router.replace('/onboarding');
-  }, [ready, caseData, router]);
-
-  if (!ready || !caseData) {
+  if (!ready) {
     return (
-      <PageShell current="/upload">
+      <PageShell current="/upload" title="서류 등록" description="문서를 올리면 내용을 읽어 초안을 만듭니다. 반영 전에 직접 확인하고 고칠 수 있습니다.">
         <p className="text-muted">불러오는 중입니다.</p>
+      </PageShell>
+    );
+  }
+
+  // 케이스가 없어도 화면을 연다. 리다이렉트 대신 이 화면이 무엇을 보여주는지
+  // 설명해, 입력 전에도 메뉴를 자유롭게 둘러볼 수 있게 한다.
+  if (!caseData) {
+    return (
+      <PageShell current="/upload" title="서류 등록" description="문서를 올리면 내용을 읽어 초안을 만듭니다. 반영 전에 직접 확인하고 고칠 수 있습니다.">
+        <EmptyState
+          title="서류 업로드"
+          description="가족관계증명서와 금융거래 조회 결과를 읽어 상속인·자산 초안을 만듭니다."
+          bullets={[
+            '읽은 내용은 반영 전에 직접 확인하고 고칠 수 있습니다.',
+            '문서를 읽지 못하면 같은 화면이 직접 입력 폼으로 바뀝니다.',
+            '주민등록번호와 생년월일은 추출하지 않고, 원본 파일은 즉시 버립니다.',
+          ]}
+        />
       </PageShell>
     );
   }
@@ -172,12 +195,7 @@ export default function UploadPage() {
   const parseFailed = result?.status === 'failed' || (result === null && stage === 'review');
 
   return (
-    <PageShell current="/upload">
-      <h1 className="mb-1 text-2xl font-bold tracking-tight">서류 업로드</h1>
-      <p className="mb-6 text-muted">
-        문서를 올리면 내용을 읽어 초안을 만듭니다. 반영 전에 직접 확인하고 고칠 수 있습니다.
-      </p>
-
+    <PageShell current="/upload" title="서류 등록" description="문서를 올리면 내용을 읽어 초안을 만듭니다. 반영 전에 직접 확인하고 고칠 수 있습니다.">
       {stage !== 'review' && (
         <Card>
           <SectionTitle>문서 선택</SectionTitle>
@@ -228,13 +246,13 @@ export default function UploadPage() {
               <button
                 type="submit"
                 disabled={stage === 'parsing'}
-                className="rounded-xl bg-accent px-6 font-bold text-white disabled:opacity-60"
+                className={btnPrimary}
               >
                 {stage === 'parsing' ? '읽는 중…' : '문서 읽기'}
               </button>
               <button
                 type="button"
-                className="rounded-xl border border-line px-6 font-semibold"
+                className={btnOutline}
                 onClick={openManualForm}
               >
                 직접 입력하기
@@ -293,7 +311,7 @@ export default function UploadPage() {
               <SectionTitle>상속인</SectionTitle>
               <div className="space-y-3">
                 {heirs.map((heir, index) => (
-                  <div key={index} className="rounded-lg border border-line p-3">
+                  <div key={index} className="rounded-sm border border-line p-3">
                     <div className="grid gap-3 sm:grid-cols-[8rem_1fr_auto]">
                       <select
                         className={input}
@@ -328,7 +346,7 @@ export default function UploadPage() {
                       />
                       <button
                         type="button"
-                        className="rounded-lg border border-line px-3 text-base text-muted"
+                        className={btnSmall}
                         onClick={() => setHeirs((prev) => prev.filter((_, i) => i !== index))}
                       >
                         삭제
@@ -375,7 +393,7 @@ export default function UploadPage() {
               </div>
               <button
                 type="button"
-                className="mt-3 rounded-lg border border-line px-4 text-base font-semibold"
+                className={`mt-3 ${btnOutline}`}
                 onClick={() => setHeirs((prev) => [...prev, blankHeir()])}
               >
                 상속인 추가
@@ -386,7 +404,7 @@ export default function UploadPage() {
               <SectionTitle>자산</SectionTitle>
               <div className="space-y-3">
                 {assets.map((asset, index) => (
-                  <div key={index} className="rounded-lg border border-line p-3">
+                  <div key={index} className="rounded-sm border border-line p-3">
                     <div className="grid gap-3 sm:grid-cols-[1fr_10rem_auto]">
                       <select
                         className={input}
@@ -428,7 +446,7 @@ export default function UploadPage() {
                       />
                       <button
                         type="button"
-                        className="rounded-lg border border-line px-3 text-base text-muted"
+                        className={btnSmall}
                         onClick={() => setAssets((prev) => prev.filter((_, i) => i !== index))}
                       >
                         삭제
@@ -449,7 +467,7 @@ export default function UploadPage() {
               </div>
               <button
                 type="button"
-                className="mt-3 rounded-lg border border-line px-4 text-base font-semibold"
+                className={`mt-3 ${btnOutline}`}
                 onClick={() => setAssets((prev) => [...prev, blankAsset()])}
               >
                 자산 추가
@@ -463,14 +481,14 @@ export default function UploadPage() {
           <div className="flex flex-wrap gap-3">
             <button
               type="button"
-              className="rounded-xl bg-accent px-6 font-bold text-white"
+              className={btnPrimary}
               onClick={apply}
             >
               케이스에 반영하기
             </button>
             <button
               type="button"
-              className="rounded-xl border border-line px-6 font-semibold text-muted"
+              className={btnOutline}
               onClick={() => {
                 setStage('select');
                 setResult(null);

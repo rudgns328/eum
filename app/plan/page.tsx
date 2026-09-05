@@ -6,12 +6,10 @@
  * 기관별 액션 카드 + 통합 서류 목록. LLM을 호출하지 않는다.
  */
 
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-
 import {
   Card,
   CheckingBadge,
+  EmptyState,
   PageShell,
   SectionTitle,
   SourceNote,
@@ -108,17 +106,30 @@ function ActionCard({ action, order }: { action: InstitutionAction; order: numbe
 }
 
 export default function PlanPage() {
-  const router = useRouter();
   const { ready, caseData, plan } = useCase();
 
-  useEffect(() => {
-    if (ready && !caseData) router.replace('/onboarding');
-  }, [ready, caseData, router]);
-
-  if (!ready || !caseData || !plan) {
+  if (!ready) {
     return (
-      <PageShell current="/plan">
+      <PageShell current="/plan" title="실행 계획" description="처리 소요가 긴 기관부터 표시합니다. 순서는 안내이며 강제되지 않습니다.">
         <p className="text-muted">불러오는 중입니다.</p>
+      </PageShell>
+    );
+  }
+
+  // 케이스가 없어도 화면을 연다. 리다이렉트 대신 이 화면이 무엇을 보여주는지
+  // 설명해, 입력 전에도 메뉴를 자유롭게 둘러볼 수 있게 한다.
+  if (!caseData || !plan) {
+    return (
+      <PageShell current="/plan" title="실행 계획" description="처리 소요가 긴 기관부터 표시합니다. 순서는 안내이며 강제되지 않습니다.">
+        <EmptyState
+          title="실행 계획"
+          description="기관별로 필요한 서류와 부수, 방문 순서를 정리해 보여줍니다."
+          bullets={[
+            'KB국민·하나·신한·유안타증권·삼성생명의 검증된 규정을 반영합니다.',
+            '전 기관 서류를 종류별로 합산해 주민센터 방문 횟수를 줄입니다.',
+            '소액 간소화로 면제되는 서류와 그대로 필요한 서류를 구분합니다.',
+          ]}
+        />
       </PageShell>
     );
   }
@@ -128,12 +139,7 @@ export default function PlanPage() {
     .filter((a): a is InstitutionAction => a !== undefined);
 
   return (
-    <PageShell current="/plan">
-      <h1 className="mb-1 text-2xl font-bold tracking-tight">실행 계획</h1>
-      <p className="mb-6 text-muted">
-        처리 소요가 긴 기관부터 표시합니다. 순서는 안내이며 강제되지 않습니다.
-      </p>
-
+    <PageShell current="/plan" title="실행 계획" description="처리 소요가 긴 기관부터 표시합니다. 순서는 안내이며 강제되지 않습니다.">
       {ordered.length === 0 ? (
         <Card>
           <p>등록된 자산이 없습니다. 온보딩에서 기관별 자산을 추가하면 계획이 만들어집니다.</p>

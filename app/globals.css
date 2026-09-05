@@ -1,37 +1,70 @@
 @import "tailwindcss";
 
 /*
- * 고령 사용자 고려 (설계서 4.2)
- *  - 기본 폰트 17px 이상
- *  - 대비 강화: 본문은 순수 회색 대신 진한 먹색
- *  - 큰 터치 영역: 버튼·체크박스 최소 44px
- * 다크 모드는 두지 않는다. 대비를 예측 가능하게 유지하기 위해서다.
+ * 공공 서비스 화면 문법을 따른다.
+ *
+ *   · 정보가 먼저 온다. 큰 여백과 큰 글자로 시작하지 않는다.
+ *   · 면이 아니라 선으로 구분한다. 그림자를 쓰지 않는다.
+ *   · 모서리는 2px. 둥근 카드를 만들지 않는다.
+ *   · 색은 남색 계열 한 축으로 통일하고, 강조색을 늘리지 않는다.
+ *   · 표를 피하지 않는다. 기관별 요건은 표가 가장 읽기 쉽다.
+ *
+ * 고령 사용자 고려는 그대로 지킨다(설계서 4.2).
+ *   기본 폰트 17px · 대비 강화 · 터치 영역 44px · 건너뛰기 링크
+ *
+ * 심각도 색(critical·high·medium·checking)은 의미를 나르는 색이라
+ * 브랜드 색과 분리해 유지한다.
  */
 
 :root {
-  --background: #f7f7f5;
+  /* 기본 면 */
+  --background: #ffffff;
   --surface: #ffffff;
-  --foreground: #1a1a1a;
-  --muted: #55555f;
-  --line: #d9d9d4;
-  --accent: #1d4ed8;
-  --critical: #b91c1c;
-  --high: #b45309;
-  --medium: #15803d;
-  --checking: #6b21a8;
+  --subtle: #f4f6f9;
+  --foreground: #1b1d1f;
+  --muted: #5a6069;
+
+  /* 선 */
+  --line: #dbe0e6;
+  --line-strong: #98a1ab;
+  --line-heading: #1b1d1f;
+
+  /* 남색 한 축 */
+  --navy: #10305e;
+  --navy-dark: #0a2245;
+  --accent: #0b4a9b;
+  --accent-dark: #093c7e;
+  --accent-soft: #eef3fa;
+
+  /* 심각도 — 의미색 */
+  --critical: #c11515;
+  --high: #a4590a;
+  --medium: #14713a;
+  --checking: #5b2d90;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-surface: var(--surface);
+  --color-subtle: var(--subtle);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
+
   --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
+  --color-navy: var(--navy);
+  --color-navy-dark: var(--navy-dark);
   --color-accent: var(--accent);
+  --color-accent-dark: var(--accent-dark);
+  --color-accent-soft: var(--accent-soft);
+
   --color-critical: var(--critical);
   --color-high: var(--high);
   --color-medium: var(--medium);
   --color-checking: var(--checking);
+
+  --radius-none: 0px;
 }
 
 html {
@@ -44,7 +77,7 @@ body {
   font-family:
     "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic",
     system-ui, sans-serif;
-  line-height: 1.6;
+  line-height: 1.55;
   word-break: keep-all;
 }
 
@@ -56,12 +89,70 @@ a[role="button"] {
 }
 
 input[type="checkbox"] {
-  width: 24px;
-  height: 24px;
-  min-height: 24px;
+  width: 22px;
+  height: 22px;
+  min-height: 22px;
 }
 
 :focus-visible {
-  outline: 3px solid var(--accent);
-  outline-offset: 2px;
+  outline: 3px solid #ffb703;
+  outline-offset: 1px;
+}
+
+/* 어두운 머리말 안에서는 노란 아웃라인이 그대로 잘 보인다 */
+
+/*
+ * 제목 앞의 짧은 남색 막대.
+ * 공공 화면에서 절 제목을 구분하는 가장 흔한 장치다.
+ */
+.bar-heading {
+  position: relative;
+  padding-left: 0.85rem;
+}
+.bar-heading::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.42em;
+  width: 4px;
+  height: 0.82em;
+  background: var(--accent);
+}
+
+/* 본문 바로가기 — 키보드 포커스를 받을 때만 나타난다 */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+}
+.skip-link:focus {
+  left: 0;
+  padding: 0.75rem 1.25rem;
+  background: var(--navy-dark);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* 표 — 공공 화면의 기본 정보 단위 */
+.gov-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-top: 2px solid var(--line-heading);
+}
+.gov-table th,
+.gov-table td {
+  border-bottom: 1px solid var(--line);
+  padding: 0.7rem 0.9rem;
+  text-align: left;
+  vertical-align: top;
+}
+.gov-table thead th {
+  background: var(--subtle);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.gov-table tbody th {
+  background: var(--subtle);
+  font-weight: 700;
 }

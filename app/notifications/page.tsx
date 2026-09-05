@@ -7,10 +7,17 @@
  * 수신 이메일은 브라우저에만 두고 케이스에 넣지 않는다(절대규칙 4).
  */
 
-import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import { useCallback, useMemo, useState, useSyncExternalStore } from 'react';
 
-import { Card, PageShell, SectionTitle, SeverityTag, SourceNote } from '@/app/_components/ui';
+import {
+  btnPrimary,
+  Card,
+  EmptyState,
+  PageShell,
+  SectionTitle,
+  SeverityTag,
+  SourceNote,
+} from '@/app/_components/ui';
 import { today, useCase } from '@/app/_lib/useCase';
 import { buildSchedule, type ScheduledNotification } from '@/lib/notify/schedule';
 
@@ -58,7 +65,6 @@ function NotificationRow({ notification }: { notification: ScheduledNotification
 }
 
 export default function NotificationsPage() {
-  const router = useRouter();
   const { ready, caseData, deadlines } = useCase();
   // 저장된 주소를 외부 스토어로 읽고, 사용자가 고치기 시작하면 draft가 이긴다.
   const storedEmail = useSyncExternalStore(NOOP_SUBSCRIBE, readEmail, () => '');
@@ -66,10 +72,6 @@ export default function NotificationsPage() {
   const email = draftEmail ?? storedEmail;
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
-
-  useEffect(() => {
-    if (ready && !caseData) router.replace('/onboarding');
-  }, [ready, caseData, router]);
 
   const schedule = useMemo(
     () =>
@@ -112,10 +114,28 @@ export default function NotificationsPage() {
     }
   }, [caseData, next, email]);
 
-  if (!ready || !caseData) {
+  if (!ready) {
     return (
-      <PageShell current="/notifications">
+      <PageShell current="/notifications" title="알림 설정" description="기한에서 발송일을 계산합니다. 묻지 않아도 서비스가 먼저 셉니다.">
         <p className="text-muted">불러오는 중입니다.</p>
+      </PageShell>
+    );
+  }
+
+  // 케이스가 없어도 화면을 연다. 리다이렉트 대신 이 화면이 무엇을 보여주는지
+  // 설명해, 입력 전에도 메뉴를 자유롭게 둘러볼 수 있게 한다.
+  if (!caseData) {
+    return (
+      <PageShell current="/notifications" title="알림 설정" description="기한에서 발송일을 계산합니다. 묻지 않아도 서비스가 먼저 셉니다.">
+        <EmptyState
+          title="알림"
+          description="기한에서 발송일을 계산해 미리 알립니다. 묻지 않아도 먼저 셉니다."
+          bullets={[
+            '중요 기한은 D-30·14·7·3·1, 그 외 기한은 D-30·7·1에 보냅니다.',
+            '조회 신청 후 20영업일이 지나면 결과 확인을 안내합니다.',
+            '조회 결과가 삭제되기 7일 전에 알립니다.',
+          ]}
+        />
       </PageShell>
     );
   }
@@ -124,19 +144,14 @@ export default function NotificationsPage() {
   const passed = schedule.filter((n) => n.past);
 
   return (
-    <PageShell current="/notifications">
-      <h1 className="mb-1 text-2xl font-bold tracking-tight">알림</h1>
-      <p className="mb-6 text-muted">
-        기한에서 발송일을 계산합니다. 묻지 않아도 서비스가 먼저 셉니다.
-      </p>
-
+    <PageShell current="/notifications" title="알림 설정" description="기한에서 발송일을 계산합니다. 묻지 않아도 서비스가 먼저 셉니다.">
       <div className="space-y-5">
         <Card>
           <SectionTitle>받을 주소</SectionTitle>
           <div className="flex flex-wrap gap-3">
             <input
               type="email"
-              className="min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 py-2 text-base"
+              className="min-w-0 flex-1 rounded-sm border border-line-strong bg-surface px-3 py-2 text-base"
               value={email}
               onChange={(e) => setDraftEmail(e.target.value)}
               placeholder="name@example.com"
@@ -144,7 +159,7 @@ export default function NotificationsPage() {
             />
             <button
               type="button"
-              className="rounded-xl bg-accent px-5 font-bold text-white disabled:opacity-50"
+              className={btnPrimary}
               onClick={send}
               disabled={sending || !next || email.trim() === ''}
             >
