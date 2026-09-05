@@ -52,6 +52,7 @@ export async function GET(request: Request): Promise<Response> {
       available: false,
       subscribed: false,
       supabase_status: error instanceof SupabaseRequestError ? error.status : null,
+      supabase_detail: error instanceof SupabaseRequestError ? (error.detail ?? null) : null,
     });
   }
 }

@@ -31,8 +31,10 @@ export class SupabaseRequestError extends Error {
   constructor(
     readonly method: string,
     readonly status: number,
+    /** PostgREST가 돌려준 code/message. 키는 포함되지 않는다 */
+    readonly detail?: string,
   ) {
-    super(`[supabase] ${method} ${TABLE} → ${status}`);
+    super(`[supabase] ${method} ${TABLE} → ${status}${detail ? ` ${detail}` : ''}`);
     this.name = 'SupabaseRequestError';
   }
 }
@@ -87,8 +89,16 @@ export class SupabaseSubscriptionStore implements SubscriptionStore {
   private async request(url: string, init: RequestInit): Promise<Response> {
     const response = await this.fetchImpl(url, init);
     if (!response.ok) {
-      // 본문에 키가 실려 나가지 않도록 상태 코드만 남긴다.
-      throw new SupabaseRequestError(init.method ?? 'GET', response.status);
+      // PostgREST는 실패 사유를 본문에 담아 준다. 우리가 보낸 키를 되비추지
+      // 않으므로 code/message만 뽑아 원인 파악에 쓴다.
+      let detail: string | undefined;
+      try {
+        const body = (await response.json()) as { code?: string; message?: string };
+        detail = [body.code, body.message].filter(Boolean).join(' ').slice(0, 200);
+      } catch {
+        // 본문이 JSON이 아니면 상태 코드만으로 판단한다.
+      }
+      throw new SupabaseRequestError(init.method ?? 'GET', response.status, detail);
     }
     return response;
   }

@@ -27,3 +27,12 @@ create index if not exists notification_subscriptions_token_idx
 -- 이 테이블은 service_role 키를 쓰는 서버에서만 접근한다.
 -- 익명 키로는 한 줄도 읽거나 쓸 수 없도록 RLS를 켜고 정책을 두지 않는다.
 alter table notification_subscriptions enable row level security;
+
+-- 서버(서비스 역할)에 이 테이블 권한을 명시적으로 준다.
+--
+-- SQL Editor로 만든 테이블은 기본 권한이 붙지 않는 경우가 있어 REST 요청이
+-- 403 permission denied 로 막힌다. 이미 권한이 있으면 아무 일도 하지 않는다.
+grant all privileges on table notification_subscriptions to service_role;
+
+-- 익명 키로는 여전히 한 줄도 읽거나 쓸 수 없다(정책을 두지 않았다).
+revoke all on table notification_subscriptions from anon, authenticated;
