@@ -78,3 +78,13 @@
 - 여러 Phase를 한 번에 구현하라는 요청을 받아도 순서대로 하나씩 진행
 - 불확실한 규정 값(기관별 서류 요건 등)은 임의로 채우지 말고 placeholder + `verified: false`로 남길 것
 - `data/` 하위 JSON은 검증된 데이터 파일이다. 코드·시드·마이그레이션에서 값을 수정하지 않으며, 갱신은 파일 교체로만 한다
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
