@@ -60,6 +60,8 @@ export interface RenderedEmail {
 export function renderNotification(
   notification: ScheduledNotification,
   caseData: Pick<Case, 'decedent_label'>,
+  /** 구독 해지 주소. 자동 발송 건에는 반드시 붙인다(CLAUDE.md 절대규칙 4) */
+  unsubscribeUrl?: string,
 ): RenderedEmail {
   const subject = `[이음] ${notification.title}`;
   const lines = [
@@ -83,6 +85,14 @@ export function renderNotification(
     '이 안내는 규정과 기한을 정리한 것입니다. 법률 판단이나 세액 계산은 제공하지 않습니다.',
   );
 
+  if (unsubscribeUrl) {
+    lines.push(
+      '',
+      '알림을 그만 받으시려면 아래 주소를 여세요. 저장된 정보가 즉시 삭제됩니다.',
+      unsubscribeUrl,
+    );
+  }
+
   return { subject, text: lines.join('\n') };
 }
 
@@ -95,6 +105,7 @@ export async function sendNotification(
     to: string;
     notification: ScheduledNotification;
     caseData: Pick<Case, 'decedent_label'>;
+    unsubscribeUrl?: string;
   },
   client: EmailClient | null = defaultEmailClient(),
 ): Promise<SendResult> {
@@ -105,7 +116,11 @@ export async function sendNotification(
     return { status: 'failed', reason: 'not_configured', message: FAILURE_MESSAGE.not_configured };
   }
 
-  const { subject, text } = renderNotification(input.notification, input.caseData);
+  const { subject, text } = renderNotification(
+    input.notification,
+    input.caseData,
+    input.unsubscribeUrl,
+  );
 
   try {
     const response = await client.emails.send({
