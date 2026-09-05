@@ -53,6 +53,11 @@ export interface Case {
   has_vehicle?: boolean;
   /** 협의분할 진행 여부. undefined면 미확인 */
   agreement_division?: boolean;
+  /**
+   * 예시 데이터로 만든 케이스. 화면 상단에 배지를 띄워 실제 케이스와
+   * 구분한다. 저장 계층은 이 값을 특별 취급하지 않는다.
+   */
+  is_demo?: boolean;
   heirs: CaseHeir[];
   assets: CaseAsset[];
   debts: CaseDebt[];
