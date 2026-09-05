@@ -27,6 +27,37 @@ function isCase(value: unknown): value is Case {
   );
 }
 
+/** 구독 상태 조회. 화면이 신청/해지 중 무엇을 보여줄지 정할 때 쓴다 */
+export async function GET(request: Request): Promise<Response> {
+  const store = defaultSubscriptionStore();
+  // 설정 전에는 '구독 기능이 준비되지 않음'으로 답한다. 화면은 그대로 동작한다.
+  if (!store) return Response.json({ available: false, subscribed: false });
+
+  const caseId = new URL(request.url).searchParams.get('case_id');
+  if (!caseId) return Response.json({ error: '케이스 정보가 없습니다.' }, { status: 400 });
+
+  try {
+    const row = await store.findByCaseId(caseId);
+    return Response.json({
+      available: true,
+      subscribed: row !== null,
+      // 주소는 마스킹해 돌려준다. 화면에 원본을 다시 뿌리지 않는다.
+      email_masked: row ? maskEmail(row.email) : null,
+    });
+  } catch (error) {
+    console.warn('[subscribe:get]', error instanceof Error ? error.message : 'unknown');
+    return Response.json({ available: false, subscribed: false });
+  }
+}
+
+/** heir@example.com → he**@example.com */
+function maskEmail(email: string): string {
+  const [local, domain] = email.split('@');
+  if (!domain) return '***';
+  const head = local.slice(0, 2);
+  return `${head}${'*'.repeat(Math.max(1, local.length - 2))}@${domain}`;
+}
+
 export async function POST(request: Request): Promise<Response> {
   const store = defaultSubscriptionStore();
   if (!store) return Response.json({ error: NOT_CONFIGURED }, { status: 503 });

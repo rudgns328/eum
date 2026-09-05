@@ -103,7 +103,8 @@ export function EntrySection({ hasCase }: { hasCase: boolean }) {
           </h1>
           <p className="mt-5 max-w-xl text-lg text-white/85">
             사망일 하나만 넣으면 모든 기한이 D-day로 환산되고, 기관별로 필요한 서류가 한 장으로
-            정리됩니다. 물어봐야 답하는 상담 도구가 아니라, 기한이 다가오면 먼저 알리는 화면입니다.
+            정리됩니다. 물어봐야 답하는 상담 도구가 아니라, 알림을 신청하시면 기한이 다가올 때 먼저
+            알려 드리는 서비스입니다.
           </p>
           <div className="mt-7 flex flex-wrap gap-2">
             <Link
