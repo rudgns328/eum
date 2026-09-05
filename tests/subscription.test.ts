@@ -102,8 +102,10 @@ describe('메모리 저장소', () => {
 describe('Supabase 어댑터 — 요청 형태', () => {
   const config = { url: 'https://x.supabase.co', serviceRoleKey: 'svc-key' };
 
+  type FetchStub = (url: string, init: RequestInit) => Promise<Response>;
+
   function stubFetch(body: unknown = []) {
-    return vi.fn(async () => new Response(JSON.stringify(body), { status: 200 }));
+    return vi.fn<FetchStub>(async () => new Response(JSON.stringify(body), { status: 200 }));
   }
 
   it('service_role 키를 헤더로 보내고 본문에 허용 필드만 싣는다', async () => {
@@ -111,7 +113,7 @@ describe('Supabase 어댑터 — 요청 형태', () => {
     const store = new SupabaseSubscriptionStore(config, f as unknown as typeof fetch);
     await store.upsert(toSubscription(CASE, { email: EMAIL }));
 
-    const [url, init] = f.mock.calls[0] as [string, RequestInit];
+    const [url, init] = f.mock.calls[0];
     expect(url).toContain('/rest/v1/notification_subscriptions');
     expect((init.headers as Record<string, string>).apikey).toBe('svc-key');
     expect((init.headers as Record<string, string>).Prefer).toContain('merge-duplicates');
@@ -125,13 +127,13 @@ describe('Supabase 어댑터 — 요청 형태', () => {
     const store = new SupabaseSubscriptionStore(config, f as unknown as typeof fetch);
     expect(await store.removeByToken('tok-1')).toBe(true);
 
-    const [url, init] = f.mock.calls[0] as [string, RequestInit];
+    const [url, init] = f.mock.calls[0];
     expect(init.method).toBe('DELETE');
     expect(url).toContain('unsubscribe_token=eq.tok-1');
   });
 
   it('실패하면 상태 코드만 남기고 키를 노출하지 않는다', async () => {
-    const f = vi.fn(async () => new Response('nope', { status: 401 }));
+    const f = vi.fn<FetchStub>(async () => new Response('nope', { status: 401 }));
     const store = new SupabaseSubscriptionStore(config, f as unknown as typeof fetch);
     await expect(store.listAll()).rejects.toThrow(/401/);
     await expect(store.listAll()).rejects.not.toThrow(/svc-key/);
