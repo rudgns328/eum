@@ -31,6 +31,7 @@ import {
   useCaseFlags,
   useStartDemo,
   Disclosure,
+  DocumentFill,
   FieldHelp,
   GlossaryList,
 } from '@/app/_components/ui';
@@ -55,6 +56,9 @@ import {
   type CaseHeir,
 } from '@/lib/case/model';
 import type { HeirInput, Relation } from '@/lib/engines/types';
+import type { ParsedFamilyCert, ParsedFssQueryResult } from '@/lib/llm/schemas';
+import { parseDocument } from '@/app/_lib/parseDocument';
+import { droppedRelations, needsReview, toAssetDrafts, toHeirDrafts } from '@/lib/case/import';
 import { loadInstitutions } from '@/lib/rules/loader';
 import { verificationBadge } from '@/lib/rules/verification';
 
@@ -572,6 +576,102 @@ function OnboardingForm() {
     setStep((prev) => Math.min(3, prev + 1));
   }
 
+  /*
+   * 문서로 채우기.
+   *
+   * 상속인 3~5명과 기관 5곳을 손으로 넣는 일이 이 화면에서 가장 지겹다.
+   * AI가 그 자리를 대신한다 — 읽어서 초안을 만들고, 확인과 수정은 사용자가
+   * 그대로 이어서 한다. 읽지 못해도 아래 폼이 그대로 있어 잃는 것이 없다.
+   *
+   * 계산에는 관여하지 않는다. 기한과 법정상속분은 지금처럼 순수 함수가
+   * 낸다(절대규칙 2).
+   */
+  const [reading, setReading] = useState<'heirs' | 'assets' | null>(null);
+  const [readNote, setReadNote] = useState('');
+
+  async function fillFromDocument(file: File, kind: 'heirs' | 'assets') {
+    setReading(kind);
+    setReadNote('');
+    const parsed = await parseDocument(
+      file,
+      kind === 'heirs' ? 'family_cert' : 'fss_query_result',
+    );
+    setReading(null);
+
+    if (parsed.status === 'failed') {
+      setReadNote(parsed.message);
+      return;
+    }
+
+    if (kind === 'heirs' && parsed.document_type === 'family_cert') {
+      const drafts = toHeirDrafts(parsed.data as ParsedFamilyCert);
+      if (drafts.length === 0) {
+        setReadNote('상속인을 찾지 못했습니다. 아래에 직접 넣어 주세요.');
+        return;
+      }
+      setHeirs(
+        drafts.map((draft) => ({
+          key: nextKey(),
+          relation: draft.relation,
+          // 마스킹본이 들어온다. 사용자가 고칠 수 있게 그대로 채운다.
+          name: draft.name_masked,
+          is_minor: draft.is_minor,
+          is_visiting: false,
+          deceased: false,
+        })),
+      );
+      const unsure = drafts.filter(needsReview).length;
+      /*
+       * 초안에서 빠진 사람을 알린다. 상속개시 전 사망한 자녀는 대습상속
+       * 대상일 수 있어(민법 제1001조) 말없이 버리면 안 된다.
+       */
+      const skipped = droppedRelations(parsed.data as ParsedFamilyCert);
+      setReadNote(
+        [
+          `상속인 ${drafts.length}명을 채웠습니다.`,
+          unsure > 0 ? `그중 ${unsure}건은 확인이 필요합니다.` : '맞는지 확인해 주세요.',
+          skipped.length > 0 ? `넣지 않은 항목: ${skipped.join(', ')}` : '',
+        ]
+          .filter(Boolean)
+          .join(' '),
+      );
+      return;
+    }
+
+    if (kind === 'assets' && parsed.document_type === 'fss_query_result') {
+      const drafts = toAssetDrafts(parsed.data as ParsedFssQueryResult, institutions);
+      if (drafts.length === 0) {
+        setReadNote('자산을 찾지 못했습니다. 아래에 직접 넣어 주세요.');
+        return;
+      }
+      setAssets(
+        drafts.map((draft) => {
+          const matched = institutions.find((i) => i.institution_id === draft.institution_id);
+          return {
+            key: nextKey(),
+            institution_id: draft.institution_id ?? '',
+            type: matched ? assetTypeFor(matched.type) : 'deposit',
+            amount: draft.amount === null ? '' : String(draft.amount),
+            deposit_amount: '',
+            securities_valuation: '',
+            beneficiary_designated: '' as const,
+            group_insurance: '' as const,
+            claim_by_delegation: '' as const,
+          };
+        }),
+      );
+      const unmatched = drafts.filter((d) => d.institution_id === null).length;
+      setReadNote(
+        unmatched > 0
+          ? `자산 ${drafts.length}건을 채웠습니다. 그중 ${unmatched}건은 기관을 직접 고르셔야 합니다.`
+          : `자산 ${drafts.length}건을 채웠습니다. 맞는지 확인해 주세요.`,
+      );
+      return;
+    }
+
+    setReadNote('올리신 문서가 이 단계와 맞지 않습니다.');
+  }
+
   // 그릴 때마다 다시 본다. 고치는 즉시 문구가 사라진다.
   const problem = validate();
   const labelBad = !isValidLabel(decedentLabel) && showsError('decedent');
@@ -735,6 +835,15 @@ function OnboardingForm() {
           <>
             <Card>
               <SectionTitle>상속인</SectionTitle>
+              <DocumentFill
+                kind="heirs"
+                label="가족관계증명서(상세)로 채우기"
+                hint="문서를 읽어 상속인 목록을 만듭니다. 읽은 내용은 아래에서 고치실 수 있습니다."
+                reading={reading === 'heirs'}
+                note={readNote}
+                onPick={(file) => void fillFromDocument(file, 'heirs')}
+              />
+
               <div className="space-y-3">
                 {heirs
                   .filter((heir) => !heir.substitutes_for_key)
@@ -878,6 +987,15 @@ function OnboardingForm() {
           <>
             <Card>
               <SectionTitle>자산</SectionTitle>
+              <DocumentFill
+                kind="assets"
+                label="금융거래 조회결과로 채우기"
+                hint="문서를 읽어 기관과 금액을 채웁니다. 읽은 내용은 아래에서 고치실 수 있습니다."
+                reading={reading === 'assets'}
+                note={readNote}
+                onPick={(file) => void fillFromDocument(file, 'assets')}
+              />
+
               <FieldHelp reason="금액을 넣으면 기관별 소액 간소화 기준에 해당하는지 자동으로 판정합니다." />
               <div className="mt-3 space-y-3">
                 {assets.map((asset, index) => {

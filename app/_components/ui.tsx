@@ -704,3 +704,55 @@ export function formatWon(amount: number): string {
   }
   return `${amount.toLocaleString('ko-KR')}원`;
 }
+
+/**
+ * 문서를 올려 아래 폼을 채우는 자리.
+ *
+ * AI를 옆길이 아니라 입력 흐름 안에 둔다. 읽지 못하면 아래 폼이 그대로
+ * 있으므로, 이 자리는 지름길이지 관문이 아니다.
+ */
+export function DocumentFill({
+  kind,
+  label,
+  hint,
+  reading,
+  note,
+  onPick,
+}: {
+  kind: string;
+  label: string;
+  hint: string;
+  reading: boolean;
+  note: string;
+  onPick: (file: File) => void;
+}) {
+  const inputId = `fill-${kind}`;
+  return (
+    <div className="mb-4 rounded-xl border border-line bg-subtle p-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <label htmlFor={inputId} className={`${btnOutline} cursor-pointer`}>
+          {reading ? '읽는 중…' : label}
+        </label>
+        <input
+          id={inputId}
+          type="file"
+          className="sr-only"
+          accept="image/png,image/jpeg,image/webp,application/pdf"
+          disabled={reading}
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            // 같은 파일을 다시 골라도 동작하도록 값을 비운다.
+            e.target.value = '';
+            if (file) onPick(file);
+          }}
+        />
+        <p className="flex-1 text-sm text-muted">{hint}</p>
+      </div>
+      {note && (
+        <p role="status" className="mt-2 text-base font-semibold">
+          {note}
+        </p>
+      )}
+    </div>
+  );
+}
