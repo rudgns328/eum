@@ -14,6 +14,7 @@
 
 import {
   buildCandidates,
+  candidateFacts,
   candidateToAlert,
   type AlertCandidate,
   type CandidateInput,
@@ -125,7 +126,7 @@ function candidateBlock(candidates: readonly AlertCandidate[]): string {
         `  제목: ${candidate.title}`,
         `  심각도: ${candidate.severity}`,
         `  확정 여부: ${candidate.certainty === 'confirmed' ? '조건 확정' : '전제 일부 미확인'}`,
-        `  사실: ${candidate.facts.join(' ')}`,
+        `  사실: ${candidateFacts(candidate).join(' ')}`,
       ].join('\n'),
     )
     .join('\n');

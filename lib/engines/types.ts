@@ -89,6 +89,7 @@ export interface DeadlineOptions {
   /** applies_if 평가용 플래그. 미지정(undefined)은 '미해당'으로 처리해 제외 */
   has_real_estate?: boolean;
   has_insurance?: boolean;
+  has_vehicle?: boolean;
 }
 
 // ---------------------------------------------------------------------------

@@ -268,7 +268,7 @@ describe('04 §7.3 오답 처리 — 카카오뱅크 미확인 필드를 추정�
     expect(outcome.consent_basis).toBeNull();
     expect(outcome.matched_rule?.max_amount).toBe(5_000_000); // 표상 구간은 맞게 찾는다
     expect(outcome.required_consent_heirs).toBeUndefined(); // 인원을 단정하지 않는다
-    expect(outcome.reasons.join(' ')).toContain('확인 중');
+    expect(outcome.reasons.join(' ')).toMatch(/확인하지 못|확인 중/);
   });
 
   it('KB의 headcount 기준을 카카오에 전용하지 않는다', () => {

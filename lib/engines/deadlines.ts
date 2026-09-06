@@ -75,6 +75,8 @@ function appliesIf(rule: DeadlineRule, options: DeadlineOptions): boolean {
       return options.has_real_estate === true;
     case 'has_insurance':
       return options.has_insurance === true;
+    case 'has_vehicle':
+      return options.has_vehicle === true;
     default:
       // 알 수 없는 조건은 판정하지 않고 제외한다(임의 추정 금지).
       return false;

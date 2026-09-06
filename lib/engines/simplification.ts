@@ -144,7 +144,7 @@ export function classifySimplification(
         effect: effect ?? undefined,
         reasons: [
           `${formatWon(rule.max_amount)} 이하 구간에 해당합니다.`,
-          ...(effect ? [] : ['간소화로 면제되는 서류가 확인되지 않았습니다 (확인 중).']),
+          ...(effect ? [] : ['간소화로 어떤 서류가 면제되는지는 아직 확인하지 못했습니다.']),
         ],
       };
     }
@@ -176,7 +176,7 @@ export function classifySimplification(
           effect: effect ?? undefined,
           reasons: [
             `${formatWon(rule.max_amount)} 이하 · 상속인 ${rule.min_total_heirs}인 이상 구간에 해당합니다.`,
-            '동의 비율이 인원 기준인지 상속분 기준인지 확인되지 않아 충족 여부를 판정하지 않습니다 (확인 중).',
+            '동의 비율이 인원 기준인지 상속분 기준인지 아직 확인하지 못해, 요건 충족 여부를 단정하지 않습니다.',
           ],
         };
       }
@@ -196,7 +196,7 @@ export function classifySimplification(
           consentType === 'physical_visit'
             ? `상속인 ${totalHeirs}명 중 ${requiredHeirs}명이 영업점에 직접 방문해야 하며 위임장으로 대체할 수 없습니다.`
             : `상속인 ${totalHeirs}명 중 ${requiredHeirs}명의 동의가 필요합니다.`,
-          ...(effect ? [] : ['간소화로 면제되는 서류가 확인되지 않았습니다 (확인 중).']),
+          ...(effect ? [] : ['간소화로 어떤 서류가 면제되는지는 아직 확인하지 못했습니다.']),
         ],
       };
     }

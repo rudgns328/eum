@@ -31,6 +31,7 @@ export function toCaseShape(subscription: Subscription): Case {
     decedent_label: subscription.decedent_label,
     fss_application_date: subscription.fss_application_date,
     has_real_estate: subscription.has_real_estate,
+    has_vehicle: subscription.has_vehicle,
     heirs: [],
     assets: [],
     debts: [],
@@ -45,6 +46,7 @@ export function dueFor(subscription: Subscription, today: IsoDate) {
     awareness_date: subscription.awareness_date,
     fss_application_date: subscription.fss_application_date,
     has_real_estate: subscription.has_real_estate,
+    has_vehicle: subscription.has_vehicle,
     has_insurance: subscription.has_insurance,
   });
   const schedule = buildSchedule({

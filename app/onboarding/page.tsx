@@ -205,13 +205,14 @@ function OnboardingForm() {
         awareness_date: awarenessDate || null,
         fss_application_date: fssDate || null,
         has_real_estate: hasRealEstate,
+        has_vehicle: hasVehicle,
         has_insurance: assets.some((a) => a.type === 'insurance'),
       });
     } catch {
       // 존재하지 않는 날짜 등은 미리보기를 비운다. 입력은 막지 않는다.
       return [];
     }
-  }, [deathDate, awarenessDate, fssDate, hasRealEstate, assets]);
+  }, [deathDate, awarenessDate, fssDate, hasRealEstate, hasVehicle, assets]);
 
   /** 2단계 — 관계만으로 계산된다. 이름·나이는 쓰지 않는다 */
   /** heir_id로 초안을 되찾는다. 대습상속이 있으면 배열 순서로는 짚을 수 없다 */

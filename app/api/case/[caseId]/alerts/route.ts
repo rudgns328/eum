@@ -55,6 +55,7 @@ export async function POST(
     awareness_date: caseData.awareness_date ?? null,
     fss_application_date: caseData.fss_application_date ?? null,
     has_real_estate: caseData.has_real_estate,
+    has_vehicle: caseData.has_vehicle,
     has_insurance: caseData.assets.some((asset) => asset.type === 'insurance'),
   });
 

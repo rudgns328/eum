@@ -204,7 +204,7 @@ function detectQueryFreezesAccount(ctx: TimeTrapContext, push: Push) {
       evidence.push(`${institution.name}: ${outcome.reasons[0]}`);
     } else if (outcome.status === 'unverified') {
       uncertain.push(asset.institution_id);
-      evidence.push(`${institution.name}: 소액 간소화 충족 여부 확인 중.`);
+      evidence.push(`${institution.name}: 소액 간소화 요건 충족 여부를 아직 확인하지 못했습니다.`);
     }
   }
 
@@ -337,7 +337,7 @@ function detectFullRrnRequired(ctx: TimeTrapContext, push: Push) {
   );
   if (unverified.length > 0) {
     evidence.push(
-      `${unverified.map((id) => ctx.institutions[id]?.name ?? id).join('·')}: 요건 확인 중 (추정하지 않음).`,
+      `${unverified.map((id) => ctx.institutions[id]?.name ?? id).join('·')}: 이 요건은 아직 확인하지 못했습니다.`,
     );
   }
 

@@ -120,6 +120,15 @@ export default function AlertsPage() {
   }
 
   const alerts = result?.alerts ?? deterministic;
+
+  // 표시용으로 원문과 근거를 나눠 꺼낸다. 판정은 규칙 엔진 산출값 그대로다.
+  const byId = new Map(
+    buildCandidates({ caseData, institutions: INSTITUTIONS, deadlines, today: today() }).map(
+      (c) => [c.candidate_id, c],
+    ),
+  );
+  const quoteOf = (id: string) => byId.get(id)?.quote ?? [];
+  const evidenceOf = (id: string) => byId.get(id)?.evidence ?? [];
   const nameOf = (institutionId: string) =>
     plan?.institutions.find((a) => a.institution_id === institutionId)?.name
     ?? INSTITUTIONS[institutionId]?.name
@@ -169,7 +178,29 @@ export default function AlertsPage() {
                 {alert.certainty === 'conditional' && <CheckingBadge label="조건부" />}
               </div>
 
-              <p className="text-base">{alert.body}</p>
+              {/* 규정 원문(인용, 평서체)과 우리가 계산한 근거(경어체)를 한 문단으로
+                  합치지 않는다. 섞으면 문체가 어긋난 것처럼 읽힌다. */}
+              {quoteOf(alert.candidate_id).length > 0 && (
+                <blockquote className="border-l-4 border-line-strong pl-3 text-base">
+                  {quoteOf(alert.candidate_id).map((line) => (
+                    <p key={line}>{line}</p>
+                  ))}
+                </blockquote>
+              )}
+
+              {evidenceOf(alert.candidate_id).length > 0 && (
+                <div className="mt-3">
+                  <p className="text-sm font-bold text-muted">이 상황에서 확인된 것</p>
+                  <ul className="mt-1 space-y-0.5">
+                    {evidenceOf(alert.candidate_id).map((line) => (
+                      <li key={line} className="flex gap-2 text-base">
+                        <span className="mt-[0.6em] h-1 w-1 shrink-0 bg-line-strong" aria-hidden />
+                        <span>{line}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {/* 규정 원문은 위에 그대로 두고, 쉬운 설명을 아래에 덧붙인다.
                   AI가 한 일을 라벨로 드러내고, guard가 막으면 이 블록만 빠진다. */}

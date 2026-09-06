@@ -128,7 +128,7 @@ describe('1. query_freezes_account (critical)', () => {
     );
     const hit = find(hits, 'query_freezes_account');
     expect(hit?.condition_met).toBe('conditional');
-    expect(hit?.evidence.join(' ')).toContain('확인 중');
+    expect(hit?.evidence.join(' ')).toMatch(/확인하지 못|확인 중/);
   });
 
   it('보험(접수 채널 축)은 이 함정의 대상이 아니다', () => {
@@ -273,7 +273,7 @@ describe('5. full_rrn_required (warning)', () => {
         ],
       }),
     );
-    expect(find(hits, 'full_rrn_required')?.evidence.join(' ')).toContain('확인 중');
+    expect(find(hits, 'full_rrn_required')?.evidence.join(' ')).toMatch(/확인하지 못|확인 중/);
   });
 
   it('카카오뱅크 자산만 있으면 발생하지 않는다', () => {

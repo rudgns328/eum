@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { calculateDeadlines } from '@/lib/engines/deadlines';
 import { institutionMap } from '@/lib/rules/loader';
-import { buildCandidates, candidateToAlert } from '@/lib/detect/candidates';
+import { buildCandidates, candidateFacts, candidateToAlert } from '@/lib/detect/candidates';
 import { detectMissingItems } from '@/lib/llm/detect';
 import { isClean } from '@/lib/llm/guard';
 import type { Case } from '@/lib/case/model';
@@ -38,6 +38,7 @@ function input(caseData: Case = baseCase()) {
     deadlines: calculateDeadlines(caseData.death_date, {
       today: TODAY,
       has_real_estate: caseData.has_real_estate,
+      has_vehicle: caseData.has_vehicle,
       has_insurance: caseData.assets.some((a) => a.type === 'insurance'),
       fss_application_date: caseData.fss_application_date ?? null,
     }),
@@ -65,7 +66,7 @@ describe('1단계 규칙 필터 — 설계서 3.4의 후보 넷', () => {
     const candidates = buildCandidates(input());
     const single = candidates.find((c) => c.candidate_id === 'rule:single_heir:kb_bank');
     expect(single).toBeDefined();
-    expect(single?.facts.join(' ')).toContain('300만원 이하');
+    expect(candidateFacts(single!).join(' ')).toContain('300만원 이하');
     expect(single?.requires_expert).toBe(false);
   });
 
@@ -94,7 +95,7 @@ describe('1단계 규칙 필터 — 설계서 3.4의 후보 넷', () => {
     const insurance = candidates.find((c) => c.candidate_id === 'rule:insurance_coverage_unknown');
     expect(insurance?.severity).toBe('warning');
     expect(insurance?.deadline_ref).toBe('insurance_claim_prescription');
-    expect(insurance?.facts.join(' ')).toContain('소멸시효');
+    expect(candidateFacts(insurance!).join(' ')).toContain('소멸시효');
   });
 
   it('부채가 재산을 초과하면 전문가 항목을 만든다', () => {
@@ -119,13 +120,24 @@ describe('1단계 규칙 필터 — 설계서 3.4의 후보 넷', () => {
     expect(candidates.map((c) => c.candidate_id)).not.toContain('rule:debt_exceeds_asset');
   });
 
-  it('자동차 보유 시 이전등록 후보를 만들되 기한을 지어내지 않는다', () => {
-    const candidates = buildCandidates(input(baseCase({ has_vehicle: true })));
+  it('자동차 보유 시 규정 정본의 이전등록 기한을 인용한다', () => {
+    const caseData = baseCase({ has_vehicle: true });
+    const candidates = buildCandidates(input(caseData));
     const vehicle = candidates.find((c) => c.candidate_id === 'rule:vehicle_transfer');
+
     expect(vehicle).toBeDefined();
-    expect(vehicle?.deadline_ref).toBeUndefined();
-    expect(vehicle?.facts.join(' ')).toContain('확인 중');
-    expect(vehicle?.certainty).toBe('conditional');
+    expect(vehicle?.deadline_ref).toBe('vehicle_transfer');
+    expect(vehicle?.certainty).toBe('confirmed');
+    // 날짜를 여기서 만들지 않고 data/deadlines.json 산출값을 그대로 인용한다.
+    const due = input(caseData).deadlines.find((d) => d.deadline_id === 'vehicle_transfer');
+    expect(due).toBeDefined();
+    expect(candidateFacts(vehicle!).join(' ')).toContain(due!.due_date);
+    expect(vehicle?.source.institution).toBe('법제처 찾기쉬운 생활법령정보');
+  });
+
+  it('자동차가 없으면 이전등록 기한이 나오지 않는다', () => {
+    const deadlines = input(baseCase()).deadlines;
+    expect(deadlines.find((d) => d.deadline_id === 'vehicle_transfer')).toBeUndefined();
   });
 
   it('시간 함정을 Phase 1 구현분 그대로 재사용한다', () => {

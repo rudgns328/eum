@@ -30,8 +30,18 @@ export interface AlertCandidate {
   origin: 'time_trap' | 'rule';
   severity: AlertSeverity;
   title: string;
-  /** 결정론 사실 서술. 2단계가 실패하면 이 문장들이 그대로 본문이 된다 */
-  facts: string[];
+  /**
+   * 규정 원문. data/에서 그대로 옮긴 인용이라 문체를 손대지 않는다.
+   * 검증된 문장을 우리 말투로 고치면 통화 검증의 가치가 사라진다.
+   */
+  quote: string[];
+  /**
+   * 이 케이스에서 우리가 계산한 근거. 전부 경어체로 쓴다.
+   *
+   * quote와 한 문단으로 합치지 않는다. 인용문(평서체)과 우리 문장(경어체)이
+   * 섞이면 문체가 어긋난 것처럼 읽힌다.
+   */
+  evidence: string[];
   /** 전제 일부가 미확인이면 'conditional' */
   certainty: 'confirmed' | 'conditional';
   deadline_ref?: string;
@@ -63,7 +73,8 @@ function fromTimeTrap(hit: TimeTrapHit): AlertCandidate {
     origin: 'time_trap',
     severity: hit.severity,
     title: hit.name,
-    facts: [hit.description, ...(hit.implication ? [hit.implication] : []), ...hit.evidence],
+    quote: [hit.description, ...(hit.implication ? [hit.implication] : [])],
+    evidence: hit.evidence,
     certainty: hit.condition_met,
     requires_expert: hit.requires_expert,
     ...(hit.requires_expert
@@ -102,7 +113,8 @@ function singleHeirCandidates(input: CandidateInput): AlertCandidate[] {
       origin: 'rule',
       severity: 'info',
       title: `${institution.name} 소액 단독 청구 구간`,
-      facts: [
+      quote: [],
+      evidence: [
         ...outcome.reasons,
         `상속인 ${totalHeirs}명 중 1인의 청구로 처리되는 구간입니다.`,
       ],
@@ -146,7 +158,8 @@ function insuranceCoverageCandidates(input: CandidateInput): AlertCandidate[] {
       origin: 'rule',
       severity: 'warning',
       title: `보험 ${unresolved.length}건의 보장 내용 확인 필요`,
-      facts: [
+      quote: [],
+      evidence: [
         `${names}: 가입 사실만 확인된 상태로 청구 금액이 확정되지 않았습니다.`,
         '수익자 지정 여부에 따라 제출 서류가 달라집니다.',
         ...(prescription
@@ -178,7 +191,8 @@ function debtExceedsAssetCandidates(input: CandidateInput): AlertCandidate[] {
       origin: 'rule',
       severity: 'critical',
       title: '부채가 재산을 초과',
-      facts: [
+      quote: [],
+      evidence: [
         `확인된 재산 ${assets.toLocaleString('ko-KR')}원, 부채 ${debts.toLocaleString('ko-KR')}원입니다.`,
         ...(renunciation
           ? [`상속포기·한정승인 결정 기한은 ${renunciation.due_date}입니다.`]
@@ -201,22 +215,32 @@ function debtExceedsAssetCandidates(input: CandidateInput): AlertCandidate[] {
 /** 자동차 보유 (설계서 3.4 네 번째 규칙) */
 function vehicleCandidates(input: CandidateInput): AlertCandidate[] {
   if (!input.caseData.has_vehicle) return [];
+
+  // 기한은 data/deadlines.json이 정본이다. 여기서 날짜를 만들지 않는다.
+  const deadline = input.deadlines.find((d) => d.deadline_id === 'vehicle_transfer');
+
   return [
     {
       candidate_id: 'rule:vehicle_transfer',
       origin: 'rule',
       severity: 'warning',
       title: '자동차 이전등록 별도 기한',
-      facts: [
+      quote: [],
+      evidence: [
         '자동차는 예금·보험과 별도로 이전등록 절차와 기한이 있습니다.',
         '안심상속 원스톱 신청 결과에 자동차 소유내역이 포함됩니다.',
-        // 규정 DB에 이전등록 기한 값이 없다. 임의로 채우지 않는다.
-        '이전등록 기한 값은 규정 DB에 수집되지 않아 확인 중입니다.',
+        ...(deadline
+          ? [
+              `이전등록 기한은 ${deadline.due_date}입니다.`,
+              ...(deadline.consequence ? [`${deadline.consequence}.`] : []),
+            ]
+          : ['이전등록 기한은 아직 확인하지 못했습니다.']),
       ],
-      certainty: 'conditional',
+      certainty: deadline ? 'confirmed' : 'conditional',
+      ...(deadline ? { deadline_ref: 'vehicle_transfer' } : {}),
       requires_expert: false,
       affected_institutions: [],
-      source: FSS_SOURCE,
+      source: deadline?.source ?? FSS_SOURCE,
     },
   ];
 }
@@ -257,12 +281,17 @@ export function buildCandidates(input: CandidateInput): AlertCandidate[] {
   });
 }
 
+/** 화면·인쇄에서 함께 읽히는 결정론 문장 전체 */
+export function candidateFacts(candidate: AlertCandidate): string[] {
+  return [...candidate.quote, ...candidate.evidence];
+}
+
 /** 2단계가 없을 때 쓰는 결정론 문안 */
 export function candidateToAlert(candidate: AlertCandidate) {
   return {
     severity: candidate.severity,
     title: candidate.title,
-    body: candidate.facts.join(' '),
+    body: candidateFacts(candidate).join(' '),
     ...(candidate.deadline_ref ? { deadline_ref: candidate.deadline_ref } : {}),
     requires_expert: candidate.requires_expert,
     source: candidate.source,

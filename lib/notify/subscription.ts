@@ -25,6 +25,7 @@ export const ALLOWED_FIELDS = [
   'fss_application_date',
   'has_real_estate',
   'has_insurance',
+  'has_vehicle',
   'decedent_label',
   'unsubscribe_token',
   'last_sent_on',
@@ -39,6 +40,7 @@ export interface Subscription {
   fss_application_date: IsoDate | null;
   has_real_estate: boolean;
   has_insurance: boolean;
+  has_vehicle: boolean;
   /** 호칭('아버님'). 이름이 아니다 */
   decedent_label: string;
   /** 해지 링크에 쓰는 임의 토큰 */
@@ -63,7 +65,6 @@ const FORBIDDEN_KEYS = [
   'name_masked',
   'is_minor',
   'agreement_division',
-  'has_vehicle',
   'amount',
   'institution_id',
   'rrn',
@@ -117,6 +118,7 @@ export function toSubscription(
     has_real_estate: caseData.has_real_estate === true,
     // 보험 자산 유무만 넘긴다. 어느 기관인지, 금액이 얼마인지는 넘기지 않는다.
     has_insurance: caseData.assets.some((asset) => asset.type === 'insurance'),
+    has_vehicle: caseData.has_vehicle === true,
     decedent_label: caseData.decedent_label,
     unsubscribe_token: input.token ?? newUnsubscribeToken(),
     last_sent_on: null,

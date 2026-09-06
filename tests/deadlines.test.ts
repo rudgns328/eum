@@ -20,11 +20,12 @@ function ids(deadlines: CalculatedDeadline[]): string[] {
 }
 
 describe('규정 정본 (data/deadlines.json)', () => {
-  it('기한 6종이 로드된다', () => {
+  it('기한 7종이 로드된다', () => {
     expect(DEADLINE_RULES.map((r) => r.deadline_id)).toEqual([
       'renunciation',
       'inheritance_tax',
       'acquisition_tax',
+      'vehicle_transfer',
       'safe_inheritance',
       'fss_result_expiry',
       'insurance_claim_prescription',

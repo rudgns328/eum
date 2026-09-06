@@ -307,7 +307,18 @@ export default function PrintPage() {
                       <span className="ml-1 text-sm font-normal text-muted">(조건부)</span>
                     )}
                   </p>
-                  <p className="text-sm">{candidate.facts.join(' ')}</p>
+                  {candidate.quote.length > 0 && (
+                    <p className="border-l-2 border-line-strong pl-2 text-sm">
+                      {candidate.quote.join(' ')}
+                    </p>
+                  )}
+                  {candidate.evidence.length > 0 && (
+                    <ul className="mt-1 text-sm">
+                      {candidate.evidence.map((line) => (
+                        <li key={line}>· {line}</li>
+                      ))}
+                    </ul>
+                  )}
                   {candidate.requires_expert && (
                     <p className="text-sm font-bold">
                       이 항목은 법률 전문가 상담이 필요한 판단을 포함합니다.

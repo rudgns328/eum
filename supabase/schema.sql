@@ -13,6 +13,7 @@ create table if not exists notification_subscriptions (
   fss_application_date date,
   has_real_estate      boolean     not null default false,
   has_insurance        boolean     not null default false,
+  has_vehicle          boolean     not null default false,
   -- 호칭('아버님'). 이름이 아니다.
   decedent_label       text        not null default '피상속인',
   unsubscribe_token    text        not null unique,
@@ -36,3 +37,8 @@ grant all privileges on table notification_subscriptions to service_role;
 
 -- 익명 키로는 여전히 한 줄도 읽거나 쓸 수 없다(정책을 두지 않았다).
 revoke all on table notification_subscriptions from anon, authenticated;
+
+-- 자동차 이전등록 기한(2026-09-06 추가)을 알림에 반영하려면 이 열이 필요하다.
+-- 이미 테이블을 만든 프로젝트는 아래 한 줄만 실행한다.
+alter table notification_subscriptions
+  add column if not exists has_vehicle boolean not null default false;
