@@ -25,6 +25,7 @@ import { today, useCase } from '@/app/_lib/useCase';
 import { buildCandidates } from '@/lib/detect/candidates';
 import { institutionMap } from '@/lib/rules/loader';
 import { RELATION_LABEL } from '@/lib/case/model';
+import { buildExpertNotice } from '@/lib/engines/expert-template';
 import { calculateShares } from '@/lib/engines/shares';
 import type { SourceRef } from '@/lib/engines/types';
 
@@ -286,7 +287,7 @@ export default function PrintPage() {
                         )}
                         <p className="mt-1 text-sm text-muted">
                           출처: {action.source.institution}
-                          {action.source.verified_at ? `, ${action.source.verified_at} 확인` : ''}
+                          {action.source.verified_at ? `, ${action.source.verified_at.replaceAll('-', '.')} 확인` : ''}
                         </p>
                       </div>
                     </div>
@@ -309,6 +310,10 @@ export default function PrintPage() {
                       <span className="ml-1 text-sm font-normal text-muted">(조건부)</span>
                     )}
                   </p>
+                  {/* 전문가 상담 항목은 고정 템플릿이 본문이다 (절대규칙 3) */}
+                  {candidate.requires_expert && candidate.expert && (
+                    <p className="text-sm font-bold">{buildExpertNotice(candidate.expert)}</p>
+                  )}
                   {candidate.quote.length > 0 && (
                     <p className="border-l-2 border-line-strong pl-2 text-sm">
                       {candidate.quote.join(' ')}
@@ -321,14 +326,9 @@ export default function PrintPage() {
                       ))}
                     </ul>
                   )}
-                  {candidate.requires_expert && (
-                    <p className="text-sm font-bold">
-                      이 항목은 법률 전문가 상담이 필요한 판단을 포함합니다.
-                    </p>
-                  )}
                   <p className="text-sm text-muted">
                     출처: {candidate.source.institution}
-                    {candidate.source.verified_at ? `, ${candidate.source.verified_at} 확인` : ''}
+                    {candidate.source.verified_at ? `, ${candidate.source.verified_at.replaceAll('-', '.')} 확인` : ''}
                   </p>
                 </div>
               ))}
@@ -379,7 +379,7 @@ export default function PrintPage() {
             {sources.map((source) => (
               <li key={`${source.institution}|${source.verified_at}`} className="py-0.5">
                 · {source.institution}
-                {source.verified_at ? ` — ${source.verified_at} 확인` : ''}
+                {source.verified_at ? ` — ${source.verified_at.replaceAll('-', '.')} 확인` : ''}
                 {source.document ? ` (${source.document})` : ''}
               </li>
             ))}

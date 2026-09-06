@@ -91,7 +91,8 @@ describe('기한 임박 알림 (설계서 3.6)', () => {
 
   it('본문에 근거와 결과가 들어간다', () => {
     const first = schedule().find((n) => n.deadline_ref === 'renunciation');
-    expect(first?.lines.join(' ')).toContain('2026-10-20');
+    // 메일 본문의 날짜는 화면과 같은 표기(점)로 쓴다. 값은 하이픈이다.
+    expect(first?.lines.join(' ')).toContain('2026.10.20');
     expect(first?.lines.join(' ')).toContain('민법 제1019조');
     expect(first?.lines.join(' ')).toContain('단순승인');
   });

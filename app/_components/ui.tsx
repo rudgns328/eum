@@ -83,13 +83,18 @@ export function SectionTitle({ children }: { children: ReactNode }) {
   return <h2 className="bar-heading mb-3 text-xl font-bold">{children}</h2>;
 }
 
-/** 출처 표기 — 절대규칙 5 */
+/**
+ * 출처 표기 — 절대규칙 5.
+ *
+ * 확인일자도 화면의 다른 날짜와 같은 표기(점)를 쓴다. 한 카드 안에서
+ * 2026.10.06과 2026-08-22가 섞이면 통일이 안 된 것처럼 보인다.
+ */
 export function SourceNote({ source }: { source?: SourceRef }) {
   if (!source) return null;
   return (
     <p className="mt-2 text-sm text-muted">
       출처: {source.institution}
-      {source.verified_at ? `, ${source.verified_at} 확인` : ''}
+      {source.verified_at ? `, ${source.verified_at.replaceAll('-', '.')} 확인` : ''}
       {source.document ? ` (${source.document})` : ''}
     </p>
   );
@@ -228,11 +233,42 @@ export const NAV_LABEL: Record<string, string> = Object.fromEntries(
   GNB.map((item) => [item.href, item.label]),
 );
 
+/** 로고와 서비스명. 좁은 화면에서는 로고 줄에, 넓은 화면에서는 메뉴 줄에 둔다 */
+function Wordmark() {
+  return (
+    <Link href="/" className="flex items-center gap-2.5 py-3" aria-label="이음 홈">
+      <span
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-navy text-lg font-black text-white"
+        aria-hidden
+      >
+        잇
+      </span>
+      <span className="leading-tight">
+        <span className="block text-xl font-black tracking-tight text-navy">이음</span>
+        <span className="block text-sm text-muted">상속 금융절차 안내</span>
+      </span>
+    </Link>
+  );
+}
+
 function Header({ current }: { current: string }) {
   return (
     <header className="border-b-2 border-navy bg-surface">
-      <div className="mx-auto flex w-full max-w-[64rem] flex-wrap items-center gap-x-6 px-4">
-        <Link href="/" className="flex items-center gap-2.5 py-3" aria-label="이음 홈">
+      {/*
+       * 좁은 화면에서는 로고 줄과 메뉴 줄을 나눈다.
+       * 한 줄에 메뉴 7개와 버튼을 넣으면 390px에서 가로로 넘쳐, 본문 글자까지
+       * 화면 밖으로 잘려 나갔다.
+       */}
+      <div className="mx-auto w-full max-w-[64rem] px-4">
+        <div className="flex items-center justify-between gap-3 lg:hidden">
+          <Wordmark />
+          <Link href="/onboarding" role="button" className={`${btnPrimary} px-4`}>
+            시작하기
+          </Link>
+        </div>
+      </div>
+      <div className="mx-auto flex w-full max-w-[64rem] items-center gap-x-6 px-4">
+        <Link href="/" className="hidden items-center gap-2.5 py-3 lg:flex" aria-label="이음 홈">
           <span
             className="flex h-9 w-9 items-center justify-center rounded-sm bg-navy text-lg font-black text-white"
             aria-hidden
@@ -245,7 +281,10 @@ function Header({ current }: { current: string }) {
           </span>
         </Link>
 
-        <nav aria-label="주메뉴" className="flex flex-wrap">
+        <nav
+          aria-label="주메뉴"
+          className="-mx-4 flex flex-1 gap-x-0 overflow-x-auto px-4 lg:mx-0 lg:flex-none lg:overflow-visible lg:px-0"
+        >
           {GNB.map((item) => {
             const active = current === item.href;
             return (
@@ -253,7 +292,7 @@ function Header({ current }: { current: string }) {
                 key={item.href}
                 href={item.href}
                 aria-current={active ? 'page' : undefined}
-                className={`flex items-center border-b-[3px] px-3.5 py-4 font-bold ${
+                className={`flex shrink-0 items-center border-b-[3px] px-3 py-3.5 font-bold lg:px-3.5 lg:py-4 ${
                   active
                     ? 'border-accent text-accent'
                     : 'border-transparent text-foreground hover:text-accent'
@@ -265,7 +304,11 @@ function Header({ current }: { current: string }) {
           })}
         </nav>
 
-        <Link href="/onboarding" role="button" className={`ml-auto ${btnPrimary} px-5`}>
+        <Link
+          href="/onboarding"
+          role="button"
+          className={`ml-auto hidden ${btnPrimary} px-5 lg:inline-flex`}
+        >
           시작하기
         </Link>
       </div>

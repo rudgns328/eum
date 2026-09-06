@@ -114,3 +114,38 @@ describe('내부 용어가 사용자 문장에 새지 않는다', () => {
     expect(offenders, '내부 용어가 화면에 노출된다').toEqual([]);
   });
 });
+
+describe('화면에 나가는 날짜는 점으로 끊는다', () => {
+  it('확인 항목 문장에 하이픈 날짜가 남지 않는다', () => {
+    const offenders: string[] = [];
+    for (const candidate of candidates()) {
+      for (const line of [...candidate.quote, ...candidate.evidence]) {
+        // YYYY-MM-DD 가 그대로 노출되면 화면의 다른 날짜(2026.10.06)와 어긋난다.
+        if (/\d{4}-\d{2}-\d{2}/.test(line)) offenders.push(`${candidate.candidate_id}: ${line}`);
+      }
+    }
+    expect(offenders, '표기가 통일되지 않은 날짜').toEqual([]);
+  });
+});
+
+describe('전문가 상담 항목은 고정 템플릿을 본문으로 갖는다 (절대규칙 3)', () => {
+  it('body가 고정 템플릿이고 quote·evidence로 대체되지 않는다', async () => {
+    const caseData = demoCase();
+    const deadlines = calculateDeadlines(caseData.death_date, {
+      today: TODAY,
+      has_real_estate: caseData.has_real_estate,
+      has_vehicle: caseData.has_vehicle,
+      has_insurance: caseData.assets.some((a) => a.type === 'insurance'),
+    });
+    const { detectMissingItems } = await import('@/lib/llm/detect');
+    const result = await detectMissingItems(
+      { caseData, institutions: institutionMap(), deadlines, today: TODAY },
+      null,
+    );
+
+    const expert = result.alerts.find((a) => a.requires_expert);
+    expect(expert, '부채 초과 항목이 있어야 한다').toBeDefined();
+    expect(expert!.body).toContain('법률 전문가 상담이 필요합니다');
+    expect(expert!.plain, '전문가 항목에는 AI 문장을 붙이지 않는다').toBeUndefined();
+  });
+});

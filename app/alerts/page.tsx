@@ -178,6 +178,13 @@ export default function AlertsPage() {
                 {alert.certainty === 'conditional' && <CheckingBadge label="조건부" />}
               </div>
 
+              {/* requires_expert 항목의 본문은 guard가 만든 고정 템플릿이다.
+                  quote/evidence로 대체할 수 없으므로 그대로 보여준다
+                  (CLAUDE.md 절대규칙 3). */}
+              {alert.requires_expert && (
+                <p className="text-base font-medium">{alert.body}</p>
+              )}
+
               {/* 규정 원문(인용, 평서체)과 우리가 계산한 근거(경어체)를 한 문단으로
                   합치지 않는다. 섞으면 문체가 어긋난 것처럼 읽힌다. */}
               {quoteOf(alert.candidate_id).length > 0 && (
@@ -223,12 +230,6 @@ export default function AlertsPage() {
                 <p className="mt-2 text-base">
                   <span className="font-semibold">해당 기관</span>{' '}
                   {alert.affected_institutions.map(nameOf).join(', ')}
-                </p>
-              )}
-
-              {alert.requires_expert && (
-                <p className="mt-3 rounded-sm border border-critical/30 bg-critical/5 p-3 text-base font-medium">
-                  이 항목은 법률 전문가 상담이 필요한 판단을 포함합니다.
                 </p>
               )}
 

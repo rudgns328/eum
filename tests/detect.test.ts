@@ -131,7 +131,7 @@ describe('1단계 규칙 필터 — 설계서 3.4의 후보 넷', () => {
     // 날짜를 여기서 만들지 않고 data/deadlines.json 산출값을 그대로 인용한다.
     const due = input(caseData).deadlines.find((d) => d.deadline_id === 'vehicle_transfer');
     expect(due).toBeDefined();
-    expect(candidateFacts(vehicle!).join(' ')).toContain(due!.due_date);
+    expect(candidateFacts(vehicle!).join(' ')).toContain(due!.due_date.replaceAll('-', '.'));
     expect(vehicle?.source.institution).toBe('법제처 찾기쉬운 생활법령정보');
   });
 

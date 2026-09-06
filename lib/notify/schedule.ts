@@ -97,7 +97,7 @@ function deadlineNotifications(input: ScheduleInput): ScheduledNotification[] {
         deadline_ref: deadline.deadline_id,
         title: `${deadline.name} D-${offset}`,
         lines: [
-          `${deadline.name} 기한은 ${deadline.due_date}입니다.`,
+          `${deadline.name} 기한은 ${deadline.due_date.replaceAll('-', '.')}입니다.`,
           ...(deadline.consequence ? [`지키지 못하면: ${deadline.consequence}`] : []),
           ...(deadline.legal_basis ? [`근거: ${deadline.legal_basis}`] : []),
           ...(deadline.falls_on_non_business_day
@@ -130,7 +130,7 @@ function queryResultReady(input: ScheduleInput): ScheduledNotification[] {
       d_day: null,
       title: '금융거래 조회 결과 확인',
       lines: [
-        `${applied}에 접수한 상속인 금융거래조회의 예상 소요기간(${QUERY_PROCESSING_BUSINESS_DAYS}영업일)이 지났습니다.`,
+        `${applied.replaceAll('-', '.')}에 접수한 상속인 금융거래조회의 예상 소요기간(${QUERY_PROCESSING_BUSINESS_DAYS}영업일)이 지났습니다.`,
         '결과는 금감원·협회 홈페이지에서 조회하며 서면 통보는 없습니다.',
         '협회별 소요기간은 기관 안내 기준 3~20일이며, 전산사정에 따라 초과될 수 있습니다.',
       ],
@@ -156,7 +156,7 @@ function queryResultExpiry(input: ScheduleInput): ScheduledNotification[] {
       deadline_ref: 'fss_result_expiry',
       title: `조회 결과 확인 기한 D-${QUERY_EXPIRY_OFFSET}`,
       lines: [
-        `조회 결과는 ${deadline.due_date}까지 확인할 수 있습니다.`,
+        `조회 결과는 ${deadline.due_date.replaceAll('-', '.')}까지 확인할 수 있습니다.`,
         '접수일로부터 3개월이 지나면 결과가 삭제됩니다.',
       ],
       severity: deadline.severity,

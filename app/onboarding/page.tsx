@@ -189,10 +189,59 @@ function OnboardingForm() {
   const updateDebt = (key: string, patch: Partial<DebtDraft>) =>
     setDebts((prev) => prev.map((d) => (d.key === key ? { ...d, ...patch } : d)));
 
+  /**
+   * 금액 파싱. 숫자만 남기고, 실수로 자릿수를 잘못 넣은 값을 막는다.
+   *
+   * 상한은 1조원이다. 그 이상은 오타로 보는 편이 안전하다 — 소액 간소화
+   * 판정이 금액 경계로 갈리므로 잘못된 자릿수가 조용히 결과를 바꾼다.
+   */
+  const MAX_AMOUNT = 1_000_000_000_000;
+
   const toNumber = (raw: string): number | null => {
     const cleaned = raw.replace(/[^\d]/g, '');
-    return cleaned === '' ? null : Number(cleaned);
+    if (cleaned === '') return null;
+    const value = Number(cleaned);
+    return Number.isSafeInteger(value) ? value : null;
   };
+
+  /**
+   * 날짜의 앞뒤 관계를 본다.
+   *
+   * 사망일이 미래이거나, 상속개시를 안 날이 사망일보다 앞서면 기한이 통째로
+   * 어긋난다. 입력 단계에서 막지 않으면 D-day가 조용히 틀린 채로 흘러간다.
+   */
+  function validate(): string {
+    const now = today();
+    if (!isIsoDate(deathDate)) return '사망일을 입력해 주세요.';
+    if (deathDate > now) return '사망일이 오늘보다 뒤입니다. 날짜를 확인해 주세요.';
+    if (deathDate < '1900-01-01') return '사망일을 다시 확인해 주세요.';
+
+    if (awarenessDate) {
+      if (awarenessDate < deathDate) {
+        return '상속개시를 안 날은 사망일보다 앞설 수 없습니다.';
+      }
+      if (awarenessDate > now) return '상속개시를 안 날이 오늘보다 뒤입니다.';
+    }
+
+    if (fssDate) {
+      if (fssDate < deathDate) return '금융거래조회 신청일은 사망일보다 앞설 수 없습니다.';
+      if (fssDate > now) return '금융거래조회 신청일이 오늘보다 뒤입니다.';
+    }
+
+    if (heirs.length === 0) return '상속인을 한 명 이상 입력해 주세요.';
+
+    const amounts: string[] = [
+      ...assets.flatMap((a) => [a.amount, a.deposit_amount, a.securities_valuation]),
+      ...debts.map((d) => d.amount),
+    ];
+    const tooLarge = amounts.some((raw) => {
+      const value = toNumber(raw);
+      return value !== null && value > MAX_AMOUNT;
+    });
+    if (tooLarge) return '금액이 너무 큽니다. 자릿수를 확인해 주세요.';
+
+    return '';
+  }
 
   // --- 즉시 미리보기 (결정론 엔진 그대로) ---------------------------------
 
@@ -388,27 +437,26 @@ function OnboardingForm() {
 
   /** 어느 단계에서든 지금까지 넣은 것만으로 시작할 수 있다 */
   function submit() {
-    if (!isIsoDate(deathDate)) {
-      setError('사망일을 입력해 주세요.');
-      setStep(1);
+    const message = validate();
+    if (message) {
+      setError(message);
+      // 문제가 있는 단계로 데려간다. 사용자가 어디를 고쳐야 하는지 찾게 두지 않는다.
+      setStep(message.includes('상속인') ? 2 : message.includes('금액') ? 3 : 1);
       return;
     }
-    if (heirs.length === 0) {
-      setError('상속인을 한 명 이상 입력해 주세요.');
-      setStep(2);
-      return;
-    }
+    setError('');
     save(buildCase());
     router.push('/dashboard');
   }
 
   function goNext() {
-    if (step === 1 && !isIsoDate(deathDate)) {
-      setError('사망일을 입력해 주세요.');
-      return;
-    }
-    if (step === 2 && heirs.length === 0) {
-      setError('상속인을 한 명 이상 입력해 주세요.');
+    const message = validate();
+    // 다음 단계에서 채울 항목의 문제는 아직 지적하지 않는다.
+    const belongsToThisStep =
+      (step === 1 && !message.includes('상속인') && !message.includes('금액'))
+      || (step === 2 && message.includes('상속인'));
+    if (message && belongsToThisStep) {
+      setError(message);
       return;
     }
     setError('');
@@ -462,6 +510,7 @@ function OnboardingForm() {
                   <input
                     id="death-date"
                     type="date"
+                    max={today()}
                     className={input}
                     value={deathDate}
                     onChange={(e) => setDeathDate(e.target.value)}
@@ -487,6 +536,8 @@ function OnboardingForm() {
                   <input
                     id="awareness-date"
                     type="date"
+                    min={isIsoDate(deathDate) ? deathDate : undefined}
+                    max={today()}
                     className={input}
                     value={awarenessDate}
                     onChange={(e) => setAwarenessDate(e.target.value)}
@@ -500,6 +551,8 @@ function OnboardingForm() {
                   <input
                     id="fss-date"
                     type="date"
+                    min={isIsoDate(deathDate) ? deathDate : undefined}
+                    max={today()}
                     className={input}
                     value={fssDate}
                     onChange={(e) => setFssDate(e.target.value)}

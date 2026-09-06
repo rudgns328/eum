@@ -13,6 +13,7 @@
  * 화면이 성립한다.
  */
 
+import { buildExpertNotice } from '@/lib/engines/expert-template';
 import { detectTimeTraps, type TimeTrapHit } from '@/lib/engines/timetraps';
 import { classifySimplification, evaluateAssetAmount } from '@/lib/engines/simplification';
 import type { CalculatedDeadline, SourceRef } from '@/lib/engines/types';
@@ -60,6 +61,11 @@ export interface CandidateInput {
 }
 
 const FSS_SOURCE: SourceRef = { institution: '금융감독원', verified_at: '2026-08-14' };
+
+/** 화면에 보이는 날짜는 점으로 끊는다. 값(YYYY-MM-DD)과 표기를 나눈다 */
+function dot(iso: string): string {
+  return iso.replaceAll('-', '.');
+}
 
 function dDayOf(deadlines: readonly CalculatedDeadline[], id: string): number | null {
   const deadline = deadlines.find((d) => d.deadline_id === id);
@@ -163,7 +169,7 @@ function insuranceCoverageCandidates(input: CandidateInput): AlertCandidate[] {
         `${names}: 가입 사실만 확인된 상태로 청구 금액이 확정되지 않았습니다.`,
         '수익자 지정 여부에 따라 제출 서류가 달라집니다.',
         ...(prescription
-          ? [`보험금 청구권 소멸시효는 ${prescription.due_date}입니다 (D-${prescription.d_day}).`]
+          ? [`보험금 청구권 소멸시효는 ${dot(prescription.due_date)}입니다 (D-${prescription.d_day}).`]
           : []),
       ],
       certainty: 'confirmed',
@@ -195,7 +201,7 @@ function debtExceedsAssetCandidates(input: CandidateInput): AlertCandidate[] {
       evidence: [
         `확인된 재산 ${assets.toLocaleString('ko-KR')}원, 부채 ${debts.toLocaleString('ko-KR')}원입니다.`,
         ...(renunciation
-          ? [`상속포기·한정승인 결정 기한은 ${renunciation.due_date}입니다.`]
+          ? [`상속포기·한정승인 결정 기한은 ${dot(renunciation.due_date)}입니다.`]
           : []),
       ],
       certainty: 'confirmed',
@@ -231,7 +237,7 @@ function vehicleCandidates(input: CandidateInput): AlertCandidate[] {
         '안심상속 원스톱 신청 결과에 자동차 소유내역이 포함됩니다.',
         ...(deadline
           ? [
-              `이전등록 기한은 ${deadline.due_date}입니다.`,
+              `이전등록 기한은 ${dot(deadline.due_date)}입니다.`,
               ...(deadline.consequence ? [`지키지 못하면 — ${deadline.consequence}`] : []),
             ]
           : ['이전등록 기한은 아직 확인하지 못했습니다.']),
@@ -286,12 +292,23 @@ export function candidateFacts(candidate: AlertCandidate): string[] {
   return [...candidate.quote, ...candidate.evidence];
 }
 
-/** 2단계가 없을 때 쓰는 결정론 문안 */
+/**
+ * 결정론 문안.
+ *
+ * requires_expert 항목은 어느 경로에서나 고정 템플릿이 본문이다
+ * (CLAUDE.md 절대규칙 3). LLM이 돌지 않는 경우에도 마찬가지다 —
+ * 예전에는 API 키가 없으면 템플릿이 붙지 않았다.
+ */
 export function candidateToAlert(candidate: AlertCandidate) {
+  const body =
+    candidate.requires_expert && candidate.expert
+      ? buildExpertNotice(candidate.expert)
+      : candidateFacts(candidate).join(' ');
+
   return {
     severity: candidate.severity,
     title: candidate.title,
-    body: candidateFacts(candidate).join(' '),
+    body,
     ...(candidate.deadline_ref ? { deadline_ref: candidate.deadline_ref } : {}),
     requires_expert: candidate.requires_expert,
     source: candidate.source,
