@@ -843,6 +843,19 @@ function OnboardingForm() {
                 kind="heirs"
                 label="가족관계증명서(상세)로 채우기"
                 hint="문서를 읽어 상속인 목록을 만듭니다. 읽은 내용은 아래에서 고치실 수 있습니다."
+                about={
+                  <>
+                    <p>
+                      주민센터나 대법원 전자가족관계등록시스템에서 발급받는 피상속인 기준
+                      가족관계증명서입니다. 상속인 범위를 확인하려면 <b>상세</b>로 발급받으셔야
+                      합니다.
+                    </p>
+                    <p className="mt-1">
+                      화면을 찍은 사진이나 PDF 모두 됩니다. 주민등록번호와 생년월일은 읽지 않고,
+                      올리신 파일은 읽은 즉시 버립니다.
+                    </p>
+                  </>
+                }
                 reading={reading === 'heirs'}
                 note={readNote}
                 onPick={(file) => void fillFromDocument(file, 'heirs')}
@@ -995,6 +1008,25 @@ function OnboardingForm() {
                 kind="assets"
                 label="금융거래 조회결과로 채우기"
                 hint="문서를 읽어 기관과 금액을 채웁니다. 읽은 내용은 아래에서 고치실 수 있습니다."
+                about={
+                  <>
+                    <p>
+                      금융감독원 <b>상속인 금융거래 조회서비스</b>의 조회 결과입니다. 피상속인
+                      명의로 어느 기관에 무엇이 남아 있는지 한 번에 보여 줍니다.
+                    </p>
+                    <p className="mt-1">
+                      신청은 내방 접수만 가능하며, 금감원·은행·농수협 단위조합·우체국·일부
+                      보험사·유안타증권에서 받습니다. 결과는 서면으로 오지 않아 직접 확인하셔야
+                      하고, 접수일로부터 3개월 동안 볼 수 있습니다.
+                    </p>
+                    <p className="mt-1">
+                      화면을 찍은 사진이나 PDF 모두 됩니다. 금액이 적히지 않은 항목은 비워 둡니다.
+                    </p>
+                    <p className="mt-1">
+                      ※ 출처: 금융감독원 상속인 금융거래조회 신청서 및 안내문
+                    </p>
+                  </>
+                }
                 reading={reading === 'assets'}
                 note={readNote}
                 onPick={(file) => void fillFromDocument(file, 'assets')}

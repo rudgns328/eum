@@ -715,6 +715,7 @@ export function DocumentFill({
   kind,
   label,
   hint,
+  about,
   reading,
   note,
   onPick,
@@ -722,6 +723,8 @@ export function DocumentFill({
   kind: string;
   label: string;
   hint: string;
+  /** 어떤 문서인지·어디서 받는지. 접어 두고 필요할 때 편다 */
+  about?: ReactNode;
   reading: boolean;
   note: string;
   onPick: (file: File) => void;
@@ -748,6 +751,14 @@ export function DocumentFill({
         />
         <p className="flex-1 text-sm text-muted">{hint}</p>
       </div>
+      {about && (
+        <details className="mt-2">
+          <summary className="cursor-pointer text-sm font-semibold text-accent">
+            어떤 문서인가요?
+          </summary>
+          <div className="mt-1.5 text-sm text-muted">{about}</div>
+        </details>
+      )}
       {note && (
         <p role="status" className="mt-2 text-base font-semibold">
           {note}

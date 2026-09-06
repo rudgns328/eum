@@ -293,9 +293,38 @@ export default function UploadPage() {
               </div>
             </div>
 
+            {/* 어떤 문서를 올려야 하는지 고른 종류에 맞춰 알린다 */}
+            <details className="mt-3">
+              <summary className="cursor-pointer text-sm font-semibold text-accent">
+                어떤 문서인가요?
+              </summary>
+              <div className="mt-1.5 text-sm text-muted">
+                {documentType === 'family_cert' ? (
+                  <p>
+                    주민센터나 대법원 전자가족관계등록시스템에서 발급받는 피상속인 기준
+                    가족관계증명서입니다. 상속인 범위를 확인하려면 <b>상세</b>로 발급받으셔야
+                    합니다.
+                  </p>
+                ) : (
+                  <>
+                    <p>
+                      금융감독원 <b>상속인 금융거래 조회서비스</b>의 조회 결과입니다. 피상속인
+                      명의로 어느 기관에 무엇이 남아 있는지 한 번에 보여 줍니다.
+                    </p>
+                    <p className="mt-1">
+                      신청은 내방 접수만 가능하며, 금감원·은행·농수협 단위조합·우체국·일부
+                      보험사·유안타증권에서 받습니다. 결과는 서면으로 오지 않아 직접 확인하셔야
+                      하고, 접수일로부터 3개월 동안 볼 수 있습니다.
+                    </p>
+                    <p className="mt-1">※ 출처: 금융감독원 상속인 금융거래조회 신청서 및 안내문</p>
+                  </>
+                )}
+              </div>
+            </details>
+
             <p className="mt-3 text-sm text-muted">
-              업로드한 파일은 내용을 읽은 즉시 버려집니다. 주민등록번호와 생년월일은 추출하지
-              않습니다.
+              화면을 찍은 사진이나 PDF 모두 됩니다. 올리신 파일은 읽은 즉시 버리고,
+              주민등록번호와 생년월일은 읽지 않습니다.
             </p>
 
             <div className="mt-4 flex flex-wrap gap-3">
