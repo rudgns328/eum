@@ -119,10 +119,6 @@ export function InstitutionTable() {
           })}
         </tbody>
       </table>
-      <p className="mt-3 text-sm text-muted">
-        통화 검증이 끝나지 않은 기관은 화면에 &lsquo;확인 중&rsquo;으로 표시하고, 미확인 항목을
-        다른 기관 값으로 추정하지 않습니다.
-      </p>
       <Cite>각 기관 공식 안내 원문 및 고객센터 통화 확인, 2026-08-21</Cite>
     </>
   );
@@ -183,10 +179,7 @@ export function ThresholdTable() {
         </Panel>
       </div>
 
-      <Cite>
-        각 기관 공식 안내 원문 및 고객센터 통화 확인, 2026-08-21. 미확인 항목은 다른 기관 값으로
-        추정하지 않습니다.
-      </Cite>
+      <Cite>각 기관 공식 안내 원문 및 고객센터 통화 확인, 2026-08-21</Cite>
     </>
   );
 }
@@ -195,40 +188,95 @@ export function ThresholdTable() {
 // 6. 검증 지표
 // ---------------------------------------------------------------------------
 
-const STATS = [
-  { value: '5', unit: '/ 6개 기관', note: '고객센터 통화 검증' },
-  { value: '35', unit: '건', note: '검증 시나리오 (정답 102건)' },
-  { value: '15.5', unit: '%', note: 'AI 문장 차단율' },
-  { value: '0', unit: '건', note: '금지 표현 노출' },
+/**
+ * AI와 규칙 엔진이 나눠 맡는 일.
+ *
+ * 수치를 늘어놓지 않는다. 재현율·차단율 같은 숫자는 자체 측정이라 읽는
+ * 사람이 검증할 수 없고, AI가 실제로 무슨 일을 하는지는 알려 주지 못한다.
+ * 어느 쪽이 무엇을 맡는지가 이 화면에서 알아야 할 전부다.
+ */
+const AI_WORK = [
+  {
+    title: '서류를 읽습니다',
+    body: '가족관계증명서와 금융거래 조회 결과를 읽어 상속인 구성과 기관별 재산·부채 초안을 만듭니다. 사망·미성년 표시까지 읽어 옮깁니다.',
+  },
+  {
+    title: '규정을 쉬운 말로 옮깁니다',
+    body: '기관 규정과 법령 문장을 그대로 두고, 그 옆에 일상어 설명을 덧붙입니다. 원문을 바꾸지 않습니다.',
+  },
+  {
+    title: '확인할 것을 찾아냅니다',
+    body: '규정과 지금 상황을 대조해, 해당되는데 아직 하지 않은 것을 찾아 문장으로 옮깁니다.',
+  },
 ] as const;
+
+const RULE_WORK = [
+  {
+    title: '기한을 계산합니다',
+    body: '말일 기산·윤년·공휴일을 반영한 순수 계산입니다. 같은 입력이면 언제나 같은 날짜가 나옵니다.',
+  },
+  {
+    title: '법정상속분을 계산합니다',
+    body: '민법 제1000조·제1003조·제1009조를 그대로 적용합니다. 대습상속도 조문대로 처리합니다.',
+  },
+  {
+    title: '기관별 요건을 판정합니다',
+    body: '소액 간소화 구간, 필요 서류와 부수를 규정 파일에서 읽어 판정합니다.',
+  },
+] as const;
+
+const GUARDS = [
+  'AI가 쓴 문장은 검사를 통과한 뒤에만 화면에 나갑니다. 판단이나 권유로 읽히는 표현은 걸러 내고, 걸리면 규칙 엔진이 만든 문장으로 되돌립니다.',
+  '전문가 상담이 필요한 항목은 AI 문장을 쓰지 않고 정해진 문구로만 안내합니다.',
+  'AI가 통째로 실패해도 기한·상속분·서류 목록은 그대로 나옵니다. 읽지 못한 문서는 직접 입력으로 이어집니다.',
+] as const;
+
+function WorkList({
+  title,
+  items,
+}: {
+  title: string;
+  items: readonly { title: string; body: string }[];
+}) {
+  return (
+    <div className="rounded-lg border border-white/25 p-5">
+      <p className="text-lg font-bold">{title}</p>
+      <ul className="mt-3 space-y-3">
+        {items.map((item) => (
+          <li key={item.title}>
+            <p className="font-semibold">{item.title}</p>
+            <p className="mt-0.5 text-white/80">{item.body}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 export function GuardStats() {
   return (
-    <div className="bg-navy px-5 py-5 text-white">
-      <p className="text-white/80">
-        기한 계산과 법정상속분에는 AI를 쓰지 않습니다. 확률론이 개입하는 지점은 안내 문장뿐이며, 그
-        문장은 검사를 통과한 뒤에만 화면에 나갑니다.
+    <div className="bg-navy px-5 py-6 text-white">
+      <p className="text-white/85">
+        이음은 규칙 엔진과 AI를 함께 씁니다. 답이 정해진 계산은 규칙 엔진이 하고, 사람이 읽고
+        옮겨야 하는 일은 AI가 합니다. 기한과 법정상속분에는 AI가 관여하지 않습니다.
       </p>
 
-      <dl className="mt-6 grid gap-px overflow-hidden border border-white/25 bg-white/25 sm:grid-cols-2 lg:grid-cols-4">
-        {STATS.map((stat) => (
-          <div key={stat.note} className="bg-navy px-5 py-5">
-            <dt className="text-white/80">{stat.note}</dt>
-            <dd className="mt-1 text-3xl font-black tabular-nums">
-              {stat.value}
-              <span className="ml-1 text-lg font-bold">{stat.unit}</span>
-            </dd>
-          </div>
-        ))}
-      </dl>
+      <div className="mt-5 grid gap-4 lg:grid-cols-2">
+        <WorkList title="AI가 맡는 일" items={AI_WORK} />
+        <WorkList title="규칙 엔진이 맡는 일" items={RULE_WORK} />
+      </div>
 
-      <p className="mt-5 text-white/80">
-        규칙 엔진의 재현율 100%·오탐율 0%는 결정론이라 당연한 값입니다. 의미 있는 숫자는 AI가 쓴
-        문장 97건 중 15건이 차단되어 화면에 닿지 않았다는 쪽입니다.
-      </p>
-      <p className="mt-3 text-sm text-white/70">
-        ※ 출처: 자체 측정, 2026-08-24. npm test 및 npm run measure:guard로 재현할 수 있습니다.
-      </p>
+      <div className="mt-5 border-t border-white/25 pt-5">
+        <p className="font-bold">AI가 쓴 문장에 두는 안전장치</p>
+        <ul className="mt-2 space-y-1.5 text-white/85">
+          {GUARDS.map((line) => (
+            <li key={line} className="flex gap-2">
+              <span className="mt-[0.6em] h-1.5 w-1.5 shrink-0 bg-white/60" aria-hidden />
+              <span>{line}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }

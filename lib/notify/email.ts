@@ -56,8 +56,6 @@ export interface RenderedEmail {
   html: string;
 }
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ieumnavi.com';
-
 const DISCLAIMER =
   '이 안내는 규정과 기한을 정리한 것입니다. 법률 판단이나 세액 계산은 제공하지 않으며, 최종 확인은 해당 기관에서 하는 사항입니다.';
 
@@ -185,7 +183,6 @@ export function renderSubscriptionConfirmation(
       `<p style="margin:6px 0 20px;color:#5a6069;">${escapeHtml(caseData.decedent_label)} 상속 절차 기준입니다.</p>`,
       `<div>${facts.map((fact) => `<p style="${CSS.line}">${escapeHtml(fact)}</p>`).join('')}</div>`,
       `<p style="${CSS.note}">이 메일을 보관해 두시면 언제든 해지하실 수 있습니다. 이 서비스는 회원 정보를 두지 않아, 해지 주소는 알림 메일에만 들어 있습니다.</p>`,
-      `<p style="margin:16px 0 0;"><a href="${escapeHtml(SITE_URL)}" style="color:#0b4a9b;font-weight:700;">이음에서 기한 확인하기</a></p>`,
     ].join(''),
     unsubscribeUrl,
   );

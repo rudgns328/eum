@@ -50,18 +50,15 @@ export default function AboutPage() {
 
         <section>
           <SectionTitle>AI가 하는 일과 하지 않는 일</SectionTitle>
-          <p className="mt-2 mb-4 text-base text-muted">
-            기한 계산과 법정상속분은 정해진 규칙으로만 계산합니다. AI는 서류를 읽어 초안을 만들고,
-            확인이 필요한 항목을 찾아 문장으로 옮기는 데만 씁니다.
-          </p>
-          <GuardStats />
+          <div className="mt-4">
+            <GuardStats />
+          </div>
         </section>
 
         <section>
-          <SectionTitle>기관별 확인 상태</SectionTitle>
+          <SectionTitle>기관별 규정</SectionTitle>
           <p className="mt-2 text-base text-muted">
-            확인 단계를 기관마다 그대로 표시합니다. 통화 확인이 끝나지 않은 곳은 화면에서도
-            &lsquo;확인 중&rsquo;으로 나갑니다. 기관별 목록과 소액 기준은{' '}
+            기관별 목록과 소액 기준, 확인 단계는{' '}
             <Link
               href="/institutions"
               className="font-bold text-accent underline-offset-2 hover:underline"
