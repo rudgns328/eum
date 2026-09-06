@@ -74,6 +74,10 @@ interface HeirDraft {
   name: string;
   is_minor: boolean;
   is_visiting: boolean;
+  /** 상속개시 전 사망. 대습상속의 피대습자가 된다 (민법 제1001조) */
+  deceased: boolean;
+  /** 이 사람이 대신 상속하는 피대습자의 key */
+  substitutes_for_key?: string;
 }
 
 interface DebtDraft {
@@ -90,6 +94,35 @@ interface AssetDraft {
   deposit_amount: string;
   securities_valuation: string;
   beneficiary_designated: '' | 'yes' | 'no';
+}
+
+/**
+ * 초안을 엔진·케이스가 받는 형태로 옮긴다.
+ *
+ * 미리보기(법정상속분)와 저장이 같은 함수를 쓰도록 한 곳에 둔다. 두 곳에서
+ * 각각 매핑하면 화면에 보이는 지분과 저장되는 지분이 갈릴 수 있다.
+ *
+ * heir_id는 배열 순서로 매기고, 대습 관계는 key로 걸어 둔 뒤 여기서 id로
+ * 바꾼다.
+ */
+function heirIdsByKey(drafts: readonly HeirDraft[]): Map<string, string> {
+  return new Map(drafts.map((draft, index) => [draft.key, `h${index + 1}`]));
+}
+
+function toHeirInputs(drafts: readonly HeirDraft[]): HeirInput[] {
+  const ids = heirIdsByKey(drafts);
+  return drafts.map((draft, index) => {
+    const substitutes = draft.substitutes_for_key
+      ? ids.get(draft.substitutes_for_key)
+      : undefined;
+    return {
+      heir_id: `h${index + 1}`,
+      relation: draft.relation,
+      is_minor: draft.is_minor,
+      ...(draft.deceased ? { alive: false } : {}),
+      ...(substitutes ? { substitutes_for: substitutes } : {}),
+    };
+  });
 }
 
 let seq = 0;
@@ -141,7 +174,7 @@ function OnboardingForm() {
   const [hasVehicle, setHasVehicle] = useState(false);
   const [agreement, setAgreement] = useState<'' | 'yes' | 'no'>('');
   const [heirs, setHeirs] = useState<HeirDraft[]>([
-    { key: nextKey(), relation: 'spouse', name: '', is_minor: false, is_visiting: true },
+    { key: nextKey(), relation: 'spouse', name: '', is_minor: false, is_visiting: true, deceased: false },
   ]);
   const [assets, setAssets] = useState<AssetDraft[]>([]);
   const [debts, setDebts] = useState<DebtDraft[]>([]);
@@ -181,26 +214,118 @@ function OnboardingForm() {
   }, [deathDate, awarenessDate, fssDate, hasRealEstate, assets]);
 
   /** 2단계 — 관계만으로 계산된다. 이름·나이는 쓰지 않는다 */
+  /** heir_id로 초안을 되찾는다. 대습상속이 있으면 배열 순서로는 짚을 수 없다 */
+  const draftById = useMemo(
+    () => new Map(heirs.map((draft, index) => [`h${index + 1}`, draft])),
+    [heirs],
+  );
+
   const previewShares = useMemo(() => {
-    const input: HeirInput[] = heirs.map((h, index) => ({
-      heir_id: `h${index + 1}`,
-      relation: h.relation,
-      is_minor: h.is_minor,
-    }));
-    if (input.length === 0) return null;
+    if (heirs.length === 0) return null;
     try {
-      return calculateShares(input);
+      return calculateShares(toHeirInputs(heirs));
     } catch {
       return null;
     }
   }, [heirs]);
 
+  /**
+   * 상속인 한 줄. 피대습자와 대습상속인이 같은 입력을 쓰므로 함수로 뽑았다.
+   * 사망 표시된 사람에게는 미성년·방문 여부를 묻지 않는다 — 상속인이 아니다.
+   */
+  function renderHeirFields(heir: HeirDraft, isSubstitute = false) {
+    const label = isSubstitute ? '대습상속인' : '상속인';
+    return (
+      <>
+        <div className="grid gap-3 sm:grid-cols-[8rem_1fr_auto]">
+          <select
+            className="rounded-sm border border-line-strong bg-surface px-3 py-2"
+            value={heir.relation}
+            onChange={(e) => updateHeir(heir.key, { relation: e.target.value as Relation })}
+            aria-label={`${label} 관계`}
+          >
+            {RELATIONS.map((r) => (
+              <option key={r.value} value={r.value}>
+                {r.label}
+              </option>
+            ))}
+          </select>
+          <input
+            className="rounded-sm border border-line-strong bg-surface px-3 py-2"
+            value={heir.name}
+            onChange={(e) => updateHeir(heir.key, { name: e.target.value })}
+            placeholder="성함 (저장 시 김○○로 마스킹)"
+            aria-label={`${label} 성함`}
+          />
+          <button
+            type="button"
+            className={btnSmall}
+            onClick={() =>
+              // 피대습자를 지우면 그를 대신하던 사람도 함께 지운다.
+              setHeirs((prev) =>
+                prev.filter((h) => h.key !== heir.key && h.substitutes_for_key !== heir.key),
+              )
+            }
+          >
+            삭제
+          </button>
+        </div>
+
+        <div className="mt-2 flex flex-wrap gap-x-6 gap-y-2">
+          {!heir.deceased && (
+            <>
+              <label className="flex items-center gap-2 text-base">
+                <input
+                  type="checkbox"
+                  checked={heir.is_minor}
+                  onChange={(e) => updateHeir(heir.key, { is_minor: e.target.checked })}
+                />
+                미성년
+              </label>
+              <label className="flex items-center gap-2 text-base">
+                <input
+                  type="checkbox"
+                  checked={heir.is_visiting}
+                  onChange={(e) => updateHeir(heir.key, { is_visiting: e.target.checked })}
+                />
+                영업점 방문 예정
+              </label>
+            </>
+          )}
+          {!isSubstitute && (
+            <label className="flex items-center gap-2 text-base">
+              <input
+                type="checkbox"
+                checked={heir.deceased}
+                onChange={(e) =>
+                  setHeirs((prev) =>
+                    e.target.checked
+                      ? prev.map((h) =>
+                          h.key === heir.key
+                            ? { ...h, deceased: true, is_minor: false, is_visiting: false }
+                            : h,
+                        )
+                      : // 사망 표시를 풀면 대습상속인도 함께 정리한다.
+                        prev
+                          .filter((h) => h.substitutes_for_key !== heir.key)
+                          .map((h) => (h.key === heir.key ? { ...h, deceased: false } : h)),
+                  )
+                }
+              />
+              상속개시 전 사망
+            </label>
+          )}
+        </div>
+      </>
+    );
+  }
+
   // --- 저장 ---------------------------------------------------------------
 
   function buildCase(): Case {
+    const inputs = toHeirInputs(heirs);
     const caseHeirs: CaseHeir[] = heirs.map((draft, index) => ({
-      heir_id: `h${index + 1}`,
-      relation: draft.relation,
+      ...inputs[index],
       // 마스킹본만 저장한다. 원본 이름은 여기서 버려진다.
       name_masked: maskName(draft.name) || '○○',
       is_minor: draft.is_minor,
@@ -435,61 +560,59 @@ function OnboardingForm() {
             <Card>
               <SectionTitle>상속인</SectionTitle>
               <div className="space-y-3">
-                {heirs.map((heir, index) => (
-                  <div key={heir.key} className="rounded-sm border border-line p-3">
-                    <div className="grid gap-3 sm:grid-cols-[8rem_1fr_auto]">
-                      <select
-                        className="rounded-sm border border-line-strong bg-surface px-3 py-2"
-                        value={heir.relation}
-                        onChange={(e) =>
-                          updateHeir(heir.key, { relation: e.target.value as Relation })
-                        }
-                        aria-label={`상속인 ${index + 1} 관계`}
-                      >
-                        {RELATIONS.map((r) => (
-                          <option key={r.value} value={r.value}>
-                            {r.label}
-                          </option>
-                        ))}
-                      </select>
-                      <input
-                        className="rounded-sm border border-line-strong bg-surface px-3 py-2"
-                        value={heir.name}
-                        onChange={(e) => updateHeir(heir.key, { name: e.target.value })}
-                        placeholder="성함 (저장 시 김○○로 마스킹)"
-                        aria-label={`상속인 ${index + 1} 성함`}
-                      />
-                      <button
-                        type="button"
-                        className={btnSmall}
-                        onClick={() => setHeirs((prev) => prev.filter((h) => h.key !== heir.key))}
-                      >
-                        삭제
-                      </button>
+                {heirs
+                  .filter((heir) => !heir.substitutes_for_key)
+                  .map((heir) => (
+                    <div key={heir.key} className="rounded-sm border border-line p-3">
+                      {renderHeirFields(heir)}
+
+                      {/* 대습상속 — 피대습자 아래에 들여써서 관계가 보이게 한다.
+                          계산은 lib/engines/shares.ts가 그대로 하고, 여기서는
+                          입력 경로만 연다(민법 제1001조·제1003조②). */}
+                      {heir.deceased && (
+                        <div className="mt-3 border-l-2 border-accent pl-4">
+                          <p className="text-sm font-bold text-accent">
+                            이 사람을 대신해 상속하는 사람 (대습상속)
+                          </p>
+                          <p className="mb-2 text-sm text-muted">
+                            상속인이 될 사람이 먼저 사망한 경우 그 직계비속이 대신 상속합니다.
+                            (민법 제1001조·제1003조②)
+                          </p>
+
+                          <div className="space-y-2">
+                            {heirs
+                              .filter((sub) => sub.substitutes_for_key === heir.key)
+                              .map((sub) => (
+                                <div key={sub.key} className="rounded-sm border border-line bg-subtle p-3">
+                                  {renderHeirFields(sub, true)}
+                                </div>
+                              ))}
+                          </div>
+
+                          <button
+                            type="button"
+                            className={`mt-2 ${btnSmall}`}
+                            onClick={() =>
+                              setHeirs((prev) => [
+                                ...prev,
+                                {
+                                  key: nextKey(),
+                                  relation: 'child',
+                                  name: '',
+                                  is_minor: false,
+                                  is_visiting: false,
+                                  deceased: false,
+                                  substitutes_for_key: heir.key,
+                                },
+                              ])
+                            }
+                          >
+                            대습상속인 추가
+                          </button>
+                        </div>
+                      )}
                     </div>
-                    <div className="mt-2 flex flex-wrap gap-6">
-                      <label className="flex items-center gap-2 text-base">
-                        <input
-                          type="checkbox"
-                          checked={heir.is_minor}
-                          onChange={(e) => updateHeir(heir.key, { is_minor: e.target.checked })}
-                        />
-                        미성년
-                      </label>
-                      <label className="flex items-center gap-2 text-base">
-                        <input
-                          type="checkbox"
-                          checked={heir.is_visiting}
-                          onChange={(e) => updateHeir(heir.key, { is_visiting: e.target.checked })}
-                        />
-                        영업점 방문 예정
-                      </label>
-                    </div>
-                    {index === 0 && (
-                      <FieldHelp reason="영업점에 가지 않는 상속인이 있으면 위임장·인감증명서가 추가로 필요해집니다." />
-                    )}
-                  </div>
-                ))}
+                  ))}
               </div>
               <button
                 type="button"
@@ -503,6 +626,7 @@ function OnboardingForm() {
                       name: '',
                       is_minor: false,
                       is_visiting: false,
+                      deceased: false,
                     },
                   ])
                 }
@@ -541,14 +665,21 @@ function OnboardingForm() {
                   </p>
                 ) : (
                   <ul className="divide-y divide-line">
-                    {previewShares.shares.map((share, index) => (
+                    {previewShares.shares.map((share) => (
                       <li
                         key={share.heir_id}
                         className="flex items-center justify-between py-2"
                       >
                         <span>
-                          {maskName(heirs[index]?.name ?? '') || '○○'}{' '}
+                          {/* 대습상속이 있으면 지분 순서와 입력 순서가 달라진다.
+                              heir_id로 짚어야 이름이 어긋나지 않는다. */}
+                          {maskName(draftById.get(share.heir_id)?.name ?? '') || '○○'}{' '}
                           <span className="text-muted">({RELATION_LABEL[share.relation]})</span>
+                          {share.substitutes_for && (
+                            <span className="ml-2 rounded-sm border border-accent px-1.5 py-0.5 text-sm text-accent">
+                              대습상속
+                            </span>
+                          )}
                         </span>
                         <span className="font-semibold tabular-nums">
                           {share.fraction_label}
