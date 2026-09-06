@@ -174,7 +174,7 @@ export function FlowSection() {
           <Step
             index={3}
             title="알림과 안내서를 받습니다"
-            body="기한 30·14·7·3·1일 전에 메일이 갑니다. 안내서는 기관별 준비 서류와 확인할 것을 한 장에 모은 정리본입니다."
+            body="기한 30·14·7·3·1일 전에 메일이 갑니다. 안내서는 기한마다 무엇을 하는 날인지, 기관별로 무엇을 준비해 무엇을 확인할지를 한 장에 모은 정리본입니다."
             wide
           >
             <div className="grid gap-4 sm:grid-cols-2">

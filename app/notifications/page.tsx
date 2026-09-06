@@ -286,6 +286,12 @@ export default function NotificationsPage() {
                   이메일 주소 형식을 확인해 주세요. (예: name@example.com)
                 </p>
               )}
+              {/* 주소는 맞는데 단추가 눌리지 않으면 이유를 알 수 없다 */}
+              {!consent && !emailBad && isValidEmail(email) && (
+                <p className="mt-1 text-sm text-muted">
+                  아래 동의에 체크하시면 신청하실 수 있습니다.
+                </p>
+              )}
 
               <p className="mt-3 text-sm text-muted">
                 신청하시면 확인 메일이 갑니다. 해지는 알림 메일 아래의 링크로 하실 수 있습니다 —

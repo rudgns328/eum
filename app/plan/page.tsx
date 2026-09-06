@@ -136,7 +136,16 @@ export default function PlanPage() {
     <PageShell current="/plan" title="실행 계획" description="처리 소요가 긴 기관부터 표시합니다. 순서는 안내이며 강제되지 않습니다.">
       {ordered.length === 0 ? (
         <Card>
-          <p>등록된 자산이 없습니다. 온보딩에서 기관별 자산을 추가하면 계획이 만들어집니다.</p>
+          {/* 막다른 화면을 두지 않는다 — 채우러 갈 곳을 함께 준다 */}
+          <p>
+            아직 넣으신 거래 기관이 없습니다. 은행·증권·보험을 넣으시면 기관마다 필요한 서류와
+            방문 순서가 여기에 만들어집니다.
+          </p>
+          <div className="mt-3">
+            <Link href="/onboarding" role="button" className={btnPrimary}>
+              거래 기관 넣으러 가기
+            </Link>
+          </div>
         </Card>
       ) : (
         <div className="space-y-5">
