@@ -51,7 +51,7 @@ export function Card({
   className?: string;
 }) {
   return (
-    <section className={`rounded-xl border border-line bg-surface p-5 ${className}`}>
+    <section className={`rounded-2xl border border-line bg-surface p-5 ${className}`}>
       {children}
     </section>
   );
@@ -70,7 +70,7 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <section className={`overflow-hidden rounded-xl border border-line bg-surface ${className}`}>
+    <section className={`overflow-hidden rounded-2xl border border-line bg-surface ${className}`}>
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-subtle px-5 py-3">
         <h2 className="text-lg font-bold">{title}</h2>
         {aside}
@@ -130,7 +130,7 @@ export function NoticeBox({
   const border = tone === 'warning' ? 'border-l-critical' : 'border-l-accent';
   const bg = tone === 'warning' ? 'bg-critical/5' : 'bg-accent-soft';
   return (
-    <div className={`rounded-lg border border-line border-l-4 ${border} ${bg} p-4`}>
+    <div className={`rounded-xl border border-line border-l-4 ${border} ${bg} p-4`}>
       {title && <p className="mb-1 font-bold">{title}</p>}
       <div className="text-base">{children}</div>
     </div>
@@ -656,7 +656,7 @@ export function Disclosure({
   defaultOpen?: boolean;
 }) {
   return (
-    <details className="group overflow-hidden rounded-xl border border-line bg-surface" open={defaultOpen}>
+    <details className="group overflow-hidden rounded-2xl border border-line bg-surface" open={defaultOpen}>
       <summary className="flex cursor-pointer list-none items-center gap-2 px-5 py-4 font-bold">
         <span
           className="flex h-5 w-5 shrink-0 items-center justify-center border border-line-strong text-sm leading-none text-accent"
@@ -734,7 +734,7 @@ export function DocumentFill({
 }) {
   const inputId = `fill-${kind}`;
   return (
-    <div className="mb-4 rounded-xl border border-line bg-subtle p-4">
+    <div className="mb-4 rounded-2xl border border-line bg-subtle p-4">
       <div className="flex flex-wrap items-center gap-3">
         <label htmlFor={inputId} className={`${btnOutline} cursor-pointer`}>
           {reading ? '읽는 중…' : label}

@@ -193,20 +193,26 @@ export function ThresholdTable() {
  *
  * 수치를 늘어놓지 않는다. 재현율·차단율 같은 숫자는 자체 측정이라 읽는
  * 사람이 검증할 수 없고, AI가 실제로 무슨 일을 하는지는 알려 주지 못한다.
- * 어느 쪽이 무엇을 맡는지가 이 화면에서 알아야 할 전부다.
+ * 무엇을 읽어 무엇으로 바꾸는지를 실제 예로 보인다.
+ *
+ * 예시 문장은 지어낸 것이 아니다 — 문서 판독 결과와 lib/llm/detect.ts의
+ * 프롬프트에 적힌 것을 그대로 옮겼다.
  */
 const AI_WORK = [
   {
-    title: '서류를 읽습니다',
-    body: '가족관계증명서와 금융거래 조회 결과를 읽어 상속인 구성과 기관별 재산·부채 초안을 만듭니다. 사망·미성년 표시까지 읽어 옮깁니다.',
+    title: '사진 한 장에서 상속인을 읽어냅니다',
+    body: '이름과 관계만이 아니라, 이름 옆에 찍힌 사망 표시와 출생연도로 판정한 미성년 여부까지 옮깁니다. 글자만 뽑아서는 그 표시가 누구 옆에 붙은 것인지 알 수 없습니다.',
+    example: { from: '자녀 김○○ 〔사망〕', to: '상속개시 전 사망 ✓ — 대습상속 입력이 그 자리에서 열립니다' },
   },
   {
-    title: '규정을 쉬운 말로 옮깁니다',
-    body: '기관 규정과 법령 문장을 그대로 두고, 그 옆에 일상어 설명을 덧붙입니다. 원문을 바꾸지 않습니다.',
+    title: '재산과 빚을 갈라냅니다',
+    body: '조회 결과에는 예금과 대출이 한 표에 섞여 나오고, 표기는 기관마다 다릅니다. 빚이 재산으로 들어가면 부채가 재산을 넘는지 판단할 수 없습니다.',
+    example: { from: '하나은행 · 대출 있음 · 38,000,000', to: '자산이 아니라 부채로 — 상속포기 검토 항목이 열립니다' },
   },
   {
-    title: '확인할 것을 찾아냅니다',
-    body: '규정과 지금 상황을 대조해, 해당되는데 아직 하지 않은 것을 찾아 문장으로 옮깁니다.',
+    title: '규정을 아는 말로 옮깁니다',
+    body: '원문을 바꾸지 않고 그대로 둔 채, 그 옆에 일상어 설명을 붙입니다. 읽는 분은 장례 직후의 40~60대입니다.',
+    example: { from: '피상속인의 금융채권 존부', to: '아버지 명의로 남은 예금이 있는지' },
   },
 ] as const;
 
@@ -221,61 +227,51 @@ const RULE_WORK = [
   },
   {
     title: '기관별 요건을 판정합니다',
-    body: '소액 간소화 구간, 필요 서류와 부수를 규정 파일에서 읽어 판정합니다.',
+    body: '소액 간소화 구간과 필요 서류·부수를 규정 파일에서 읽어 판정합니다. 기관마다 기준이 다릅니다.',
   },
 ] as const;
 
-const GUARDS = [
-  'AI가 쓴 문장은 검사를 통과한 뒤에만 화면에 나갑니다. 판단이나 권유로 읽히는 표현은 걸러 내고, 걸리면 규칙 엔진이 만든 문장으로 되돌립니다.',
-  '전문가 상담이 필요한 항목은 AI 문장을 쓰지 않고 정해진 문구로만 안내합니다.',
-  'AI가 통째로 실패해도 기한·상속분·서류 목록은 그대로 나옵니다. 읽지 못한 문서는 직접 입력으로 이어집니다.',
-] as const;
-
-function WorkList({
-  title,
-  items,
-}: {
-  title: string;
-  items: readonly { title: string; body: string }[];
-}) {
-  return (
-    <div className="rounded-lg border border-white/25 p-5">
-      <p className="text-lg font-bold">{title}</p>
-      <ul className="mt-3 space-y-3">
-        {items.map((item) => (
-          <li key={item.title}>
-            <p className="font-semibold">{item.title}</p>
-            <p className="mt-0.5 text-white/80">{item.body}</p>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
 export function GuardStats() {
   return (
-    <div className="bg-navy px-5 py-6 text-white">
-      <p className="text-white/85">
+    <div className="overflow-hidden rounded-2xl bg-navy px-6 py-7 text-white">
+      <p className="text-lg leading-relaxed text-white/90">
         이음은 규칙 엔진과 AI를 함께 씁니다. 답이 정해진 계산은 규칙 엔진이 하고, 사람이 읽고
-        옮겨야 하는 일은 AI가 합니다. 기한과 법정상속분에는 AI가 관여하지 않습니다.
+        옮겨야 하는 일은 AI가 합니다.{' '}
+        <span className="font-semibold text-white">
+          기한과 법정상속분에는 AI가 관여하지 않으며, AI가 쓴 문장은 검사를 통과한 뒤에만 화면에
+          나갑니다.
+        </span>
       </p>
 
-      <div className="mt-5 grid gap-4 lg:grid-cols-2">
-        <WorkList title="AI가 맡는 일" items={AI_WORK} />
-        <WorkList title="규칙 엔진이 맡는 일" items={RULE_WORK} />
-      </div>
+      <div className="mt-6 grid gap-4 lg:grid-cols-[1.35fr_1fr]">
+        <div className="rounded-2xl border border-white/25 bg-white/[0.06] p-6">
+          <p className="text-lg font-bold">AI가 맡는 일</p>
+          <ul className="mt-4 space-y-5">
+            {AI_WORK.map((item) => (
+              <li key={item.title}>
+                <p className="font-bold">{item.title}</p>
+                <p className="mt-1 text-white/80">{item.body}</p>
+                <div className="mt-2.5 rounded-xl bg-navy-dark/60 px-4 py-3 text-sm">
+                  <p className="text-white/60">{item.example.from}</p>
+                  <p className="mt-1 font-semibold text-white">↓ {item.example.to}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
 
-      <div className="mt-5 border-t border-white/25 pt-5">
-        <p className="font-bold">AI가 쓴 문장에 두는 안전장치</p>
-        <ul className="mt-2 space-y-1.5 text-white/85">
-          {GUARDS.map((line) => (
-            <li key={line} className="flex gap-2">
-              <span className="mt-[0.6em] h-1.5 w-1.5 shrink-0 bg-white/60" aria-hidden />
-              <span>{line}</span>
-            </li>
-          ))}
-        </ul>
+        <div className="rounded-2xl border border-white/25 p-6">
+          <p className="text-lg font-bold">규칙 엔진이 맡는 일</p>
+          <p className="mt-1 text-sm text-white/60">AI를 거치지 않습니다</p>
+          <ul className="mt-4 space-y-5">
+            {RULE_WORK.map((item) => (
+              <li key={item.title}>
+                <p className="font-bold">{item.title}</p>
+                <p className="mt-1 text-white/80">{item.body}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );

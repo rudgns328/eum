@@ -20,7 +20,7 @@ import { btnPrimary } from './ui';
 /** 결과물 틀. 화면 캡처처럼 보이도록 이름표를 얹는다 */
 function Output({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <figure className="overflow-hidden rounded-xl border border-line bg-surface shadow-[0_1px_3px_rgba(16,48,94,0.06)]">
+    <figure className="overflow-hidden rounded-2xl border border-line bg-surface shadow-[0_1px_3px_rgba(16,48,94,0.06)]">
       <figcaption className="border-b border-line bg-subtle px-4 py-2 text-sm font-semibold text-muted">
         {label}
       </figcaption>

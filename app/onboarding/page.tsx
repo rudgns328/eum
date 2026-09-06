@@ -935,7 +935,7 @@ function OnboardingForm() {
                 {heirs
                   .filter((heir) => !heir.substitutes_for_key)
                   .map((heir) => (
-                    <div key={heir.key} className="rounded-lg border border-line p-3">
+                    <div key={heir.key} className="rounded-xl border border-line p-3">
                       {renderHeirFields(heir)}
 
                       {/* 대습상속 — 피대습자 아래에 들여써서 관계가 보이게 한다.
@@ -955,7 +955,7 @@ function OnboardingForm() {
                             {heirs
                               .filter((sub) => sub.substitutes_for_key === heir.key)
                               .map((sub) => (
-                                <div key={sub.key} className="rounded-lg border border-line bg-subtle p-3">
+                                <div key={sub.key} className="rounded-xl border border-line bg-subtle p-3">
                                   {renderHeirFields(sub, true)}
                                 </div>
                               ))}
@@ -1117,7 +1117,7 @@ function OnboardingForm() {
                     (i) => i.institution_id === asset.institution_id,
                   );
                   return (
-                    <div key={asset.key} className="rounded-lg border border-line p-3">
+                    <div key={asset.key} className="rounded-xl border border-line p-3">
                       <div className="grid gap-3 sm:grid-cols-[1fr_8rem_auto]">
                         <select
                           className="rounded-lg border border-line-strong bg-surface px-3 py-2"
@@ -1300,7 +1300,7 @@ function OnboardingForm() {
                 {debts.map((debt, index) => (
                   <div
                     key={debt.key}
-                    className="grid gap-3 rounded-lg border border-line p-3 sm:grid-cols-[1fr_1fr_auto]"
+                    className="grid gap-3 rounded-xl border border-line p-3 sm:grid-cols-[1fr_1fr_auto]"
                   >
                     <select
                       className={`rounded-lg border bg-surface px-3 py-2 ${

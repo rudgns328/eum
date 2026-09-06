@@ -461,7 +461,7 @@ export default function UploadPage() {
               <SectionTitle>상속인</SectionTitle>
               <div className="space-y-3">
                 {heirs.map((heir, index) => (
-                  <div key={index} className="rounded-lg border border-line p-3">
+                  <div key={index} className="rounded-xl border border-line p-3">
                     <div className="grid gap-3 sm:grid-cols-[8rem_1fr_auto]">
                       <select
                         className={input}
@@ -580,7 +580,7 @@ export default function UploadPage() {
               <SectionTitle>자산</SectionTitle>
               <div className="space-y-3">
                 {assets.map((asset, index) => (
-                  <div key={index} className="rounded-lg border border-line p-3">
+                  <div key={index} className="rounded-xl border border-line p-3">
                     <div className="grid gap-3 sm:grid-cols-[1fr_6rem_10rem_auto]">
                       <select
                         className={`${input} ${
