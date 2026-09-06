@@ -161,15 +161,6 @@ export default function PrintPage() {
           <p className="text-base text-muted">
             인쇄 창에서 &lsquo;PDF로 저장&rsquo;을 고르면 파일로 받을 수 있습니다.
           </p>
-          {/*
-           * 날짜·주소·쪽번호는 브라우저가 붙이는 것이라 화면 코드로 뺄 수
-           * 없다. 끄는 자리를 알려 주는 것이 우리가 할 수 있는 전부다.
-           */}
-          <p className="mt-1.5 text-base text-muted">
-            인쇄 창의 <span className="font-semibold text-foreground">&lsquo;머리글 및 바닥글&rsquo;</span>{' '}
-            체크를 끄면 날짜와 인터넷 주소가 함께 인쇄되지 않습니다. (Chrome은 &lsquo;설정 더보기&rsquo;
-            안에 있습니다.)
-          </p>
         </div>
         <button
           type="button"
