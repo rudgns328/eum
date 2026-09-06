@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 측정용 샘플 문서 (개인정보가 없더라도 저장소에 두지 않는다)
+docs/test_docs/
