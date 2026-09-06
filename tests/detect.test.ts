@@ -169,7 +169,7 @@ describe('폴백 — LLM 실패가 서비스 중단으로 이어지지 않는다
     const result = await detectMissingItems(input(), null);
     expect(result.degraded).toBe('no_api_key');
     expect(result.alerts.length).toBe(result.candidate_count);
-    expect(result.alerts.every((a) => a.body_source === 'deterministic')).toBe(true);
+    expect(result.alerts.every((a) => a.plain === undefined)).toBe(true);
   });
 
   it('API 오류를 흡수한다', async () => {
@@ -229,14 +229,15 @@ describe('2단계 LLM 재평가', () => {
       ]),
     );
     const alert = result.alerts.find((a) => a.candidate_id === target.candidate_id);
-    expect(alert?.body_source).toBe('llm');
-    expect(alert?.body).toBe('조회 신청 시 계좌 지급정지가 걸릴 수 있습니다.');
+    // 채택된 문장은 plain에 담긴다. body(규정 문안)는 바뀌지 않는다.
+    expect(alert?.plain).toBe('조회 신청 시 계좌 지급정지가 걸릴 수 있습니다.');
+    expect(alert?.body).toBe(candidateToAlert(target).body);
   });
 
   it('모델이 언급하지 않은 후보도 결정론 문안으로 남는다', async () => {
     const result = await detectMissingItems(input(), mockClient([]));
     expect(result.alerts.length).toBe(result.candidate_count);
-    expect(result.alerts.every((a) => a.body_source === 'deterministic')).toBe(true);
+    expect(result.alerts.every((a) => a.plain === undefined)).toBe(true);
   });
 
   it('모델이 관련 없다고 해도 항목을 지우지 않는다', async () => {
@@ -248,7 +249,7 @@ describe('2단계 LLM 재평가', () => {
     );
     const alert = result.alerts.find((a) => a.candidate_id === target.candidate_id);
     expect(alert).toBeDefined();
-    expect(alert?.body_source).toBe('deterministic');
+    expect(alert?.plain).toBeUndefined();
   });
 
   it('모르는 candidate_id는 새 항목이 되지 않는다', async () => {
@@ -277,7 +278,7 @@ describe('3단계 guard 필터', () => {
     );
 
     const alert = result.alerts.find((a) => a.candidate_id === target.candidate_id);
-    expect(alert?.body_source).toBe('deterministic');
+    expect(alert?.plain).toBeUndefined();
     expect(alert?.body).not.toContain('유리');
     expect(result.guard_rejections.map((r) => r.candidate_id)).toContain(target.candidate_id);
   });
@@ -301,7 +302,7 @@ describe('3단계 guard 필터', () => {
     expect(alert?.body).toBe(
       '부채가 재산을 초과하는 상황이 확인됩니다. 상속포기·한정승인 검토가 필요할 수 있습니다. 결정 기한 D-59. 이 판단은 법률 전문가 상담이 필요합니다.',
     );
-    expect(alert?.body_source).toBe('deterministic');
+    expect(alert?.plain).toBeUndefined();
   });
 
   it('기한이 없는 전문가 항목은 D-{n} 문장을 뺀다', async () => {
@@ -351,7 +352,7 @@ describe('3단계 guard 필터', () => {
     expect(result.alerts.length).toBe(candidates.length);
     for (const alert of result.alerts) {
       // LLM 문장이 한 글자도 사용자에게 닿지 않는다
-      expect(alert.body_source, alert.candidate_id).toBe('deterministic');
+      expect(alert.plain, alert.candidate_id).toBeUndefined();
       for (const phrase of ['지금 바로', '유리합니다', '절세', '신청하세요']) {
         expect(alert.body, alert.candidate_id).not.toContain(phrase);
       }
@@ -384,5 +385,77 @@ describe('3단계 guard 필터', () => {
       expect(isClean(alert.title), candidate.candidate_id).toBe(true);
       expect(isClean(alert.body), candidate.candidate_id).toBe(true);
     }
+  });
+});
+
+describe('규정 원문은 언제나 남고, AI 설명은 덧붙기만 한다', () => {
+  const target = () => buildCandidates(input()).find((c) => !c.requires_expert)!;
+
+  it('AI가 문장을 써도 body는 규칙 엔진 문안 그대로다', async () => {
+    const candidate = target();
+    const expected = candidateToAlert(candidate).body;
+
+    const result = await detectMissingItems(
+      input(),
+      mockClient([{ candidate_id: candidate.candidate_id, relevant: true, body: '쉬운 설명입니다.' }]),
+    );
+
+    const alert = result.alerts.find((a) => a.candidate_id === candidate.candidate_id);
+    expect(alert?.body, '규정 문안이 바뀌면 안 된다').toBe(expected);
+    expect(alert?.plain).toBe('쉬운 설명입니다.');
+  });
+
+  it('guard에 걸리면 AI 설명만 빠지고 규정 문안은 남는다', async () => {
+    const candidate = target();
+    const expected = candidateToAlert(candidate).body;
+
+    const result = await detectMissingItems(
+      input(),
+      mockClient([
+        { candidate_id: candidate.candidate_id, relevant: true, body: '먼저 신청하시는 것이 좋습니다.' },
+      ]),
+    );
+
+    const alert = result.alerts.find((a) => a.candidate_id === candidate.candidate_id);
+    expect(alert?.body).toBe(expected);
+    expect(alert?.plain, 'guard가 막은 문장이 새어 나가면 안 된다').toBeUndefined();
+    expect(result.guard_rejections.length).toBeGreaterThan(0);
+  });
+
+  it('AI 단계가 통째로 실패해도 모든 항목의 body가 남는다', async () => {
+    const candidates = buildCandidates(input());
+    const result = await detectMissingItems(input(), null);
+
+    expect(result.alerts).toHaveLength(candidates.length);
+    for (const alert of result.alerts) {
+      expect(alert.body.length, alert.candidate_id).toBeGreaterThan(0);
+      expect(alert.plain).toBeUndefined();
+    }
+  });
+
+  it('전문가 상담 항목에는 쉬운 설명을 붙이지 않는다', async () => {
+    const minorCase = baseCase({
+      heirs: [
+        { heir_id: 'h1', relation: 'spouse', name_masked: '김○○', is_minor: false },
+        { heir_id: 'h2', relation: 'child', name_masked: '김○○', is_minor: true },
+      ],
+      agreement_division: true,
+    });
+    const expertInput = input(minorCase);
+
+    const result = await detectMissingItems(
+      expertInput,
+      mockClient(
+        buildCandidates(expertInput).map((c) => ({
+          candidate_id: c.candidate_id,
+          relevant: true,
+          body: '쉬운 설명입니다.',
+        })),
+      ),
+    );
+
+    const expert = result.alerts.find((a) => a.requires_expert);
+    expect(expert, '특별대리인 항목이 있어야 한다').toBeDefined();
+    expect(expert?.plain, '고정 템플릿 항목에는 AI 문장이 붙지 않는다').toBeUndefined();
   });
 });

@@ -8,7 +8,7 @@
  * 화면에 닿는 문장은 전부 guard를 통과한 것이다(절대규칙 3).
  */
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   btnPrimary,
@@ -53,7 +53,6 @@ export default function AlertsPage() {
           }).map((candidate) => ({
             ...candidateToAlert(candidate),
             candidate_id: candidate.candidate_id,
-            body_source: 'deterministic' as const,
             certainty: candidate.certainty,
             affected_institutions: candidate.affected_institutions,
           }))
@@ -80,6 +79,19 @@ export default function AlertsPage() {
       setReviewing(false);
     }
   }, [caseData, deterministic]);
+
+  // 화면에 들어오면 한 번 자동으로 실행한다.
+  //
+  // 예전에는 버튼을 눌러야 돌았고, 누르지 않으면 AI가 한 번도 실행되지 않은
+  // 채로 화면이 끝났다. 실패해도 규칙 엔진 문안은 그대로 남으므로 자동으로
+  // 돌려도 잃는 것이 없다(설계 원칙 3 — 부분 실패 허용).
+  const requestedFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!caseData || deterministic.length === 0) return;
+    if (requestedFor.current === caseData.case_id) return;
+    requestedFor.current = caseData.case_id;
+    void review();
+  }, [caseData, deterministic, review]);
 
   if (!ready) {
     return (
@@ -122,8 +134,8 @@ export default function AlertsPage() {
               확인이 필요한 항목 {deterministic.length}건을 찾았습니다.
             </p>
             <p className="text-base text-muted">
-              설명을 더 읽기 쉽게 바꿔 볼 수 있습니다. 어떤 항목이 나오는지, 기한이 언제인지는
-              바뀌지 않습니다.
+              각 항목의 규정 문장을 AI가 쉬운 말로 풀어 함께 보여드립니다. 어떤 항목이 나오는지,
+              기한이 언제인지는 AI가 바꾸지 않습니다.
             </p>
           </div>
           <button
@@ -132,7 +144,7 @@ export default function AlertsPage() {
             onClick={review}
             disabled={reviewing || deterministic.length === 0}
           >
-            {reviewing ? '바꾸는 중' : '설명 쉽게 보기'}
+            {reviewing ? '쉬운 설명 만드는 중' : '쉬운 설명 다시 만들기'}
           </button>
         </div>
         {result?.degraded && (
@@ -159,6 +171,23 @@ export default function AlertsPage() {
 
               <p className="text-base">{alert.body}</p>
 
+              {/* 규정 원문은 위에 그대로 두고, 쉬운 설명을 아래에 덧붙인다.
+                  AI가 한 일을 라벨로 드러내고, guard가 막으면 이 블록만 빠진다. */}
+              {alert.plain && (
+                <div className="mt-3 border-l-4 border-l-accent bg-accent-soft p-3">
+                  <p className="mb-1 flex items-center gap-2 text-sm font-bold text-accent">
+                    <span
+                      className="inline-flex items-center rounded-sm border border-accent px-1.5 py-0.5"
+                      aria-hidden
+                    >
+                      AI
+                    </span>
+                    쉬운 설명
+                  </p>
+                  <p className="text-base">{alert.plain}</p>
+                </div>
+              )}
+
               {alert.affected_institutions.length > 0 && (
                 <p className="mt-2 text-base">
                   <span className="font-semibold">해당 기관</span>{' '}
@@ -173,9 +202,10 @@ export default function AlertsPage() {
               )}
 
               <SourceNote source={alert.source} />
-              {alert.body_source === 'llm' && (
+              {alert.plain && (
                 <p className="mt-1 text-sm text-muted">
-                  설명 문장은 AI가 정리했습니다. 항목과 기한은 계산된 값 그대로입니다.
+                  쉬운 설명은 AI가 위 규정 문장을 풀어 쓴 것입니다. 항목·기한·출처는 규칙 엔진이
+                  계산한 값 그대로입니다.
                 </p>
               )}
             </Card>

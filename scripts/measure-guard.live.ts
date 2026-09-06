@@ -52,13 +52,13 @@ it('guard 차단율 측정', { timeout: 900_000 }, async () => {
     // 최종 출력에 금지 표현이 남았는지 — 0이어야 한다.
     const leaked = result.alerts.filter(
       (alert) => findViolations(alert.title).length > 0
-        || (alert.body_source === 'llm' && findViolations(alert.body).length > 0),
+        || (alert.plain !== undefined && findViolations(alert.plain).length > 0),
     ).length;
 
     rows.push({
       id: scenario.id,
       candidates: result.candidate_count,
-      llmBodies: result.alerts.filter((a) => a.body_source === 'llm').length,
+      llmBodies: result.alerts.filter((a) => a.plain !== undefined).length,
       guardRejections: result.guard_rejections.length,
       leaked,
       degraded: result.degraded,

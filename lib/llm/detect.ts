@@ -33,8 +33,14 @@ export type DetectDegradedReason =
 
 export interface DetectedAlert extends Alert {
   candidate_id: string;
-  /** deterministic — 1단계 문안 그대로 / llm — 재평가 문안 */
-  body_source: 'deterministic' | 'llm';
+  /**
+   * AI가 쓴 쉬운 설명. guard를 통과했을 때만 채워진다.
+   *
+   * body(규정 원문)를 대체하지 않고 덧붙는다. 원문을 갈아치우면 사용자가
+   * 규정이 실제로 뭐라고 했는지 볼 수 없게 되고, guard가 막았을 때 무엇이
+   * 사라졌는지도 드러나지 않는다.
+   */
+  plain?: string;
   certainty: 'confirmed' | 'conditional';
   affected_institutions: string[];
 }
@@ -65,7 +71,7 @@ const RELEVANCE_SCHEMA = {
           relevant: { type: 'boolean' },
           body: {
             type: 'string',
-            description: '사실만 서술한 2~3문장. 판단·권유·세액 계산 금지.',
+            description: '전문용어를 푼 쉬운 2~3문장. 판단·권유·세액 계산 금지.',
           },
         },
       },
@@ -77,7 +83,15 @@ const SYSTEM_PROMPT = `당신은 상속 절차 안내문의 문장을 다듬습�
 
 주어진 후보는 규칙 엔진이 이미 판정한 것입니다. 당신의 역할은 둘뿐입니다.
 1. 이 사용자 상황에서 후보가 실제로 관련 있는지 판단합니다 (relevant).
-2. 후보에 딸린 사실 문장을 읽기 쉬운 2~3문장으로 다시 씁니다 (body).
+2. 후보에 딸린 사실 문장을 쉬운 말로 다시 씁니다 (body).
+
+읽는 사람은 40~60대이고 금융·법률 지식이 없으며, 장례 직후라 경황이 없습니다.
+- 한자어와 전문용어를 일상어로 풉니다.
+    '거래정지 조치를 취한다'  → '계좌를 잠글 수 있습니다'
+    '상속인 전원의 청구'      → '상속인 모두가 함께 신청해야'
+    '피상속인의 금융채권 존부' → '아버지 명의로 남은 예금이 있는지'
+- 한 문장을 짧게 끊고, 2~3문장으로 마칩니다.
+- 원문에 없는 사실을 보태지 않습니다. 쉬운 말로 바꾸기만 합니다.
 
 절대 규칙:
 - 주어진 후보 목록에 없는 항목을 새로 만들지 않습니다.
@@ -150,12 +164,14 @@ function extractItems(response: ApiResponse): RelevanceItem[] | null {
   }
 }
 
-/** 1단계 문안으로 만든 항목. 어느 폴백 경로에서나 이 형태로 돌아온다 */
+/**
+ * 규정 문안으로 만든 항목. 어느 폴백 경로에서나 이 형태로 돌아온다.
+ * AI 설명은 여기에 덧붙을 뿐, 이 문장을 대체하지 않는다.
+ */
 function deterministicAlert(candidate: AlertCandidate): DetectedAlert {
   return {
     ...candidateToAlert(candidate),
     candidate_id: candidate.candidate_id,
-    body_source: 'deterministic',
     certainty: candidate.certainty,
     affected_institutions: candidate.affected_institutions,
   };
@@ -232,7 +248,8 @@ export async function detectMissingItems(
         rejections.push({ candidate_id: candidate.candidate_id, violations: outcome.violations });
         alerts.push(fallback);
       } else {
-        alerts.push({ ...fallback, ...outcome.alert, body_source: 'deterministic' });
+        // 고정 템플릿이 본문이 된다. 여기에는 쉬운 설명을 붙이지 않는다.
+        alerts.push({ ...fallback, ...outcome.alert });
       }
       continue;
     }
@@ -247,7 +264,8 @@ export async function detectMissingItems(
 
     const outcome = guardAlert({ alert: { ...candidateToAlert(candidate), body: item.body } });
     if (outcome.status === 'passed') {
-      alerts.push({ ...fallback, body: outcome.alert.body, body_source: 'llm' });
+      // 규정 문안은 그대로 두고 쉬운 설명만 덧붙인다.
+      alerts.push({ ...fallback, plain: outcome.alert.body });
     } else {
       rejections.push({
         candidate_id: candidate.candidate_id,
