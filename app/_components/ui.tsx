@@ -739,6 +739,15 @@ export function DocumentFill({
         <label htmlFor={inputId} className={`${btnOutline} cursor-pointer`}>
           {reading ? '읽는 중…' : label}
         </label>
+        {sample && (
+          /*
+           * 문서가 없는 사람도 바로 시험해 볼 수 있게 내려받기를 나란히 둔다.
+           * 링크로 열어 두면 저장까지 한 단계가 더 걸린다.
+           */
+          <a href={sample} download className={btnSmall}>
+            예시 견본 내려받기
+          </a>
+        )}
         <input
           id={inputId}
           type="file"
@@ -754,20 +763,6 @@ export function DocumentFill({
         />
         <p className="flex-1 text-sm text-muted">{hint}</p>
       </div>
-      {sample && (
-        <p className="mt-2 text-sm">
-          문서가 없으시면{' '}
-          <a
-            href={sample}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-bold text-accent underline-offset-2 hover:underline"
-          >
-            예시 견본
-          </a>
-          으로 먼저 시험해 보실 수 있습니다.
-        </p>
-      )}
       {about && (
         <details className="mt-2">
           <summary className="cursor-pointer text-sm font-semibold text-accent">

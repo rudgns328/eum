@@ -68,8 +68,7 @@ export function SubscribeCard({ caseData }: { caseData: Case }) {
     <Card>
       <SectionTitle>기한 알림을 받으시겠습니까?</SectionTitle>
       <p className="text-base text-muted">
-        중요 기한은 30·14·7·3·1일 전에, 그 밖의 기한은 30·7·1일 전에 메일로 보내 드립니다. 화면을
-        열어 두지 않으셔도 됩니다.
+        중요 기한은 30·14·7·3·1일 전에, 그 밖의 기한은 30·7·1일 전에 보내 드립니다.
       </p>
 
       <div className="mt-3 flex flex-wrap gap-3">

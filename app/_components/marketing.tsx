@@ -221,9 +221,6 @@ export function BoundarySection({ onDemo }: { onDemo: () => void }) {
 
         <div className="rounded-lg border-2 border-navy bg-subtle px-5 py-6 text-center">
           <p className="text-lg font-bold">사망일 하나면 시작됩니다.</p>
-          <p className="mt-1 text-sm text-muted">
-            나머지는 나중에 채워도 됩니다.
-          </p>
           <div className="mt-4 flex flex-col gap-2">
             <Link href="/onboarding" role="button" className={btnPrimary}>
               시작하기

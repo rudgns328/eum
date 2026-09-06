@@ -217,9 +217,8 @@ export default function NotificationsPage() {
           ) : subscription?.subscribed ? (
             <>
               <p className="text-base">
-                <span className="font-bold text-medium">신청 완료</span> —
-                기한이 다가오면 메일로 알려 드립니다. 화면을 열어 두지 않아도
-                됩니다.
+                <span className="font-bold text-medium">신청 완료</span> — 기한이 다가오면
+                메일로 알려 드립니다.
                 {subscription.email_masked && (
                   <span className="ml-1 text-muted">
                     ({subscription.email_masked})

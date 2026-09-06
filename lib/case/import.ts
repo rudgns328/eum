@@ -19,6 +19,14 @@ export interface HeirDraft {
   name_masked: string;
   is_minor: boolean;
   is_visiting: boolean;
+  /**
+   * 상속개시 전 사망. 문서에 사망 표시가 있으면 참이다.
+   *
+   * 버리지 않고 표시해 둔다 — 그 사람의 직계비속이 대신 상속하므로
+   * (민법 제1001조) 오히려 더 중요하다. 버리면 사용자가 문서를 다시 보고
+   * 손으로 넣어야 한다.
+   */
+  deceased: boolean;
   /** 파싱에서 확정하지 못해 사용자 확인이 필요한 필드 */
   uncertain: string[];
   /** 이 항목 하나에 대한 판독 확신도 */
@@ -102,7 +110,6 @@ export function toHeirDrafts(parsed: ParsedFamilyCert): HeirDraft[] {
   for (const entry of parsed.relations) {
     const relation = resolveRelation(entry);
     if (relation === null) continue;
-    if (entry.alive === false) continue;
 
     const uncertain: string[] = [];
     if (entry.alive === null) uncertain.push('생존 여부');
@@ -115,6 +122,7 @@ export function toHeirDrafts(parsed: ParsedFamilyCert): HeirDraft[] {
       name_masked: maskName(entry.name_masked) || '○○',
       is_minor: entry.is_minor === true,
       is_visiting: false,
+      deceased: entry.alive === false,
       uncertain,
       confidence: normalizeConfidence(entry.confidence),
       note: typeof entry.note === 'string' ? entry.note : '',
@@ -125,9 +133,10 @@ export function toHeirDrafts(parsed: ParsedFamilyCert): HeirDraft[] {
 }
 
 /** 파싱 결과에서 초안으로 옮기지 못한 항목 (사용자에게 그대로 알린다) */
+/** 관계를 읽지 못해 초안에 넣지 못한 사람 */
 export function droppedRelations(parsed: ParsedFamilyCert): string[] {
   return parsed.relations
-    .filter((entry) => resolveRelation(entry) === null || entry.alive === false)
+    .filter((entry) => resolveRelation(entry) === null)
     .map((entry) => `${entry.relation_label} ${entry.name_masked}`.trim());
 }
 

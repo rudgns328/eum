@@ -654,7 +654,8 @@ function OnboardingForm() {
           name: draft.name_masked,
           is_minor: draft.is_minor,
           is_visiting: false,
-          deceased: false,
+          // 문서에 사망 표시가 있으면 그대로 켠다. 대습상속 입력이 바로 열린다.
+          deceased: draft.deceased,
         })),
       );
       // '5건 확인 필요'만으로는 무엇을 봐야 할지 알 수 없다. 문서에서
@@ -1399,7 +1400,6 @@ function OnboardingForm() {
         </Disclosure>
 
         <p className="text-sm text-muted">
-          지금 넣은 것까지만으로 시작할 수 있습니다. 빈 항목은 나중에 채워도 됩니다.{' '}
           <button type="button" className="font-semibold text-accent underline" onClick={startDemo}>
             예시 데이터로 둘러보기
           </button>

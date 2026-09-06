@@ -230,6 +230,8 @@ export default function UploadPage() {
         name_masked: maskName(draft.name_masked) || '○○',
         is_minor: draft.is_minor,
         is_visiting: draft.is_visiting,
+        // 상속개시 전 사망은 상속인 수와 대습상속 판정을 가른다
+        ...(draft.deceased ? { alive: false as const } : {}),
       }));
     } else {
       /*
@@ -351,23 +353,6 @@ export default function UploadPage() {
               </div>
             </details>
 
-            <p className="mt-3 text-sm">
-              문서가 없으시면{' '}
-              <a
-                href={
-                  documentType === 'family_cert'
-                    ? '/sample/family-cert.png'
-                    : '/sample/fss-query-result.png'
-                }
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-bold text-accent underline-offset-2 hover:underline"
-              >
-                예시 견본
-              </a>
-              으로 먼저 시험해 보실 수 있습니다.
-            </p>
-
             <p className="mt-2 text-sm text-muted">
               화면을 찍은 사진이나 PDF 모두 됩니다. 올리신 파일은 읽은 즉시 버리고,
               주민등록번호와 생년월일은 읽지 않습니다.
@@ -381,6 +366,18 @@ export default function UploadPage() {
               >
                 {stage === 'parsing' ? '읽는 중…' : '문서 읽기'}
               </button>
+              {/* 문서가 없는 사람도 바로 시험해 볼 수 있게 나란히 둔다 */}
+              <a
+                href={
+                  documentType === 'family_cert'
+                    ? '/sample/family-cert.png'
+                    : '/sample/fss-query-result.png'
+                }
+                download
+                className={btnOutline}
+              >
+                예시 견본 내려받기
+              </a>
               <button
                 type="button"
                 className={btnOutline}
@@ -415,8 +412,7 @@ export default function UploadPage() {
                   문서를 읽지 못했습니다. 아래에 직접 입력하시면 결과는 같습니다.
                 </p>
                 <p className="mt-1 text-base text-muted">
-                  아는 것만 넣으셔도 됩니다. 빈 항목은 나중에 채워도 되고, 확인되지 않은 항목은
-                  단정하지 않고 비워 둡니다.
+                  아는 것만 넣으셔도 됩니다.
                 </p>
               </>
             ) : (
@@ -544,6 +540,20 @@ export default function UploadPage() {
                           }
                         />
                         영업점 방문 예정
+                      </label>
+                      <label className="flex items-center gap-2 text-base">
+                        <input
+                          type="checkbox"
+                          checked={heir.deceased}
+                          onChange={(e) =>
+                            setHeirs((prev) =>
+                              prev.map((h, i) =>
+                                i === index ? { ...h, deceased: e.target.checked } : h,
+                              ),
+                            )
+                          }
+                        />
+                        상속개시 전 사망
                       </label>
                     </div>
                     <ReadNote
@@ -763,6 +773,7 @@ function blankHeir(): HeirDraft {
     name_masked: '',
     is_minor: false,
     is_visiting: false,
+    deceased: false,
     uncertain: [],
     // 사용자가 직접 넣는 줄이라 확인 대상이 아니다.
     confidence: 1,

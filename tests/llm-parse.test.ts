@@ -276,7 +276,12 @@ describe('폴백 2 — 파싱 실패는 예외를 던지지 않고 failed를 돌
 // ---------------------------------------------------------------------------
 
 describe('상속인 초안 매핑', () => {
-  it('생존 상속인만 초안에 넣는다', () => {
+  it('상속개시 전 사망도 초안에 넣고 표시한다', () => {
+    /*
+     * 버리지 않는다. 그 사람의 직계비속이 대신 상속하므로(민법 제1001조)
+     * 오히려 더 중요하다. 버리면 사용자가 문서를 다시 보고 손으로 넣어야
+     * 하고, 그 사이에 대습상속을 놓친다.
+     */
     const drafts = toHeirDrafts({
       ...FAMILY_CERT_PAYLOAD,
       relations: [
@@ -284,7 +289,20 @@ describe('상속인 초안 매핑', () => {
         { relation_label: '자녀', relation: 'child', name_masked: '김○○', alive: false, is_minor: null },
       ],
     } as never);
-    expect(drafts).toHaveLength(3);
+    expect(drafts).toHaveLength(4);
+    expect(drafts.filter((d) => d.deceased)).toHaveLength(1);
+    expect(drafts.filter((d) => !d.deceased)).toHaveLength(3);
+  });
+
+  it('문서에서 읽은 미성년 여부를 그대로 옮긴다', () => {
+    const drafts = toHeirDrafts({
+      ...FAMILY_CERT_PAYLOAD,
+      relations: [
+        { relation_label: '자녀', relation: 'child', name_masked: '김○○', alive: true, is_minor: true },
+        { relation_label: '자녀', relation: 'child', name_masked: '김○○', alive: true, is_minor: false },
+      ],
+    } as never);
+    expect(drafts.map((d) => d.is_minor)).toEqual([true, false]);
   });
 
   it('관계를 확정하지 못한 항목은 임의로 채우지 않고 제외한다', () => {
