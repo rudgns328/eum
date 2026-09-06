@@ -6,7 +6,8 @@
  * 처음 오신 분이 읽는 순서대로 놓는다.
  *   ① 무엇을 해 주는 서비스인가        EntrySection
  *   ② 어떻게 진행되고 무엇을 받는가     FlowSection
- *   ③ 알아두실 사항 / 유의사항 / 근거
+ *   ③ 어디까지 AI가 맡는가              AiSection
+ *   ④ 알아두실 사항 / 유의사항 / 근거
 
  * 저장 방식은 섹션을 따로 두지 않는다. 히어로 한 줄과, 실제로 입력하는
  * 화면의 안내 띠(PageShell)로 알린다 — 앞에 늘어놓으면 읽히지 않는다.
@@ -20,6 +21,7 @@ import Link from 'next/link';
 
 import { FlowSection } from '@/app/_components/flow';
 import {
+  AiSection,
   BoundarySection,
   EntrySection,
   NoticeSection,
@@ -64,6 +66,7 @@ export default function Home() {
 
       <EntrySection hasCase={flags.exists} />
       <FlowSection />
+      <AiSection />
       <NoticeSection />
       <SupportedSection />
       <BoundarySection onDemo={startDemo} />

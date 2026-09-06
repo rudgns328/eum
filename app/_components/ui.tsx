@@ -293,16 +293,32 @@ export const NAV_LABEL: Record<string, string> = {
   ...EXTRA_LABELS,
 };
 
-/** 로고와 서비스명. 좁은 화면에서는 로고 줄에, 넓은 화면에서는 메뉴 줄에 둔다 */
-function Wordmark() {
+/**
+ * 심벌. 고리 두 개가 맞물린 모양 — 서비스 이름 그대로 '이음'이다.
+ * 글자 한 자('잇')를 넣으면 이름을 줄인 것처럼 읽혀 뜻이 살지 않았다.
+ */
+function Mark() {
   return (
-    <Link href="/" className="flex items-center gap-2.5 py-3" aria-label="이음 홈">
-      <span
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-navy text-lg font-black text-white"
-        aria-hidden
-      >
-        잇
-      </span>
+    <span
+      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[0.7rem] bg-navy text-white"
+      aria-hidden
+    >
+      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor">
+        <g strokeWidth="2.1" strokeLinecap="round">
+          <path d="M10.2 7.6H8.4a4.4 4.4 0 0 0 0 8.8h1.8" />
+          <path d="M13.8 7.6h1.8a4.4 4.4 0 0 1 0 8.8h-1.8" />
+          <path d="M8.9 12h6.2" />
+        </g>
+      </svg>
+    </span>
+  );
+}
+
+/** 로고와 서비스명. 좁은 화면에서는 로고 줄에, 넓은 화면에서는 메뉴 줄에 둔다 */
+function Wordmark({ className = 'flex' }: { className?: string }) {
+  return (
+    <Link href="/" className={`${className} items-center gap-2.5 py-3`} aria-label="이음 홈">
+      <Mark />
       <span className="leading-tight">
         <span className="block text-xl font-black tracking-tight text-navy">이음</span>
         <span className="block text-sm text-muted">상속 금융절차 안내</span>
@@ -341,18 +357,7 @@ function Header({ current }: { current: string }) {
         </div>
       </div>
       <div className="mx-auto flex w-full max-w-[64rem] items-center gap-x-6 px-4">
-        <Link href="/" className="hidden items-center gap-2.5 py-3 lg:flex" aria-label="이음 홈">
-          <span
-            className="flex h-9 w-9 items-center justify-center rounded-lg bg-navy text-lg font-black text-white"
-            aria-hidden
-          >
-            잇
-          </span>
-          <span className="leading-tight">
-            <span className="block text-xl font-black tracking-tight text-navy">이음</span>
-            <span className="block text-sm text-muted">상속 금융절차 안내</span>
-          </span>
-        </Link>
+        <Wordmark className="hidden lg:flex" />
 
         <nav
           aria-label="주메뉴"
@@ -377,13 +382,16 @@ function Header({ current }: { current: string }) {
           })}
         </nav>
 
-        <Link
-          href={cta.href}
-          role="button"
-          className={`ml-auto hidden ${btnPrimary} px-5 lg:inline-flex`}
-        >
-          {cta.label}
-        </Link>
+        {/*
+         * 감싸는 div로 숨긴다. btnPrimary가 inline-flex를 들고 있어
+         * 같은 요소에 hidden을 함께 걸면 display가 맞붙어, 좁은 화면에서
+         * 위 줄과 같은 버튼이 한 번 더 나왔다.
+         */}
+        <div className="ml-auto hidden lg:block">
+          <Link href={cta.href} role="button" className={`${btnPrimary} px-5`}>
+            {cta.label}
+          </Link>
+        </div>
       </div>
     </header>
   );
@@ -452,9 +460,7 @@ export function SiteFooter() {
           규정과 기한을 정리해 보여 드립니다. 법률 판단과 상속세 계산은 하지 않으며, 최종 확인은
           해당 기관에서 하는 사항입니다.
         </p>
-        <p className="mt-2">
-          이 서비스는 정부기관이나 금융기관이 제공하는 것이 아닙니다. 2026 금융 AI Challenge 출품작입니다.
-        </p>
+        <p className="mt-2">이 서비스는 정부기관이나 금융기관이 제공하는 것이 아닙니다.</p>
         <p className="mt-3 flex flex-wrap gap-x-5 gap-y-1">
           {RELATED_SITES.map((site) => (
             <a

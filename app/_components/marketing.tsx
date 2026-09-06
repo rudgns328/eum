@@ -80,7 +80,8 @@ export function EntrySection({ hasCase }: { hasCase: boolean }) {
           </h1>
           <p className="mt-5 max-w-xl text-lg text-white/85">
             사망일 하나만 넣으면 기한이 D-day로 환산되고, 기관별 서류가 한 장으로 정리됩니다.
-            기한이 다가오면 메일로 먼저 알려 드립니다.
+            가족관계증명서와 조회 결과는 올리시면 AI가 읽어 채웁니다. 기한이 다가오면 메일로 먼저
+            알려 드립니다.
           </p>
           <div className="mt-7 flex flex-wrap gap-2">
             <Link
@@ -121,6 +122,63 @@ export function EntrySection({ hasCase }: { hasCase: boolean }) {
         </aside>
       </div>
     </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// 3. AI가 맡는 자리
+// ---------------------------------------------------------------------------
+
+/**
+ * 어디에 AI를 쓰고 어디에 쓰지 않는지 소개 화면에서 먼저 밝힌다.
+ *
+ * 자세한 내용과 실제 입출력 예시는 /about에 있다. 여기서는 세 줄이면
+ * 충분하다 — 읽는 사람이 알고 싶은 것은 "무엇을 대신 읽어 주는가"와
+ * "계산까지 맡기는 것은 아닌가" 둘뿐이다.
+ */
+const AI_POINTS = [
+  {
+    title: '증명서를 대신 읽습니다',
+    body: '기울어진 사진, 접힌 자국, 흐릿한 스캔도 한 장을 통째로 읽어 부·모·배우자·자녀를 갈라내고 사망 표시까지 짚습니다.',
+  },
+  {
+    title: '재산과 빚을 갈라냅니다',
+    body: '조회 결과 한 표에 예금·보험·대출이 섞여 나옵니다. 기관마다 다른 표기를 재산과 부채로 나눠 담습니다.',
+  },
+  {
+    title: '규정을 쉬운 말로 옮깁니다',
+    body: '원문은 그대로 두고 그 옆에 일상어 설명을 붙입니다. 한자어와 전문용어를 풀어 씁니다.',
+  },
+] as const;
+
+export function AiSection() {
+  return (
+    <Band id="ai" tone="navy">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-black tracking-tight">읽고 옮기는 일은 AI가 합니다</h2>
+          <p className="mt-2 text-white/75">사람이 한 줄씩 옮겨 적던 자리입니다.</p>
+        </div>
+        <Link href="/about" className="font-bold text-white underline-offset-4 hover:underline">
+          AI와 규칙 엔진이 나눠 맡는 일 &gt;
+        </Link>
+      </div>
+
+      <ul className="mt-6 grid gap-4 md:grid-cols-3">
+        {AI_POINTS.map((point) => (
+          <li key={point.title} className="rounded-2xl border border-white/20 bg-white/[0.06] p-5">
+            <p className="font-bold">{point.title}</p>
+            <p className="mt-1.5 text-white/80">{point.body}</p>
+          </li>
+        ))}
+      </ul>
+
+      <p className="mt-5 rounded-2xl border border-white/20 px-5 py-4 text-white/85">
+        <span className="font-bold text-white">기한과 법정상속분은 AI가 계산하지 않습니다.</span>{' '}
+        말일 기산·공휴일·민법 조문을 그대로 옮긴 규칙 엔진이 계산하고, AI가 쓴 문장은 판단·권유
+        표현을 걸러 내는 검사를 통과한 뒤에만 화면에 나갑니다.
+      </p>
+    </Band>
   );
 }
 
@@ -252,8 +310,8 @@ export function SupportedSection() {
         <div>
           <h2 className="bar-heading text-2xl font-black tracking-tight">규정을 확인한 기관</h2>
           <p className="mt-2 text-muted">
-            공식 안내 원문을 확보한 기관입니다. 고객센터 통화까지 마치지 못한 곳은 그대로
-            표시하고, 확인하지 못한 항목을 다른 기관 값으로 채우지 않습니다.
+            공식 안내 원문을 확보한 기관입니다. 기관마다 다른 서류와 소액 간소화 기준을 화면에서
+            바로 보실 수 있습니다.
           </p>
         </div>
         <Link

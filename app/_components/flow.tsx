@@ -11,6 +11,7 @@
  * 한 줄로 알리는 편이 앞에 늘어놓는 것보다 잘 읽힌다.
  */
 
+import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
@@ -29,27 +30,70 @@ function Output({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
+/**
+ * 실물 캡처. 아래 두 장은 그려 넣은 그림이 아니라 이 서비스가 실제로
+ * 내보내는 것을 그대로 찍은 것이다 — 메일은 발송 함수가 만든 HTML을,
+ * 안내서는 인쇄 화면에서 뽑은 PDF 첫 장을 찍었다.
+ * 둘 다 사망일 2026.07.20 · 2026.08.13 기준 예시 케이스다.
+ */
+function Shot({
+  label,
+  alt,
+  src,
+  width,
+  height,
+  fade = false,
+}: {
+  label: ReactNode;
+  alt: string;
+  src: string;
+  width: number;
+  height: number;
+  /** 잘린 자리에 흐림을 얹어 뒤가 더 있다는 것을 보인다 */
+  fade?: boolean;
+}) {
+  return (
+    <figure className="overflow-hidden rounded-2xl border border-line bg-subtle shadow-[0_1px_3px_rgba(16,48,94,0.06)]">
+      <figcaption className="border-b border-line bg-surface px-4 py-2 text-sm font-semibold text-muted">
+        {label}
+      </figcaption>
+      <div className="relative">
+        <Image src={src} alt={alt} width={width} height={height} className="h-auto w-full" />
+        {fade && (
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-transparent to-white"
+            aria-hidden
+          />
+        )}
+      </div>
+    </figure>
+  );
+}
+
 function Step({
   index,
   title,
   body,
+  wide = false,
   children,
 }: {
   index: number;
   title: string;
   body: string;
+  /** 결과물이 넓어야 읽히는 단계는 설명을 위에 두고 폭을 전부 내준다 */
+  wide?: boolean;
   children: ReactNode;
 }) {
   return (
-    <li className="grid gap-4 lg:grid-cols-[16.5rem_1fr] lg:gap-10">
-      <div className="lg:pt-1">
+    <li className={`grid gap-4 ${wide ? '' : 'lg:grid-cols-[16.5rem_1fr] lg:gap-10'}`}>
+      <div className={wide ? '' : 'lg:pt-1'}>
         <p className="flex items-center gap-2.5">
           <span className="flex h-7 w-7 items-center justify-center rounded-full bg-navy text-sm font-bold text-white">
             {index}
           </span>
           <span className="text-xl font-bold">{title}</span>
         </p>
-        <p className="mt-2 text-base text-muted lg:ml-[2.375rem]">{body}</p>
+        <p className={`mt-2 text-base text-muted ${wide ? '' : 'lg:ml-[2.375rem]'}`}>{body}</p>
       </div>
       <div className="min-w-0">{children}</div>
     </li>
@@ -96,7 +140,7 @@ export function FlowSection() {
           <Step
             index={2}
             title="상속인과 재산을 넣습니다"
-            body="기관마다 다른 서류를 계산해 한 장으로 합칩니다. 주민센터를 여러 번 가지 않으셔도 됩니다."
+            body="가족관계증명서와 조회 결과를 올리시면 AI가 읽어 채웁니다. 기관마다 다른 서류는 한 장으로 합쳐 드립니다."
           >
             <Output label="한 번에 발급받을 서류">
               <ul className="divide-y divide-line">
@@ -115,36 +159,25 @@ export function FlowSection() {
           <Step
             index={3}
             title="알림과 안내서를 받습니다"
-            body="기한 30·14·7·3·1일 전에 메일이 갑니다. 안내서는 PDF로 저장하실 수 있습니다."
+            body="기한 30·14·7·3·1일 전에 메일이 갑니다. 아래는 실제로 나가는 메일과 안내서를 그대로 찍은 것입니다."
+            wide
           >
             <div className="grid gap-4 sm:grid-cols-2">
-              <Output label="알림 메일">
-                {EXAMPLE_MAIL && (
-                  <div className="text-sm">
-                    <p className="font-bold">{EXAMPLE_MAIL.subject}</p>
-                    <p className="mt-3 whitespace-pre-line leading-relaxed text-muted">
-                      {EXAMPLE_MAIL.text.split('\n\n').slice(0, 2).join('\n\n')}
-                    </p>
-                  </div>
-                )}
-              </Output>
-              <Output label="안내서 (PDF)">
-                <div className="text-sm">
-                  <p className="text-lg font-black">상속 절차 안내서</p>
-                  <p className="text-muted">아버님 · 사망일 2026.07.20</p>
-                  <ul className="mt-3 divide-y divide-line">
-                    {deadlines.slice(0, 3).map((deadline) => (
-                      <li key={deadline.deadline_id} className="flex items-baseline gap-3 py-1.5">
-                        <span className="flex-1">{deadline.name}</span>
-                        <span className="shrink-0 whitespace-nowrap tabular-nums text-muted">
-                          D-{deadline.d_day}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="mt-3 text-muted">기관별 서류와 확인 항목이 이어집니다.</p>
-                </div>
-              </Output>
+              <Shot
+                label={EXAMPLE_MAIL ? EXAMPLE_MAIL.subject : '알림 메일'}
+                src="/preview/mail.png"
+                alt="알림 메일 화면. 상속포기·한정승인 결정 D-30, 기한 2026.10.20, 근거 민법 제1019조가 적혀 있다."
+                width={1280}
+                height={986}
+              />
+              <Shot
+                label="안내서 (PDF) 첫 장"
+                src="/preview/guide.png"
+                alt="상속 절차 안내서 첫 장. 기한 목록과 주민센터에서 한 번에 발급받을 서류가 적혀 있다."
+                width={1240}
+                height={1157}
+                fade
+              />
             </div>
           </Step>
         </ol>
