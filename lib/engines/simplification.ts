@@ -7,6 +7,7 @@
  * 근거: docs/04_규정데이터_수집결과.md §1.1~1.3, §7.1, §7.3
  */
 
+import { josa } from './josa';
 import type {
   AmountBasis,
   CaseAsset,
@@ -205,7 +206,7 @@ export function classifySimplification(
   return {
     ...base,
     status: 'standard',
-    reasons: [`${formatWon(amount)}은(는) ${institution.name}의 소액 간소화 구간에 해당하지 않습니다.`],
+    reasons: [`${josa(formatWon(amount), '은', '는')} ${institution.name}의 소액 간소화 구간에 해당하지 않습니다.`],
   };
 }
 

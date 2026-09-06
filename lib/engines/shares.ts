@@ -12,6 +12,7 @@
  */
 
 import type { Fraction, HeirInput, HeirShare, Relation, ShareResult } from './types';
+import { josa } from './josa';
 
 // --- 분수 연산 -------------------------------------------------------------
 
@@ -131,7 +132,7 @@ export function calculateShares(heirs: readonly HeirInput[]): ShareResult {
       // 대습상속 — 피대습자의 몫을 그 대습상속인들이 같은 규칙으로 다시 나눈다.
       const substitutes = effectiveSubstitutes(position.heir_id, depth);
       notes.push(
-        `${position.heir_id}은(는) 상속개시 전 사망하여 대습상속이 적용됩니다 (민법 제1001조·제1003조②).`,
+        `${josa(position.heir_id, '은', '는')} 상속개시 전 사망하여 대습상속이 적용됩니다 (민법 제1001조·제1003조②).`,
       );
       shares.push(...allocate(substitutes, portion, position.heir_id, depth + 1));
     }

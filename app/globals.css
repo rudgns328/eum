@@ -180,7 +180,14 @@ input[type="checkbox"] {
 
   body {
     background: #fff;
-    line-height: 1.45;
+    /* 한글은 1.45에서 줄이 붙어 보인다. 종이에서도 숨 쉴 자리를 준다 */
+    line-height: 1.6;
+  }
+
+  /* 표 칸이 글자에 딱 붙지 않게 한다 */
+  .gov-table th,
+  .gov-table td {
+    padding: 0.55rem 0.7rem;
   }
 
   /*

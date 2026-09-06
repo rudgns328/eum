@@ -18,7 +18,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 
 import { btnOutline, btnPrimary, EmptyState, PageShell } from '@/app/_components/ui';
 import { markTakeaway } from '@/app/_lib/session';
@@ -125,10 +125,6 @@ export default function PrintPage() {
       .sort((a, b) => (a.institution < b.institution ? -1 : 1));
   }, [deadlines, plan, candidates]);
 
-  useEffect(() => {
-    if (ready && !caseData) return;
-  }, [ready, caseData]);
-
   if (!ready) {
     return (
       <PageShell current="/print" title="인쇄용 안내서">
@@ -155,6 +151,7 @@ export default function PrintPage() {
 
   const heirCount = caseData.heirs.filter((h) => h.alive !== false).length;
 
+
   return (
     <PageShell current="/print">
       {/* 화면에서만 보이는 조작부 */}
@@ -163,6 +160,15 @@ export default function PrintPage() {
           <p className="font-bold">인쇄용 안내서</p>
           <p className="text-base text-muted">
             인쇄 창에서 &lsquo;PDF로 저장&rsquo;을 고르면 파일로 받을 수 있습니다.
+          </p>
+          {/*
+           * 날짜·주소·쪽번호는 브라우저가 붙이는 것이라 화면 코드로 뺄 수
+           * 없다. 끄는 자리를 알려 주는 것이 우리가 할 수 있는 전부다.
+           */}
+          <p className="mt-1.5 text-base text-muted">
+            인쇄 창의 <span className="font-semibold text-foreground">&lsquo;머리글 및 바닥글&rsquo;</span>{' '}
+            체크를 끄면 날짜와 인터넷 주소가 함께 인쇄되지 않습니다. (Chrome은 &lsquo;설정 더보기&rsquo;
+            안에 있습니다.)
           </p>
         </div>
         <button
@@ -337,9 +343,10 @@ export default function PrintPage() {
         {/* 4. 확인이 필요한 항목 */}
         {candidates.length > 0 && (
           <Section no={4} title="확인이 필요한 항목">
-            <div className="space-y-2">
+            {/* 항목끼리 붙으면 어디서 끝나는지 안 보인다. 선으로 끊는다 */}
+            <div className="divide-y divide-line">
               {candidates.map((candidate) => (
-                <div key={candidate.candidate_id} className="print-block">
+                <div key={candidate.candidate_id} className="print-block py-3 first:pt-0">
                   <p className="font-bold">
                     [{SEVERITY_LABEL[candidate.severity] ?? candidate.severity}] {candidate.title}
                     {candidate.certainty === 'conditional' && (
@@ -348,21 +355,21 @@ export default function PrintPage() {
                   </p>
                   {/* 전문가 상담 항목은 고정 템플릿이 본문이다 (절대규칙 3) */}
                   {candidate.requires_expert && candidate.expert && (
-                    <p className="text-sm font-bold">{buildExpertNotice(candidate.expert)}</p>
+                    <p className="mt-1.5 text-sm font-bold">{buildExpertNotice(candidate.expert)}</p>
                   )}
                   {candidate.quote.length > 0 && (
-                    <p className="border-l-2 border-line-strong pl-2 text-sm">
+                    <p className="mt-1.5 border-l-2 border-line-strong py-0.5 pl-2.5 text-sm">
                       {candidate.quote.join(' ')}
                     </p>
                   )}
                   {candidate.evidence.length > 0 && (
-                    <ul className="mt-1 text-sm">
+                    <ul className="mt-1.5 space-y-0.5 text-sm">
                       {candidate.evidence.map((line) => (
                         <li key={line}>· {line}</li>
                       ))}
                     </ul>
                   )}
-                  <p className="text-sm text-muted">
+                  <p className="mt-1.5 text-sm text-muted">
                     출처: {candidate.source.institution}
                     {candidate.source.verified_at ? `, ${candidate.source.verified_at.replaceAll('-', '.')} 확인` : ''}
                   </p>
