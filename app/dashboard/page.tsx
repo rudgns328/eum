@@ -77,7 +77,10 @@ export default function DashboardPage() {
         </div>
         <div className="bg-subtle px-4 py-3">
           <p className="text-sm text-muted">상속인</p>
-          <p className="font-bold tabular-nums">{caseData.heirs.length}명</p>
+          {/* 상속개시 전 사망한 사람은 상속인이 아니다. 안내서와 같은 기준으로 센다 */}
+          <p className="font-bold tabular-nums">
+            {caseData.heirs.filter((heir) => heir.alive !== false).length}명
+          </p>
         </div>
         <div className="bg-subtle px-4 py-3">
           <p className="text-sm text-muted">할 일</p>

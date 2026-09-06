@@ -457,3 +457,66 @@ describe('requires_expert 고정 템플릿 (절대규칙 3)', () => {
     }
   });
 });
+
+describe('상속개시 전 사망한 사람은 상속인 수에 들지 않는다 (민법 제1001조)', () => {
+  /*
+   * 그 사람 대신 직계비속이 상속인이 된다. 기관 요건의 '상속인 3인 이상'은
+   * 실제 상속인을 세는 것이므로, 이미 사망한 사람을 넣으면 열리지 않아야 할
+   * 간소화 구간이 열린다.
+   */
+  const TWO_LIVING_ONE_DEAD: HeirInput[] = [
+    { heir_id: 'h1', relation: 'spouse', is_minor: false },
+    { heir_id: 'h2', relation: 'child', is_minor: false, alive: false },
+    { heir_id: 'h3', relation: 'child', is_minor: false, substitutes_for: 'h2' },
+  ];
+
+  it('KB 2구간(상속인 3인 이상)이 사망자를 채워서 열리지 않는다', () => {
+    // 실제 상속인은 배우자 + 대습상속인 = 2명. 3인 요건에 미달한다.
+    const hits = detectTimeTraps(
+      context({
+        heirs: TWO_LIVING_ONE_DEAD,
+        // 300만 초과 1,000만 이하 — 2구간에서만 소액이 되는 금액
+        assets: [{ institution_id: 'kb_bank', type: 'deposit', amount: 5_000_000 }],
+      }),
+    );
+    expect(trapIds(hits)).not.toContain('query_freezes_account');
+  });
+
+  it('살아 있는 상속인이 3명이면 같은 금액에서 열린다', () => {
+    const hits = detectTimeTraps(
+      context({
+        heirs: THREE_HEIRS,
+        assets: [{ institution_id: 'kb_bank', type: 'deposit', amount: 5_000_000 }],
+      }),
+    );
+    expect(trapIds(hits)).toContain('query_freezes_account');
+  });
+
+  it('사망자를 미내점 상속인으로 세지 않는다', () => {
+    // 살아 있는 사람이 모두 내점하면 불참 상속인은 없다. 사망자는 내점
+    // 명단에 있을 수 없어, 걸러내지 않으면 늘 '불참 있음'이 된다.
+    const hits = detectTimeTraps(
+      context({
+        heirs: TWO_LIVING_ONE_DEAD,
+        assets: [{ institution_id: 'shinhan_bank', type: 'deposit', amount: 20_000_000 }],
+        visiting_heir_ids: ['h1', 'h3'],
+      }),
+    );
+    expect(trapIds(hits)).not.toContain('delegation_prepare_in_advance');
+    expect(trapIds(hits)).not.toContain('seal_cert_issuance_type');
+  });
+
+  it('사망자가 미성년으로 표시돼 있어도 특별대리인 판정에 넣지 않는다', () => {
+    const hits = detectTimeTraps(
+      context({
+        heirs: [
+          { heir_id: 'h1', relation: 'spouse', is_minor: false },
+          { heir_id: 'h2', relation: 'child', is_minor: true, alive: false },
+          { heir_id: 'h3', relation: 'child', is_minor: false, substitutes_for: 'h2' },
+        ],
+        agreement_division: true,
+      }),
+    );
+    expect(trapIds(hits)).not.toContain('special_representative_required');
+  });
+});

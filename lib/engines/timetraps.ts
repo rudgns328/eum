@@ -128,6 +128,19 @@ export function detectTimeTraps(
   ctx: TimeTrapContext,
   rules: readonly TimeTrapRule[] = TIME_TRAP_RULES,
 ): TimeTrapHit[] {
+  /*
+   * 상속개시 전 사망한 사람은 상속인이 아니다. 그 사람 대신 직계비속이
+   * 상속인이 된다(민법 제1001조·제1003조②). 기관 요건의 '상속인 3인 이상'
+   * 같은 수는 실제 상속인을 세는 것이므로, 이미 사망한 사람을 넣으면
+   * 열리지 않아야 할 간소화 구간이 열린다. 또 사망한 사람은 내점 명단에
+   * 있을 수 없어, 그대로 두면 '미내점 상속인이 있다'가 늘 참이 된다.
+   *
+   * 실행계획(plan.ts)·서류(documents.ts)·확인 항목(candidates.ts)은 이미
+   * 사망자를 빼고 센다. 판정 입구에서 한 번 걸러 같은 기준을 쓴다.
+   */
+  const living = ctx.heirs.filter((heir) => heir.alive !== false);
+  if (living.length !== ctx.heirs.length) ctx = { ...ctx, heirs: living };
+
   const hits: TimeTrapHit[] = [];
   const push: Push = (trapId, partial) => {
     const trapRule = rule(trapId, rules);
