@@ -98,7 +98,7 @@ function deadlineNotifications(input: ScheduleInput): ScheduledNotification[] {
         title: `${deadline.name} D-${offset}`,
         lines: [
           `${deadline.name} 기한은 ${deadline.due_date}입니다.`,
-          ...(deadline.consequence ? [deadline.consequence] : []),
+          ...(deadline.consequence ? [`지키지 못하면: ${deadline.consequence}`] : []),
           ...(deadline.legal_basis ? [`근거: ${deadline.legal_basis}`] : []),
           ...(deadline.falls_on_non_business_day
             ? ['기한 만료일이 휴일입니다. 이 안내는 당초 날짜를 그대로 표시합니다.']

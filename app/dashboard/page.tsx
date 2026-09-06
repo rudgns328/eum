@@ -121,7 +121,12 @@ export default function DashboardPage() {
               {lead.due_date.replaceAll('-', '.')}까지
               {lead.legal_basis ? ` · ${lead.legal_basis}` : ''}
             </p>
-            {lead.consequence && <p className="mt-2 text-base">{lead.consequence}</p>}
+            {lead.consequence && (
+              <p className="mt-2 flex flex-wrap gap-x-2 text-base">
+                <span className="font-bold text-critical">지키지 못하면</span>
+                <span>{lead.consequence}</span>
+              </p>
+            )}
             {lead.falls_on_non_business_day && (
               <p className="mt-2 text-sm text-muted">
                 기한 만료일이 휴일입니다. 이 화면은 당초 날짜를 그대로 표시합니다.

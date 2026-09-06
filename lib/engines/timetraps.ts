@@ -201,10 +201,10 @@ function detectQueryFreezesAccount(ctx: TimeTrapContext, push: Push) {
 
     if (outcome.status === 'single_heir' || outcome.status === 'partial_consent') {
       confirmed.push(asset.institution_id);
-      evidence.push(`${institution.name}: ${outcome.reasons[0]}`);
+      evidence.push(`${institution.name} — ${outcome.reasons[0]}`);
     } else if (outcome.status === 'unverified') {
       uncertain.push(asset.institution_id);
-      evidence.push(`${institution.name}: 소액 간소화 요건 충족 여부를 아직 확인하지 못했습니다.`);
+      evidence.push(`${institution.name}은(는) 소액 간소화 요건 충족 여부를 아직 확인하지 못했습니다.`);
     }
   }
 
@@ -333,11 +333,11 @@ function detectFullRrnRequired(ctx: TimeTrapContext, push: Push) {
   });
 
   const evidence = affected.map(
-    (id) => `${ctx.institutions[id]?.name ?? id}: 주민등록번호 13자리 표기 필요.`,
+    (id) => `${ctx.institutions[id]?.name ?? id}은(는) 주민등록번호 13자리 표기가 필요합니다.`,
   );
   if (unverified.length > 0) {
     evidence.push(
-      `${unverified.map((id) => ctx.institutions[id]?.name ?? id).join('·')}: 이 요건은 아직 확인하지 못했습니다.`,
+      `${unverified.map((id) => ctx.institutions[id]?.name ?? id).join('·')}은(는) 이 요건을 아직 확인하지 못했습니다.`,
     );
   }
 

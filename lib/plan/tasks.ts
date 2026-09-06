@@ -66,7 +66,8 @@ export function generateTasks(
       due_date: deadline.due_date,
       d_day: deadline.d_day,
       severity: deadline.severity,
-      detail: deadline.consequence,
+      // consequence는 명사형 데이터 라벨이다. 문장인 척 흘리지 않는다.
+      detail: deadline.consequence ? `지키지 못하면 — ${deadline.consequence}` : undefined,
       source: deadline.source,
     });
   }

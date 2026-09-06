@@ -232,7 +232,7 @@ function vehicleCandidates(input: CandidateInput): AlertCandidate[] {
         ...(deadline
           ? [
               `이전등록 기한은 ${deadline.due_date}입니다.`,
-              ...(deadline.consequence ? [`${deadline.consequence}.`] : []),
+              ...(deadline.consequence ? [`지키지 못하면 — ${deadline.consequence}`] : []),
             ]
           : ['이전등록 기한은 아직 확인하지 못했습니다.']),
       ],

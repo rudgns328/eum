@@ -206,7 +206,9 @@ export default function PrintPage() {
                   <td>
                     {deadline.name}
                     {deadline.consequence && (
-                      <span className="block text-sm text-muted">{deadline.consequence}</span>
+                      <span className="block text-sm text-muted">
+                        <span className="font-bold">지키지 못하면</span> {deadline.consequence}
+                      </span>
                     )}
                     {deadline.legal_basis && (
                       <span className="block text-sm text-muted">근거: {deadline.legal_basis}</span>
