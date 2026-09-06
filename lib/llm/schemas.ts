@@ -141,6 +141,17 @@ export interface ParsedInstitutionRow {
    */
   institution_name: string;
   category: '은행' | '보험' | '증권' | '카드' | '기타' | null;
+  /**
+   * 이 줄이 재산인가 빚인가. 문서에 적힌 표기로만 정한다.
+   *
+   * 조회 결과에는 금융채권만이 아니라 금융채무도 함께 나온다 — 금감원
+   * 조회는 '금융채권·금융채무·보관금품', 안심상속은 대출·보증·카드
+   * 미결제까지 알려 준다. 이것을 가르지 않으면 빚이 재산으로 들어가
+   * 부채가 재산을 넘는지 판단할 수 없다.
+   *
+   * 읽어서 정하지 못하면 null. 그때는 결정론 규칙(looksLikeDebt)이 본다.
+   */
+  kind: '재산' | '빚' | null;
   /** '예금 있음' / '가입 사실 있음' 등 원문 표기 */
   status: string;
   /** 금액이 적혀 있지 않으면 null — 추정 금지 */
@@ -167,7 +178,7 @@ export const FSS_QUERY_RESULT_SCHEMA = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['institution_name', 'category', 'status', 'amount'],
+        required: ['institution_name', 'category', 'kind', 'status', 'amount'],
         properties: {
           institution_name: { type: 'string', description: '문서에 적힌 기관명 그대로' },
           category: {
@@ -175,6 +186,11 @@ export const FSS_QUERY_RESULT_SCHEMA = {
               { type: 'string', enum: ['은행', '보험', '증권', '카드', '기타'] },
               { type: 'null' },
             ],
+          },
+          kind: {
+            anyOf: [{ type: 'string', enum: ['재산', '빚'] }, { type: 'null' }],
+            description:
+              "이 줄이 재산인지 빚인지. 문서 표기로만 정한다. 예금·보험·증권·잔고는 '재산', 대출·채무·카드 미결제·보증·연체는 '빚'. 읽어서 정하지 못하면 null (추정 금지)",
           },
           status: { type: 'string', description: '원문 표기 그대로' },
           amount: {

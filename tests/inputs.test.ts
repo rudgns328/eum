@@ -13,7 +13,12 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { debtRows, looksLikeDebt, toAssetDrafts } from '@/lib/case/import';
+import {
+  debtRowsNeedingAmount,
+  looksLikeDebt,
+  toAssetDrafts,
+  toDebtDrafts,
+} from '@/lib/case/import';
 
 function tsxFiles(dir: string): string[] {
   const out: string[] = [];
@@ -123,9 +128,10 @@ describe('조회 결과의 빚은 자산으로 넣지 않는다', () => {
    */
   const parsed = {
     institutions: [
-      { institution_name: 'KB국민은행', category: '은행', status: '예금 있음', amount: 2_400_000, confidence: 1, note: '' },
-      { institution_name: '하나은행', category: '은행', status: '대출 있음', amount: 38_000_000, confidence: 1, note: '' },
-      { institution_name: '삼성카드', category: '카드', status: '카드론 채무 있음', amount: 1_000_000, confidence: 1, note: '' },
+      { institution_name: 'KB국민은행', category: '은행', kind: '재산', status: '예금 있음', amount: 2_400_000, confidence: 1, note: '' },
+      { institution_name: '하나은행', category: '은행', kind: '빚', status: '대출 있음', amount: 38_000_000, confidence: 1, note: '' },
+      // 문서를 읽어 정하지 못한 줄은 표기를 보는 규칙이 대신 본다
+      { institution_name: '삼성카드', category: '카드', kind: null, status: '카드론 채무 있음', amount: null, confidence: 1, note: '' },
     ],
     confidence: 0.95,
     notes: [],
@@ -141,8 +147,16 @@ describe('조회 결과의 빚은 자산으로 넣지 않는다', () => {
     expect(drafts.map((d) => d.institution_label)).toEqual(['KB국민은행']);
   });
 
-  it('뺀 줄을 그대로 돌려준다', () => {
-    expect(debtRows(parsed)).toEqual(['하나은행 대출 있음', '삼성카드 카드론 채무 있음']);
+  it('빚으로 읽은 줄은 부채 초안이 된다', () => {
+    const drafts = toDebtDrafts(parsed, institutions);
+    expect(drafts.map((d) => [d.institution_id, d.amount])).toEqual([
+      ['hana_bank', 38_000_000],
+      [null, null],
+    ]);
+  });
+
+  it('금액을 알 수 없는 빚은 손으로 채우도록 알린다', () => {
+    expect(debtRowsNeedingAmount(parsed)).toEqual(['삼성카드 카드론 채무 있음']);
   });
 
   it('빚을 가리키는 말을 알아본다', () => {

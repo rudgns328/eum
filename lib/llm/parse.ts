@@ -141,7 +141,7 @@ const USER_INSTRUCTION: Record<ParsedDocumentType, string> = {
   family_cert:
     '이 가족관계증명서에서 피상속인과 가족관계를 추출하세요. 주민등록번호와 생년월일은 반환하지 마세요.',
   fss_query_result:
-    '이 금융거래 조회 결과에서 기관별 조회 내역을 추출하세요. 금액이 명시되지 않은 항목은 amount를 null로 두세요.',
+    '이 조회 결과에서 기관별 내역을 추출하세요. 재산과 빚이 함께 적혀 있습니다 — 각 줄이 어느 쪽인지 문서 표기대로 kind에 담고, 읽어서 정하지 못하면 null로 두세요. 금액이 명시되지 않은 항목은 amount를 null로 두세요.',
 };
 
 /** 오늘 날짜 (YYYY-MM-DD) */

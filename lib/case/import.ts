@@ -7,7 +7,11 @@
  */
 
 import type { Relation } from '@/lib/engines/types';
-import type { ParsedFamilyCert, ParsedFssQueryResult } from '@/lib/llm/schemas';
+import type {
+  ParsedFamilyCert,
+  ParsedFssQueryResult,
+  ParsedInstitutionRow,
+} from '@/lib/llm/schemas';
 import { maskName } from './model';
 
 export interface HeirDraft {
@@ -20,6 +24,18 @@ export interface HeirDraft {
   /** 이 항목 하나에 대한 판독 확신도 */
   confidence: number;
   /** 확신이 낮은 이유. guard를 통과한 문장만 들어온다 */
+  note: string;
+}
+
+export interface DebtDraft {
+  /** 규정 DB에서 찾지 못하면 null — 사용자가 직접 고른다 */
+  institution_id: string | null;
+  /** 문서에 적힌 기관명 */
+  institution_label: string;
+  amount: number | null;
+  status: string;
+  uncertain: string[];
+  confidence: number;
   note: string;
 }
 
@@ -159,17 +175,54 @@ export function matchInstitution(
  * 부채 파싱은 설계서 3.3의 범위가 아니다(스키마에 금액의 성격이 없다).
  * 그래서 자동으로 넣지 않고, 빼놓았다는 사실을 알려 직접 넣게 한다.
  */
-const DEBT_WORDS = ['대출', '채무', '카드론', '마이너스', '연체', '보증'];
+const DEBT_WORDS = ['대출', '채무', '카드론', '마이너스', '연체', '보증', '미결제'];
 
 export function looksLikeDebt(status: string | null | undefined): boolean {
   const text = (status ?? '').replace(/\s/g, '');
   return DEBT_WORDS.some((word) => text.includes(word));
 }
 
-/** 빚으로 보여 자산 초안에서 빼놓은 항목 */
-export function debtRows(parsed: ParsedFssQueryResult): string[] {
+/**
+ * 이 줄이 빚인가.
+ *
+ * 문서를 읽은 결과(kind)를 먼저 믿고, 읽어서 정하지 못했으면 표기를 보는
+ * 규칙이 대신 본다. 둘 중 하나라도 빚이라고 하면 빚으로 둔다 — 빚을
+ * 재산으로 넣으면 부채가 재산을 넘는지 판단하지 못하고, 반대로 넣으면
+ * 사용자가 화면에서 바로 알아본다.
+ */
+export function isDebtRow(row: Pick<ParsedInstitutionRow, 'kind' | 'status'>): boolean {
+  if (row.kind === '빚') return true;
+  if (row.kind === '재산') return false;
+  return looksLikeDebt(row.status);
+}
+
+/** 빚으로 읽은 줄. 부채 초안이 된다 */
+export function toDebtDrafts(
+  parsed: ParsedFssQueryResult,
+  institutions: ReadonlyArray<{ institution_id: string; name: string }>,
+): DebtDraft[] {
+  return parsed.institutions.filter(isDebtRow).map((row) => {
+    const institutionId = matchInstitution(row.institution_name, institutions);
+    const uncertain: string[] = [];
+    if (institutionId === null) uncertain.push('기관');
+    if (row.amount === null) uncertain.push('금액');
+
+    return {
+      institution_id: institutionId,
+      institution_label: row.institution_name ?? '',
+      amount: row.amount,
+      status: row.status,
+      uncertain,
+      confidence: normalizeConfidence(row.confidence),
+      note: typeof row.note === 'string' ? row.note : '',
+    };
+  });
+}
+
+/** 빚으로 읽었지만 금액을 알 수 없어 손으로 채워야 하는 줄 */
+export function debtRowsNeedingAmount(parsed: ParsedFssQueryResult): string[] {
   return parsed.institutions
-    .filter((row) => looksLikeDebt(row.status))
+    .filter((row) => isDebtRow(row) && row.amount === null)
     .map((row) => `${row.institution_name ?? '기관 미상'} ${row.status}`.trim());
 }
 
@@ -177,7 +230,7 @@ export function toAssetDrafts(
   parsed: ParsedFssQueryResult,
   institutions: ReadonlyArray<{ institution_id: string; name: string }>,
 ): AssetDraft[] {
-  return parsed.institutions.filter((row) => !looksLikeDebt(row.status)).map((row) => {
+  return parsed.institutions.filter((row) => !isDebtRow(row)).map((row) => {
     const institutionId = matchInstitution(row.institution_name, institutions);
     const uncertain: string[] = [];
     if (institutionId === null) uncertain.push('기관');

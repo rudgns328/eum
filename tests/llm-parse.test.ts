@@ -361,9 +361,9 @@ describe('자산 초안 매핑', () => {
     const drafts = toAssetDrafts(
       {
         institutions: [
-          { institution_name: 'KB국민은행', category: '은행', status: '예금 있음', amount: 2_400_000, confidence: 0.95, note: ''  },
-          { institution_name: '삼성생명', category: '보험', status: '가입 사실 있음', amount: null, confidence: 0.95, note: ''  },
-          { institution_name: '우리은행', category: null, status: '예금 있음', amount: null, confidence: 0.95, note: ''  },
+          { institution_name: 'KB국민은행', category: '은행', kind: null, status: '예금 있음', amount: 2_400_000, confidence: 0.95, note: ''  },
+          { institution_name: '삼성생명', category: '보험', kind: null, status: '가입 사실 있음', amount: null, confidence: 0.95, note: ''  },
+          { institution_name: '우리은행', category: null, kind: null, status: '예금 있음', amount: null, confidence: 0.95, note: ''  },
         ],
         confidence: 0.9,
         notes: [],
@@ -402,7 +402,7 @@ describe('자산 초안 매핑', () => {
     const map = institutionMap();
     const drafts = toAssetDrafts(
       {
-        institutions: [{ institution_name: '유안타증권', category: '증권', status: '잔고 있음', amount: null, confidence: 0.95, note: ''  }],
+        institutions: [{ institution_name: '유안타증권', category: '증권', kind: null, status: '잔고 있음', amount: null, confidence: 0.95, note: ''  }],
         confidence: 0.9,
         notes: [],
       },

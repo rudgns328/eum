@@ -58,7 +58,13 @@ import {
 import type { HeirInput, Relation } from '@/lib/engines/types';
 import type { ParsedFamilyCert, ParsedFssQueryResult } from '@/lib/llm/schemas';
 import { parseDocument } from '@/app/_lib/parseDocument';
-import { debtRows, droppedRelations, toAssetDrafts, toHeirDrafts } from '@/lib/case/import';
+import {
+  debtRowsNeedingAmount,
+  droppedRelations,
+  toAssetDrafts,
+  toDebtDrafts,
+  toHeirDrafts,
+} from '@/lib/case/import';
 import { loadInstitutions } from '@/lib/rules/loader';
 import { verificationBadge } from '@/lib/rules/verification';
 
@@ -705,16 +711,31 @@ function OnboardingForm() {
           };
         }),
       );
-      const unmatched = drafts.filter((d) => d.institution_id === null).length;
-      // 빚으로 보이는 항목은 자산에 넣지 않는다. 빼놓았다는 사실을 알린다.
-      const debts = debtRows(parsed.data as ParsedFssQueryResult);
+      /*
+       * 빚도 함께 채운다. 조회 결과에는 금융채권만이 아니라 금융채무도
+       * 나오고, 부채가 재산을 넘는지가 이 서비스의 핵심 판단이다.
+       * 문서에서 읽을 수 있는 것을 손으로 다시 넣게 두지 않는다.
+       */
+      const debts = toDebtDrafts(parsed.data as ParsedFssQueryResult, institutions);
+      if (debts.length > 0) {
+        setDebts(
+          debts.map((draft) => ({
+            key: nextKey(),
+            institution_id: draft.institution_id ?? '',
+            amount: draft.amount === null ? '' : String(draft.amount),
+          })),
+        );
+      }
+
+      const unmatched = [...drafts, ...debts].filter((d) => d.institution_id === null).length;
+      const noAmount = debtRowsNeedingAmount(parsed.data as ParsedFssQueryResult);
       setReadNote(
         [
-          `자산 ${drafts.length}건을 채웠습니다.`,
-          unmatched > 0 ? `그중 ${unmatched}건은 기관을 직접 고르셔야 합니다.` : '맞는지 확인해 주세요.',
           debts.length > 0
-            ? `빚으로 보이는 항목은 넣지 않았습니다 — ${debts.join(', ')}. 아래 부채란에 직접 넣어 주세요.`
-            : '',
+            ? `자산 ${drafts.length}건과 부채 ${debts.length}건을 채웠습니다.`
+            : `자산 ${drafts.length}건을 채웠습니다.`,
+          unmatched > 0 ? `그중 ${unmatched}건은 기관을 직접 고르셔야 합니다.` : '맞는지 확인해 주세요.',
+          noAmount.length > 0 ? `금액이 적히지 않은 항목: ${noAmount.join(', ')}` : '',
         ]
           .filter(Boolean)
           .join(' '),

@@ -22,6 +22,7 @@ import {
   Card,
   CheckingBadge,
   EmptyState,
+  formatWon,
   PageShell,
   SectionTitle,
   NoticeBox,
@@ -31,7 +32,7 @@ import {
   needsReview,
   toAssetDrafts,
   toHeirDrafts,
-  debtRows,
+  toDebtDrafts,
   droppedRelations,
   type AssetDraft,
   type HeirDraft,
@@ -45,6 +46,7 @@ import {
   NAME_MAX_LENGTH,
   type Case,
   type CaseAsset,
+  type CaseDebt,
   type CaseHeir,
 } from '@/lib/case/model';
 import type { Relation } from '@/lib/engines/types';
@@ -81,6 +83,11 @@ export default function UploadPage() {
   const [assets, setAssets] = useState<AssetDraft[]>([]);
   const [dropped, setDropped] = useState<string[]>([]);
   /*
+   * 빚으로 읽은 줄. 조회 결과에는 금융채무도 함께 나온다. 여기서는 목록만
+   * 보여 주고 편집은 입력 화면에서 한다 — 반영하면 그대로 케이스에 담긴다.
+   */
+  const [debts, setDebts] = useState<CaseDebt[]>([]);
+  /*
    * 형식 오류는 그 칸을 벗어난 뒤에만 보여 준다. 한글은 IME가 조합하는
    * 동안 낱자가 잠깐 값에 들어가, 입력하는 내내 문구가 떴다 사라진다.
    */
@@ -115,6 +122,7 @@ export default function UploadPage() {
   function openManualForm() {
     setResult(null);
     setDropped([]);
+    setDebts([]);
     setHeirs(documentType === 'family_cert' ? [blankHeir()] : []);
     setAssets(documentType === 'fss_query_result' ? [blankAsset()] : []);
     setStage('review');
@@ -174,8 +182,16 @@ export default function UploadPage() {
       const drafts = toAssetDrafts(query, institutions);
       setAssets(drafts.length > 0 ? drafts : [blankAsset()]);
       setHeirs([]);
-      // 빚으로 보이는 항목은 자산 초안에 넣지 않는다. 뺐다는 사실을 알린다.
-      setDropped(debtRows(query));
+      setDropped([]);
+      setDebts(
+        toDebtDrafts(query, institutions)
+          .filter((draft) => draft.institution_id !== null && draft.amount !== null)
+          .map((draft) => ({
+            institution_id: draft.institution_id as string,
+            type: 'loan',
+            amount: draft.amount as number,
+          })),
+      );
     }
     setStage('review');
   }
@@ -231,6 +247,8 @@ export default function UploadPage() {
         setError('금액이 너무 큽니다. 자릿수를 확인해 주세요.');
         return;
       }
+      // 빚으로 읽은 줄도 함께 반영한다. 부채가 재산을 넘는지가 핵심 판단이다.
+      next.debts = debts;
       next.assets = usable.map<CaseAsset>((draft) => ({
         institution_id: draft.institution_id as string,
         type: draft.type === 'other' ? 'deposit' : draft.type,
@@ -641,6 +659,24 @@ export default function UploadPage() {
               >
                 자산 추가
               </button>
+
+              {debts.length > 0 && (
+                <div className="mt-4 border-t border-line pt-4">
+                  <p className="font-bold">빚으로 읽은 항목</p>
+                  <ul className="mt-1.5 space-y-1 text-base">
+                    {debts.map((debt) => (
+                      <li key={debt.institution_id}>
+                        · {institutions.find((i) => i.institution_id === debt.institution_id)?.name
+                          ?? debt.institution_id}{' '}
+                        <span className="tabular-nums">{formatWon(debt.amount)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-1.5 text-sm text-muted">
+                    반영하면 부채로 들어갑니다. 고치실 때는 입력 화면에서 하시면 됩니다.
+                  </p>
+                </div>
+              )}
               <p className="mt-3 text-sm text-muted">
                 기관을 고르지 않은 항목은 반영되지 않습니다. 반영한 뒤에도 이 화면에서 다시 올려
                 고칠 수 있습니다.
