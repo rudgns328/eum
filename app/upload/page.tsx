@@ -35,7 +35,14 @@ import {
   type AssetDraft,
   type HeirDraft,
 } from '@/lib/case/import';
-import { maskName, type Case, type CaseAsset, type CaseHeir } from '@/lib/case/model';
+import {
+  isValidName,
+  maskName,
+  NAME_MAX_LENGTH,
+  type Case,
+  type CaseAsset,
+  type CaseHeir,
+} from '@/lib/case/model';
 import type { Relation } from '@/lib/engines/types';
 import type { ParseResult } from '@/lib/llm/parse';
 import type { ParsedDocumentType, ParsedFamilyCert, ParsedFssQueryResult } from '@/lib/llm/schemas';
@@ -170,6 +177,10 @@ export default function UploadPage() {
       const usable = heirs.filter((h) => h.name_masked.trim() !== '');
       if (usable.length === 0) {
         setError('상속인을 한 명 이상 입력해 주세요.');
+        return;
+      }
+      if (heirs.some((h) => !isValidName(h.name_masked))) {
+        setError('상속인 성함을 다시 확인해 주세요. 한글 또는 영문으로 적어 주세요.');
         return;
       }
       next.heirs = usable.map<CaseHeir>((draft, index) => ({
@@ -355,19 +366,30 @@ export default function UploadPage() {
                           </option>
                         ))}
                       </select>
-                      <input
-                        className={input}
-                        value={heir.name_masked}
-                        aria-label={`상속인 ${index + 1} 성함`}
-                        placeholder="성함 (저장 시 김○○로 마스킹)"
-                        onChange={(e) =>
-                          setHeirs((prev) =>
-                            prev.map((h, i) =>
-                              i === index ? { ...h, name_masked: e.target.value } : h,
-                            ),
-                          )
-                        }
-                      />
+                      <div>
+                        <input
+                          className={`w-full ${input} ${
+                            isValidName(heir.name_masked) ? '' : 'border-critical'
+                          }`}
+                          value={heir.name_masked}
+                          aria-label={`상속인 ${index + 1} 성함`}
+                          aria-invalid={!isValidName(heir.name_masked)}
+                          maxLength={NAME_MAX_LENGTH}
+                          placeholder="성함 (저장 시 김○○로 마스킹)"
+                          onChange={(e) =>
+                            setHeirs((prev) =>
+                              prev.map((h, i) =>
+                                i === index ? { ...h, name_masked: e.target.value } : h,
+                              ),
+                            )
+                          }
+                        />
+                        {!isValidName(heir.name_masked) && (
+                          <p className="mt-1 text-sm font-semibold text-critical">
+                            한글 또는 영문으로 적어 주세요. (예: 김철수)
+                          </p>
+                        )}
+                      </div>
                       <button
                         type="button"
                         className={btnSmall}

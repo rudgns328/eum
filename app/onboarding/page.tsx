@@ -38,7 +38,10 @@ import { calculateDeadlines } from '@/lib/engines/deadlines';
 import { calculateShares } from '@/lib/engines/shares';
 import { isIsoDate } from '@/lib/engines/dateutil';
 import {
+  isValidLabel,
+  isValidName,
   maskName,
+  NAME_MAX_LENGTH,
   newCaseId,
   RELATION_LABEL,
   type Case,
@@ -228,7 +231,14 @@ function OnboardingForm() {
       if (fssDate > now) return '금융거래조회 신청일이 오늘보다 뒤입니다.';
     }
 
+    if (!isValidLabel(decedentLabel)) {
+      return '피상속인 호칭을 다시 확인해 주세요. 한글 또는 영문으로 적어 주세요.';
+    }
+
     if (heirs.length === 0) return '상속인을 한 명 이상 입력해 주세요.';
+    if (heirs.some((heir) => !isValidName(heir.name))) {
+      return '상속인 성함을 다시 확인해 주세요. 한글 또는 영문으로 적어 주세요.';
+    }
 
     const amounts: string[] = [
       ...assets.flatMap((a) => [a.amount, a.deposit_amount, a.securities_valuation]),
@@ -300,13 +310,24 @@ function OnboardingForm() {
               </option>
             ))}
           </select>
-          <input
-            className="rounded-sm border border-line-strong bg-surface px-3 py-2"
-            value={heir.name}
-            onChange={(e) => updateHeir(heir.key, { name: e.target.value })}
-            placeholder="성함 (저장 시 김○○로 마스킹)"
-            aria-label={`${label} 성함`}
-          />
+          <div>
+            <input
+              className={`w-full rounded-sm border bg-surface px-3 py-2 ${
+                isValidName(heir.name) ? 'border-line-strong' : 'border-critical'
+              }`}
+              value={heir.name}
+              onChange={(e) => updateHeir(heir.key, { name: e.target.value })}
+              placeholder="성함 (저장 시 김○○로 마스킹)"
+              aria-label={`${label} 성함`}
+              aria-invalid={!isValidName(heir.name)}
+              maxLength={NAME_MAX_LENGTH}
+            />
+            {!isValidName(heir.name) && (
+              <p className="mt-1 text-sm font-semibold text-critical">
+                한글 또는 영문으로 적어 주세요. (예: 김철수)
+              </p>
+            )}
+          </div>
           <button
             type="button"
             className={btnSmall}

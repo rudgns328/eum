@@ -5,6 +5,8 @@ import { institutionMap } from '@/lib/rules/loader';
 import { buildActionPlan } from '@/lib/plan/plan';
 import { generateTasks, isDone, progressOf, toggleTask } from '@/lib/plan/tasks';
 import {
+  isValidLabel,
+  isValidName,
   maskName,
   stripPersonalData,
   totalAssetAmount,
@@ -33,6 +35,43 @@ function baseCase(overrides: Partial<Case> = {}): Case {
     ...overrides,
   };
 }
+
+describe('이름 입력 판정', () => {
+  it.each([
+    ['김철수', '한글 이름'],
+    ['남궁민수', '네 글자'],
+    ['John Smith', '영문 이름'],
+    ['金本人', '한자 이름'],
+    ['', '비워 두기 — 선택 입력이다'],
+    ['  김철수  ', '앞뒤 공백'],
+  ])('%s 는 통과한다 (%s)', (input) => {
+    expect(isValidName(input)).toBe(true);
+  });
+
+  it.each([
+    ['ㅇㅁㄹ', '자모만'],
+    ['ㄱ', '낱자 하나'],
+    ['김ㅊㅅ', '자모가 섞임'],
+    ['123', '숫자'],
+    ['김철수1', '숫자가 섞임'],
+    ['!!!', '특수문자'],
+    ['<script>', '태그'],
+    ['가나다라마바사아자차카타파하가나다라마바사', '20자 초과'],
+  ])('%s 는 막는다 (%s)', (input) => {
+    expect(isValidName(input)).toBe(false);
+  });
+
+  it('호칭은 더 짧게 본다', () => {
+    expect(isValidLabel('아버님')).toBe(true);
+    expect(isValidLabel('ㅇㅁㄹ')).toBe(false);
+    expect(isValidLabel('아버님아버님아버님아버님')).toBe(false);
+  });
+
+  it('통과한 이름은 마스킹된다', () => {
+    expect(maskName('김철수')).toBe('김○○');
+    expect(maskName('John')).toBe('J○○○');
+  });
+});
 
 describe('개인정보 보호 (절대규칙 4)', () => {
   it('이름은 성만 남기고 마스킹한다', () => {

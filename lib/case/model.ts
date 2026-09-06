@@ -74,6 +74,45 @@ export const RELATION_LABEL: Record<Relation, string> = {
 };
 
 /**
+ * 사람 이름으로 볼 수 있는 표기인가.
+ *
+ * 저장하는 것은 마스킹본(김○○)뿐이지만, 마스킹 전에 이름이 맞는지는 봐야
+ * 한다. 'ㅇㅁㄹ'처럼 자모만 넣거나 숫자를 넣으면 마스킹 결과가 이름처럼
+ * 보이지 않고, 상속인을 구분할 수도 없다.
+ *
+ *   허용  완성형 한글 · 영문 · 한자, 그리고 그 사이의 공백·가운뎃점
+ *   거부  자모(ㄱ~ㅎ, ㅏ~ㅣ) · 숫자 · 특수문자
+ *
+ * 외국 국적 상속인과 한자 이름을 위해 영문·한자를 함께 허용한다.
+ * 빈 값은 여기서 판정하지 않는다 — 이름은 선택 입력이고, 비우면 ○○가 된다.
+ */
+const NAME_SHAPE = /^[가-힣A-Za-z\u3400-\u9FFF][가-힣A-Za-z\u3400-\u9FFF\s·.]*$/;
+/** 조합되지 않은 낱자 */
+const HANGUL_JAMO = /[\u3131-\u318E]/;
+
+export const NAME_MAX_LENGTH = 20;
+
+export function isValidName(raw: string): boolean {
+  const trimmed = raw.trim();
+  if (trimmed.length === 0) return true; // 선택 입력
+  if (trimmed.length > NAME_MAX_LENGTH) return false;
+  if (HANGUL_JAMO.test(trimmed)) return false;
+  return NAME_SHAPE.test(trimmed);
+}
+
+/**
+ * 피상속인 호칭('아버님')으로 볼 수 있는 표기인가.
+ * 이름과 같은 규칙을 쓰되, 호칭은 짧다.
+ */
+export function isValidLabel(raw: string): boolean {
+  const trimmed = raw.trim();
+  if (trimmed.length === 0) return true; // 비우면 '피상속인'이 된다
+  if (trimmed.length > 10) return false;
+  if (HANGUL_JAMO.test(trimmed)) return false;
+  return NAME_SHAPE.test(trimmed);
+}
+
+/**
  * 이름 마스킹 — 성만 남기고 나머지를 ○로 바꾼다.
  * 입력 시점에 적용하며, 원본은 어디에도 저장하지 않는다.
  */
