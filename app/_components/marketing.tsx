@@ -89,13 +89,16 @@ export function EntrySection({ hasCase }: { hasCase: boolean }) {
       <div className="mx-auto grid w-full max-w-[64rem] items-center gap-10 px-4 py-14 lg:grid-cols-[1fr_20rem]">
         <div>
           <h1 className="text-3xl font-black leading-snug tracking-tight sm:text-[2.4rem]">
-            사망일 하나면 됩니다.
+            상속인이 3개월 안에 끝내야 하는
             <br />
-            남은 기한은 저희가 챙기겠습니다.
+            금융 절차를 대신 관리합니다.
           </h1>
           <p className="mt-5 max-w-xl text-lg text-white/85">
             기한은 D-day로, 기관마다 다른 서류는 한 장으로. 증명서는 사진만 올리시면 AI가 읽어
-            채우고, 기한 전에는 메일이 먼저 갑니다.
+            채우고, 기한 전에는 메일이 먼저 갑니다.{' '}
+            <span className="font-semibold text-white">
+              처음 겪는 절차라도, 무엇을 언제 해야 하는지 옆에서 하나씩 안내해 드립니다.
+            </span>
           </p>
           <div className="mt-7 flex flex-wrap gap-2">
             <Link
