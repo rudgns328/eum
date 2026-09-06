@@ -336,8 +336,8 @@ export default function UploadPage() {
               <a
                 href={
                   documentType === 'family_cert'
-                    ? '/sample/family-cert-sample.png'
-                    : '/sample/fss-query-result-sample.png'
+                    ? '/sample/family-cert.png'
+                    : '/sample/fss-query-result.png'
                 }
                 target="_blank"
                 rel="noopener noreferrer"
