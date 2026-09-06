@@ -61,7 +61,10 @@ export function normalizeSupabaseUrl(raw: string): string {
 
 /** 환경변수가 없으면 null — 호출자는 구독 기능을 끈 상태로 응답한다 */
 export function supabaseConfig(): SupabaseConfig | null {
-  const url = process.env.SUPABASE_URL;
+  // 프로젝트 주소는 비밀이 아니어서 NEXT_PUBLIC_ 이름으로도 흔히 둔다.
+  // 같은 값에 이름이 둘이면 한쪽만 채우고 구독이 조용히 꺼진다. 둘 다 본다.
+  // 비밀은 서비스 역할 키뿐이고, 그것은 NEXT_PUBLIC_ 이름을 쓰지 않는다.
+  const url = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !serviceRoleKey) return null;
   return { url: normalizeSupabaseUrl(url), serviceRoleKey };

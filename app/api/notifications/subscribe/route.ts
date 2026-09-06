@@ -103,7 +103,16 @@ export async function POST(request: Request): Promise<Response> {
       return Response.json({ error: error.message }, { status: 400 });
     }
     console.warn('[subscribe]', error instanceof Error ? error.message : 'unknown');
-    return Response.json({ error: '구독 저장에 실패했습니다.' }, { status: 502 });
+    // 원인을 짚을 수 있도록 상태 코드와 PostgREST 메시지를 함께 돌려준다.
+    // 키나 요청 본문은 싣지 않는다. GET과 같은 형식이다.
+    return Response.json(
+      {
+        error: '구독 저장에 실패했습니다.',
+        supabase_status: error instanceof SupabaseRequestError ? error.status : null,
+        supabase_detail: error instanceof SupabaseRequestError ? (error.detail ?? null) : null,
+      },
+      { status: 502 },
+    );
   }
 }
 

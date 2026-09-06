@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "measure:guard": "vitest run --config vitest.live.config.ts",
-    "measure:parse": "vitest run --config vitest.live.config.ts scripts/measure-parse.live.ts"
+    "measure:parse": "vitest run --config vitest.live.config.ts scripts/measure-parse.live.ts",
+    "check:schema": "vitest run --config vitest.live.config.ts scripts/check-schema.live.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.120.0",
