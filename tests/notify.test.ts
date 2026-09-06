@@ -13,6 +13,7 @@ import {
 import {
   isValidEmail,
   renderNotification,
+  renderSubscriptionConfirmation,
   sendNotification,
   type EmailClient,
 } from '@/lib/notify/email';
@@ -240,13 +241,62 @@ describe('이메일 본문', () => {
   it('출처와 면책 문구를 넣는다', () => {
     const rendered = renderNotification(notification, { decedent_label: '아버님' });
     expect(rendered.text).toContain('민법 제1019조');
-    expect(rendered.text).toContain('법률 판단이나 세액 계산은 제공하지 않습니다');
+    // 문구를 다듬어도 깨지지 않게, 문장이 아니라 담아야 할 내용을 본다.
+    expect(rendered.text).toMatch(/법률 판단.*세액 계산.*제공하지 않/);
   });
 
   it('판단·권유 표현을 쓰지 않는다', () => {
     const rendered = renderNotification(notification, { decedent_label: '아버님' });
     for (const banned of ['권장', '추천', '유리', '하셔야', '하세요', '서두르', '절세']) {
       expect(rendered.text).not.toContain(banned);
+      expect(rendered.html).not.toContain(banned);
+    }
+  });
+
+  it('HTML본도 같은 내용을 담는다', () => {
+    const rendered = renderNotification(notification, { decedent_label: '아버님' });
+    expect(rendered.html).toContain('아버님');
+    // 제목에 붙은 D-30은 큰 숫자로 따로 보이므로 제목에서는 빠진다.
+    expect(rendered.html).toContain(notification.title.replace(/\s*D-\d+$/, ''));
+    expect(rendered.html).toContain(`D-${notification.d_day}`);
+    expect(rendered.html).toMatch(/법률 판단.*세액 계산.*제공하지 않/);
+    // 이름·주민등록번호는 어느 본에도 들어가지 않는다(절대규칙 4).
+    expect(rendered.html).not.toContain('김○○');
+    expect(rendered.html).not.toMatch(/\d{6}-\d{7}/);
+  });
+
+  it('해지 주소를 주면 두 본 모두에 넣는다', () => {
+    const url = 'https://ieumnavi.com/api/notifications/unsubscribe?token=abc';
+    const rendered = renderNotification(notification, { decedent_label: '아버님' }, url);
+    expect(rendered.text).toContain(url);
+    expect(rendered.html).toContain(url);
+  });
+});
+
+describe('신청 확인 메일', () => {
+  const url = 'https://ieumnavi.com/api/notifications/unsubscribe?token=abc';
+
+  it('해지 주소를 반드시 담는다', () => {
+    // 케이스는 브라우저 세션에만 있다. 창을 닫으면 화면의 해지 버튼에 다시
+    // 닿을 수 없어, 이 메일이 해지에 이르는 유일한 통로다.
+    const rendered = renderSubscriptionConfirmation({ decedent_label: '아버님' }, url);
+    expect(rendered.text).toContain(url);
+    expect(rendered.html).toContain(url);
+  });
+
+  it('서버에 두는 항목을 그대로 적는다', () => {
+    const rendered = renderSubscriptionConfirmation({ decedent_label: '아버님' }, url);
+    for (const field of ['사망일', '피상속인 호칭', '이메일 주소']) {
+      expect(rendered.text).toContain(field);
+    }
+    expect(rendered.text).toContain('이름 · 상속인 구성 · 금액 · 기관 · 부채는 두지 않습니다');
+  });
+
+  it('판단·권유 표현을 쓰지 않는다', () => {
+    const rendered = renderSubscriptionConfirmation({ decedent_label: '아버님' }, url);
+    for (const banned of ['권장', '추천', '유리', '하셔야', '서두르', '절세']) {
+      expect(rendered.text).not.toContain(banned);
+      expect(rendered.html).not.toContain(banned);
     }
   });
 });

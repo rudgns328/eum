@@ -11,6 +11,8 @@ import { calculateDeadlines } from '@/lib/engines/deadlines';
 import { stripPersonalData, type Case } from '@/lib/case/model';
 import { buildSchedule } from '@/lib/notify/schedule';
 import { isValidEmail, sendNotification } from '@/lib/notify/email';
+import { unsubscribeUrl } from '@/lib/notify/dispatch';
+import { defaultSubscriptionStore } from '@/lib/notify/supabase';
 
 export const runtime = 'nodejs';
 
@@ -28,7 +30,6 @@ export async function POST(
   request: Request,
   context: { params: Promise<{ caseId: string }> },
 ): Promise<Response> {
-  await context.params;
 
   let body: unknown;
   try {
@@ -76,10 +77,25 @@ export async function POST(
     return Response.json({ error: '보낼 알림이 없습니다.' }, { status: 404 });
   }
 
+  // 이미 구독 중이면 그 해지 주소를 함께 싣는다. 모든 알림 메일에 해지
+  // 링크가 있어야 한다(절대규칙 4). 구독 전이라면 해지할 것이 없다.
+  const caseId = (await context.params).caseId;
+  const store = defaultSubscriptionStore();
+  let unsubscribe: string | undefined;
+  if (store) {
+    const existing = await store.findByCaseId(caseId).catch(() => null);
+    if (existing) {
+      const url = new URL(request.url);
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? `${url.protocol}//${url.host}`;
+      unsubscribe = unsubscribeUrl(baseUrl, existing.unsubscribe_token);
+    }
+  }
+
   const result = await sendNotification({
     to: payload.email,
     notification,
     caseData,
+    unsubscribeUrl: unsubscribe,
   });
 
   if (result.status === 'failed') {

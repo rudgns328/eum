@@ -18,7 +18,6 @@ import {
   CheckingBadge,
   EmptyState,
   PageShell,
-  ProgressBar,
   SectionTitle,
   SeverityTag,
   SourceNote,
@@ -33,7 +32,7 @@ import { RELATION_LABEL } from '@/lib/case/model';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { ready, caseData, deadlines, traps, tasks, progress, toggle, clear } = useCase();
+  const { ready, caseData, deadlines, traps, tasks, clear } = useCase();
 
   if (!ready) {
     return (
@@ -63,10 +62,6 @@ export default function DashboardPage() {
 
   const [lead, ...rest] = deadlines;
   const shares = calculateShares(caseData.heirs);
-  const doneIds = new Set(
-    caseData.progress.filter((p) => p.status === 'done').map((p) => p.task_id),
-  );
-  const openTasks = tasks.filter((t) => !doneIds.has(t.task_id));
 
   return (
     <PageShell current="/dashboard" title="내 기한" description="기한과 확인 항목, 이번에 할 일을 한 화면에 모아 보여줍니다.">
@@ -85,8 +80,8 @@ export default function DashboardPage() {
           <p className="font-bold tabular-nums">{caseData.heirs.length}명</p>
         </div>
         <div className="bg-subtle px-4 py-3">
-          <p className="mb-1 text-sm text-muted">진행률</p>
-          <ProgressBar done={progress.done} total={progress.total} />
+          <p className="text-sm text-muted">할 일</p>
+          <p className="font-bold tabular-nums">{tasks.length}건</p>
         </div>
       </div>
 
@@ -100,9 +95,7 @@ export default function DashboardPage() {
                 ? `${lead.name} 기한이 지났습니다.`
                 : `${lead.name}까지 D-${lead.d_day}.`}
             </span>{' '}
-            {openTasks.length > 0
-              ? `아직 하지 않은 일이 ${openTasks.length}건 있습니다.`
-              : '표시된 할 일을 모두 완료했습니다.'}
+            {tasks.length > 0 && `해야 할 일이 ${tasks.length}건 있습니다.`}
           </NoticeBox>
         </div>
       )}
@@ -189,39 +182,27 @@ export default function DashboardPage() {
 
         <Card>
           <SectionTitle>할 일</SectionTitle>
-          {openTasks.length === 0 && tasks.length > 0 && (
-            <p className="text-muted">모든 항목을 완료했습니다.</p>
-          )}
+          {/*
+           * 체크칸을 두지 않는다. 창을 닫으면 케이스가 사라지므로 체크한
+           * 표시도 함께 사라진다. 남지 않는 체크는 해 두었다는 착각만 준다.
+           * 대신 안내서(PDF)에 같은 목록이 들어가며, 종이에는 체크칸이 있다.
+           */}
           <ul className="divide-y divide-line">
-            {tasks.map((task) => {
-              const done = doneIds.has(task.task_id);
-              return (
-                <li key={task.task_id} className="py-3">
-                  <label className="flex cursor-pointer items-start gap-3">
-                    <input
-                      type="checkbox"
-                      checked={done}
-                      onChange={() => toggle(task.task_id)}
-                      className="mt-1"
-                    />
-                    <span className="flex-1">
-                      <span className={done ? 'text-muted line-through' : 'font-medium'}>
-                        {task.label}
-                      </span>
-                      {typeof task.d_day === 'number' && !done && (
-                        <span className="ml-2 text-base font-semibold tabular-nums text-muted">
-                          D-{task.d_day}
-                        </span>
-                      )}
-                      {task.detail && !done && (
-                        <span className="block text-base text-muted">{task.detail}</span>
-                      )}
-                      {task.source && !done && <SourceNote source={task.source} />}
+            {tasks.map((task) => (
+              <li key={task.task_id} className="flex items-start gap-3 py-3">
+                <span className="mt-[0.55em] h-1.5 w-1.5 shrink-0 bg-accent" aria-hidden />
+                <span className="flex-1">
+                  <span className="font-medium">{task.label}</span>
+                  {typeof task.d_day === 'number' && (
+                    <span className="ml-2 text-base font-semibold tabular-nums text-muted">
+                      D-{task.d_day}
                     </span>
-                  </label>
-                </li>
-              );
-            })}
+                  )}
+                  {task.detail && <span className="block text-base text-muted">{task.detail}</span>}
+                  {task.source && <SourceNote source={task.source} />}
+                </span>
+              </li>
+            ))}
           </ul>
         </Card>
 

@@ -41,6 +41,8 @@ import { calculateShares } from '@/lib/engines/shares';
 import { isIsoDate } from '@/lib/engines/dateutil';
 import {
   AMOUNT_MAX_DIGITS,
+  ASSET_TYPE_LABEL,
+  assetTypeFor,
   isValidLabel,
   isValidName,
   LABEL_MAX_LENGTH,
@@ -62,12 +64,6 @@ const RELATIONS: Array<{ value: Relation; label: string }> = [
   { value: 'parent', label: '부모' },
   { value: 'sibling', label: '형제자매' },
 ];
-
-const ASSET_TYPES = [
-  { value: 'deposit', label: '예금' },
-  { value: 'securities', label: '증권' },
-  { value: 'insurance', label: '보험' },
-] as const;
 
 const STEPS = [
   { no: 1, label: '사망일', hint: '여기까지만 넣어도 시작할 수 있습니다' },
@@ -101,6 +97,9 @@ interface AssetDraft {
   deposit_amount: string;
   securities_valuation: string;
   beneficiary_designated: '' | 'yes' | 'no';
+  /* 아래 둘은 확인 항목(단체보험 반환청구·위임 확인전화)의 판정 입력이다 */
+  group_insurance: '' | 'yes' | 'no';
+  claim_by_delegation: '' | 'yes' | 'no';
 }
 
 /**
@@ -435,6 +434,12 @@ function OnboardingForm() {
             institution_id: draft.institution_id,
             type: 'insurance',
             amount: toNumber(draft.amount),
+            is_group_insurance:
+              draft.group_insurance === '' ? null : draft.group_insurance === 'yes',
+            // 업무외 사망 청구는 단체보험일 때만 묻는다(확인 항목 조건).
+            death_type: draft.group_insurance === 'yes' ? 'non_occupational' : null,
+            claim_by_delegation:
+              draft.claim_by_delegation === '' ? null : draft.claim_by_delegation === 'yes',
             beneficiary_designated:
               draft.beneficiary_designated === ''
                 ? null
@@ -813,9 +818,17 @@ function OnboardingForm() {
                         <select
                           className="rounded-lg border border-line-strong bg-surface px-3 py-2"
                           value={asset.institution_id}
-                          onChange={(e) =>
-                            updateAsset(asset.key, { institution_id: e.target.value })
-                          }
+                          onChange={(e) => {
+                            // 종류는 기관 업권에서 나온다. 따로 고르게 두면
+                            // '삼성생명 예금' 같은 조합이 만들어진다.
+                            const picked = institutions.find(
+                              (i) => i.institution_id === e.target.value,
+                            );
+                            updateAsset(asset.key, {
+                              institution_id: e.target.value,
+                              type: picked ? assetTypeFor(picked.type) : 'deposit',
+                            });
+                          }}
                           aria-label={`자산 ${index + 1} 기관`}
                         >
                           <option value="">기관 선택</option>
@@ -825,18 +838,12 @@ function OnboardingForm() {
                             </option>
                           ))}
                         </select>
-                        <select
-                          className="rounded-lg border border-line-strong bg-surface px-3 py-2"
-                          value={asset.type}
-                          onChange={(e) => updateAsset(asset.key, { type: e.target.value })}
+                        <p
+                          className="flex items-center px-1 font-semibold text-muted"
                           aria-label={`자산 ${index + 1} 종류`}
                         >
-                          {ASSET_TYPES.map((t) => (
-                            <option key={t.value} value={t.value}>
-                              {t.label}
-                            </option>
-                          ))}
-                        </select>
+                          {institution ? ASSET_TYPE_LABEL[asset.type] : '기관을 고르세요'}
+                        </p>
                         <button
                           type="button"
                           className={btnSmall}
@@ -902,6 +909,38 @@ function OnboardingForm() {
                             </select>
                           )}
                           {asset.type === 'insurance' && (
+                            <select
+                              className="rounded-lg border border-line-strong bg-surface px-3 py-2"
+                              value={asset.group_insurance}
+                              onChange={(e) =>
+                                updateAsset(asset.key, {
+                                  group_insurance: e.target.value as '' | 'yes' | 'no',
+                                })
+                              }
+                              aria-label="단체보험 여부"
+                            >
+                              <option value="">단체보험 여부 모름</option>
+                              <option value="yes">단체보험 · 업무외 사망으로 청구</option>
+                              <option value="no">단체보험 아님</option>
+                            </select>
+                          )}
+                          {asset.type === 'insurance' && (
+                            <select
+                              className="rounded-lg border border-line-strong bg-surface px-3 py-2"
+                              value={asset.claim_by_delegation}
+                              onChange={(e) =>
+                                updateAsset(asset.key, {
+                                  claim_by_delegation: e.target.value as '' | 'yes' | 'no',
+                                })
+                              }
+                              aria-label="위임 청구 여부"
+                            >
+                              <option value="">청구 방식 모름</option>
+                              <option value="yes">위임장으로 청구</option>
+                              <option value="no">직접 청구</option>
+                            </select>
+                          )}
+                          {asset.type === 'insurance' && (
                             <div className="sm:col-span-2">
                               <FieldHelp reason="모르면 그대로 두셔도 됩니다. 확인되지 않은 항목은 '확인 중'으로 표시합니다." />
                             </div>
@@ -933,6 +972,8 @@ function OnboardingForm() {
                       deposit_amount: '',
                       securities_valuation: '',
                       beneficiary_designated: '',
+                      group_insurance: '',
+                      claim_by_delegation: '',
                     },
                   ])
                 }

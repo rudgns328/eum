@@ -299,7 +299,7 @@ function Header({ current }: { current: string }) {
       : { href: '/onboarding', label: '시작하기' };
 
   return (
-    <header className="border-b-2 border-navy bg-surface">
+    <header className="no-print border-b-2 border-navy bg-surface">
       {/*
        * 좁은 화면에서는 로고 줄과 메뉴 줄을 나눈다.
        * 한 줄에 메뉴와 버튼을 함께 넣으면 390px에서 가로로 넘쳐, 본문 글자까지

@@ -184,3 +184,22 @@ export function newCaseId(): string {
   counter += 1;
   return `case-${counter}`;
 }
+
+/**
+ * 기관 업권에 맞는 자산 종류.
+ *
+ * 기관과 종류를 따로 고르게 두면 '삼성생명 예금'처럼 있을 수 없는 조합이
+ * 만들어지고, 그 조합은 조용히 결과를 바꾼다 — 보험으로 잡히지 않으면
+ * 보험금 청구권 소멸시효 기한이 계산되지 않는다.
+ */
+export function assetTypeFor(institutionType: string): CaseAsset['type'] {
+  if (institutionType === 'insurance') return 'insurance';
+  if (institutionType === 'securities') return 'securities';
+  return 'deposit';
+}
+
+export const ASSET_TYPE_LABEL: Record<string, string> = {
+  deposit: '예금',
+  securities: '증권',
+  insurance: '보험',
+};

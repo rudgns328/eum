@@ -334,6 +334,14 @@ export default function NotificationsPage() {
                   </span>
                 )}
               </p>
+              <p className="mt-2 text-base text-muted">
+                신청 확인 메일을 보내 드렸습니다. 이 서비스는 회원 정보를 두지 않아 창을 닫으면 이
+                화면으로 돌아올 수 없습니다.{' '}
+                <span className="font-semibold text-foreground">
+                  나중에 해지하실 때는 알림 메일 아래의 해지 링크를 쓰십니다.
+                </span>{' '}
+                모든 알림 메일에 들어 있습니다.
+              </p>
               <div className="mt-3">
                 <button
                   type="button"
@@ -387,6 +395,11 @@ export default function NotificationsPage() {
                   이메일 주소 형식을 확인해 주세요. (예: name@example.com)
                 </p>
               )}
+
+              <p className="mt-3 text-sm text-muted">
+                신청하시면 확인 메일이 갑니다. 해지는 알림 메일 아래의 링크로 하실 수 있습니다 —
+                회원 정보를 두지 않아 그 링크가 해지 경로입니다.
+              </p>
 
               <label className="mt-3 flex items-start gap-2 text-base">
                 <input

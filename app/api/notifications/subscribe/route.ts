@@ -8,7 +8,8 @@
  * 그대로 동작한다(설계 원칙 3 — 부분 실패 허용).
  */
 
-import { isValidEmail } from '@/lib/notify/email';
+import { isValidEmail, sendSubscriptionConfirmation } from '@/lib/notify/email';
+import { unsubscribeUrl } from '@/lib/notify/dispatch';
 import { DemoCaseError, toSubscription } from '@/lib/notify/subscription';
 import { defaultSubscriptionStore, SupabaseRequestError } from '@/lib/notify/supabase';
 import type { Case } from '@/lib/case/model';
@@ -16,6 +17,14 @@ import type { Case } from '@/lib/case/model';
 export const runtime = 'nodejs';
 
 const NOT_CONFIGURED = '알림 구독이 아직 설정되지 않았습니다. 화면에서 일정은 그대로 확인할 수 있습니다.';
+
+/** 해지 링크의 기준 주소. 환경변수가 있으면 그것을, 없으면 요청 주소를 쓴다 */
+function baseUrlOf(request: Request): string {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL;
+  if (configured) return configured;
+  const url = new URL(request.url);
+  return `${url.protocol}//${url.host}`;
+}
 
 function isCase(value: unknown): value is Case {
   if (value == null || typeof value !== 'object') return false;
@@ -96,7 +105,21 @@ export async function POST(request: Request): Promise<Response> {
       token: existing?.unsubscribe_token,
     });
     await store.upsert(subscription);
-    return Response.json({ subscribed: true, email: subscription.email });
+
+    // 해지 주소를 손에 쥐여 주는 통로가 이 메일뿐이다. 케이스는 브라우저
+    // 세션에만 있어서 창을 닫으면 화면의 해지 버튼에 다시 닿을 수 없다.
+    // 발송이 실패해도 구독은 유지한다 — 저장은 이미 끝났다.
+    const confirmation = await sendSubscriptionConfirmation({
+      to: subscription.email,
+      caseData: payload.case,
+      unsubscribeUrl: unsubscribeUrl(baseUrlOf(request), subscription.unsubscribe_token),
+    });
+
+    return Response.json({
+      subscribed: true,
+      email: subscription.email,
+      confirmation_sent: confirmation.status === 'sent',
+    });
   } catch (error) {
     // 예시 케이스는 저장 실패가 아니라 잘못된 요청이다. 이유를 그대로 알린다.
     if (error instanceof DemoCaseError) {

@@ -183,6 +183,11 @@ input[type="checkbox"] {
     line-height: 1.45;
   }
 
+  /*
+   * 사이트 머리말·꼬리말은 종이에서 의미가 없다. 게다가 그 안의 링크가
+   * PDF에 클릭 가능한 주석으로 남아, 안내서를 열면 사이트 주소가 딸려 온다.
+   * 태그가 아니라 no-print로 고른다 — 안내서 본문에도 <header>가 있다.
+   */
   nav,
   footer,
   .no-print {
@@ -201,6 +206,12 @@ input[type="checkbox"] {
     page-break-inside: avoid;
   }
 
+  /* 제목만 남고 내용이 다음 쪽으로 넘어가지 않게 한다 */
+  .print-keep-next {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
   .print-page-break {
     break-before: page;
     page-break-before: always;
@@ -212,6 +223,10 @@ input[type="checkbox"] {
     color: #000 !important;
   }
 
+  /*
+   * 종이에서는 링크가 아니라 글자다. 밑줄과 색을 빼고, 인쇄되는 영역에는
+   * 애초에 <a>를 두지 않는다(app/print/page.tsx).
+   */
   a {
     text-decoration: none;
     color: #000;

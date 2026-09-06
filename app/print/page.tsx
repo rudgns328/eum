@@ -55,8 +55,8 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="print-block mt-7">
-      <h2 className="mb-2 flex items-baseline gap-2 border-b-2 border-foreground pb-1 text-lg font-black">
+    <section className="mt-7">
+      <h2 className="print-keep-next mb-2 flex items-baseline gap-2 border-b-2 border-foreground pb-1 text-lg font-black">
         <span className="text-accent">{no}.</span>
         {title}
       </h2>
@@ -97,17 +97,32 @@ export default function PrintPage() {
     [caseData],
   );
 
-  /** 문서에 실린 모든 출처를 모아 중복을 없앤다 (절대규칙 5) */
+  /**
+   * 문서에 실린 모든 출처 (절대규칙 5).
+   *
+   * 기관으로 묶는다. 확인일만 다른 같은 기관이 여러 줄로 늘어서면 목록이
+   * 지저분해 근거를 찾기 어렵다. 확인일은 하나도 버리지 않고 함께 적는다.
+   */
   const sources = useMemo(() => {
-    const seen = new Map<string, SourceRef>();
+    const byInstitution = new Map<string, { dates: Set<string>; documents: Set<string> }>();
     const add = (source?: SourceRef) => {
       if (!source?.institution) return;
-      seen.set(`${source.institution}|${source.verified_at}`, source);
+      const entry = byInstitution.get(source.institution)
+        ?? { dates: new Set<string>(), documents: new Set<string>() };
+      if (source.verified_at) entry.dates.add(source.verified_at);
+      if (source.document) entry.documents.add(source.document);
+      byInstitution.set(source.institution, entry);
     };
     deadlines.forEach((d) => add(d.source));
     plan?.institutions.forEach((a) => add(a.source));
     candidates.forEach((c) => add(c.source));
-    return [...seen.values()].sort((a, b) => (a.institution < b.institution ? -1 : 1));
+    return [...byInstitution.entries()]
+      .map(([institution, entry]) => ({
+        institution,
+        dates: [...entry.dates].sort(),
+        documents: [...entry.documents],
+      }))
+      .sort((a, b) => (a.institution < b.institution ? -1 : 1));
   }, [deadlines, plan, candidates]);
 
   useEffect(() => {
@@ -365,7 +380,7 @@ export default function PrintPage() {
                 <tr>
                   <th scope="col">상속인</th>
                   <th scope="col" className="w-[6rem]">관계</th>
-                  <th scope="col" className="w-[6rem]">상속분</th>
+                  <th scope="col" className="w-[9rem]">상속분</th>
                 </tr>
               </thead>
               <tbody>
@@ -380,7 +395,7 @@ export default function PrintPage() {
                         )}
                       </td>
                       <td>{RELATION_LABEL[share.relation]}</td>
-                      <td className="tabular-nums">
+                      <td className="whitespace-nowrap tabular-nums">
                         {share.fraction_label} ({(share.share * 100).toFixed(1)}%)
                       </td>
                     </tr>
@@ -398,10 +413,12 @@ export default function PrintPage() {
         <Section no={6} title="출처">
           <ul className="text-sm">
             {sources.map((source) => (
-              <li key={`${source.institution}|${source.verified_at}`} className="py-0.5">
+              <li key={source.institution} className="py-0.5">
                 · {source.institution}
-                {source.verified_at ? ` — ${source.verified_at.replaceAll('-', '.')} 확인` : ''}
-                {source.document ? ` (${source.document})` : ''}
+                {source.dates.length > 0
+                  ? ` — ${source.dates.map(dot).join(' · ')} 확인`
+                  : ''}
+                {source.documents.length > 0 ? ` (${source.documents.join(', ')})` : ''}
               </li>
             ))}
           </ul>
