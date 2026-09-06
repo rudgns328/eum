@@ -230,6 +230,15 @@ function OnboardingForm() {
    * 경계로 갈리므로 잘못된 자릿수는 막되, 기준은 한 곳에서만 정한다.
    */
 
+  /**
+   * 숫자 칸이 받는 값.
+   *
+   * 자릿수는 여기서 자르지 않는다. 붙여넣은 긴 숫자를 몰래 13자리로 줄이면
+   * 사용자가 넣은 것과 다른 금액이 된다. 자릿수는 maxLength로 타이핑을
+   * 막고, 넘치면 저장할 때 문구로 알린다(서류 등록 화면과 같은 방식).
+   */
+  const digitsOnly = (raw: string): string => raw.replace(/[^\d]/g, '');
+
   const toNumber = (raw: string): number | null => {
     const cleaned = raw.replace(/[^\d]/g, '');
     if (cleaned === '') return null;
@@ -931,7 +940,7 @@ function OnboardingForm() {
                             maxLength={AMOUNT_MAX_DIGITS}
                             value={asset.deposit_amount}
                             onChange={(e) =>
-                              updateAsset(asset.key, { deposit_amount: e.target.value })
+                              updateAsset(asset.key, { deposit_amount: digitsOnly(e.target.value) })
                             }
                             placeholder="예탁금 (원)"
                             aria-label="예탁금"
@@ -942,7 +951,7 @@ function OnboardingForm() {
                             maxLength={AMOUNT_MAX_DIGITS}
                             value={asset.securities_valuation}
                             onChange={(e) =>
-                              updateAsset(asset.key, { securities_valuation: e.target.value })
+                              updateAsset(asset.key, { securities_valuation: digitsOnly(e.target.value) })
                             }
                             placeholder="증권 평가액 (원)"
                             aria-label="증권 평가액"
@@ -958,7 +967,7 @@ function OnboardingForm() {
                             inputMode="numeric"
                             maxLength={AMOUNT_MAX_DIGITS}
                             value={asset.amount}
-                            onChange={(e) => updateAsset(asset.key, { amount: e.target.value })}
+                            onChange={(e) => updateAsset(asset.key, { amount: digitsOnly(e.target.value) })}
                             placeholder={asset.type === 'insurance' ? '청구금액 (원)' : '금액 (원)'}
                             aria-label="금액"
                           />
@@ -1095,7 +1104,7 @@ function OnboardingForm() {
                       inputMode="numeric"
                       maxLength={AMOUNT_MAX_DIGITS}
                       value={debt.amount}
-                      onChange={(e) => updateDebt(debt.key, { amount: e.target.value })}
+                      onChange={(e) => updateDebt(debt.key, { amount: digitsOnly(e.target.value) })}
                       placeholder="금액 (원)"
                       aria-label={`부채 ${index + 1} 금액`}
                       aria-invalid={blocked && debtIncomplete(debt) && toNumber(debt.amount) === null}

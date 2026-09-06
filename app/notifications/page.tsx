@@ -388,7 +388,8 @@ export default function NotificationsPage() {
                   disabled={
                     working ||
                     !consent ||
-                    email.trim() === "" ||
+                    // 형식이 틀린 주소로 눌러 서버에서 되돌아오게 두지 않는다
+                    !isValidEmail(email) ||
                     subscription?.available === false
                   }
                 >
