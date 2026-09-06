@@ -716,6 +716,7 @@ export function DocumentFill({
   label,
   hint,
   about,
+  sample,
   reading,
   note,
   onPick,
@@ -725,6 +726,8 @@ export function DocumentFill({
   hint: string;
   /** 어떤 문서인지·어디서 받는지. 접어 두고 필요할 때 편다 */
   about?: ReactNode;
+  /** 시험해 볼 예시 견본 주소 */
+  sample?: string;
   reading: boolean;
   note: string;
   onPick: (file: File) => void;
@@ -751,6 +754,20 @@ export function DocumentFill({
         />
         <p className="flex-1 text-sm text-muted">{hint}</p>
       </div>
+      {sample && (
+        <p className="mt-2 text-sm">
+          문서가 없으시면{' '}
+          <a
+            href={sample}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-bold text-accent underline-offset-2 hover:underline"
+          >
+            예시 견본
+          </a>
+          으로 먼저 시험해 보실 수 있습니다.
+        </p>
+      )}
       {about && (
         <details className="mt-2">
           <summary className="cursor-pointer text-sm font-semibold text-accent">

@@ -331,7 +331,24 @@ export default function UploadPage() {
               </div>
             </details>
 
-            <p className="mt-3 text-sm text-muted">
+            <p className="mt-3 text-sm">
+              문서가 없으시면{' '}
+              <a
+                href={
+                  documentType === 'family_cert'
+                    ? '/sample/family-cert-sample.png'
+                    : '/sample/fss-query-result-sample.png'
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-bold text-accent underline-offset-2 hover:underline"
+              >
+                예시 견본
+              </a>
+              으로 먼저 시험해 보실 수 있습니다.
+            </p>
+
+            <p className="mt-2 text-sm text-muted">
               화면을 찍은 사진이나 PDF 모두 됩니다. 올리신 파일은 읽은 즉시 버리고,
               주민등록번호와 생년월일은 읽지 않습니다.
             </p>

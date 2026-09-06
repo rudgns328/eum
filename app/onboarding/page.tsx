@@ -876,6 +876,7 @@ function OnboardingForm() {
                 kind="heirs"
                 label="가족관계증명서(상세)로 채우기"
                 hint="문서를 읽어 상속인 목록을 만듭니다. 읽은 내용은 아래에서 고치실 수 있습니다."
+                sample="/sample/family-cert-sample.png"
                 about={
                   <>
                     <p>
@@ -1041,6 +1042,7 @@ function OnboardingForm() {
                 kind="assets"
                 label="금융거래 조회결과로 채우기"
                 hint="문서를 읽어 기관과 금액을 채웁니다. 읽은 내용은 아래에서 고치실 수 있습니다."
+                sample="/sample/fss-query-result-sample.png"
                 about={
                   <>
                     <p>
