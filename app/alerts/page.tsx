@@ -215,7 +215,7 @@ export default function AlertsPage() {
                 <div className="mt-3 border-l-4 border-l-accent bg-accent-soft p-3">
                   <p className="mb-1 flex items-center gap-2 text-sm font-bold text-accent">
                     <span
-                      className="inline-flex items-center rounded-sm border border-accent px-1.5 py-0.5"
+                      className="inline-flex items-center rounded-lg border border-accent px-1.5 py-0.5"
                       aria-hidden
                     >
                       AI

@@ -20,7 +20,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
-import { EXAMPLE_BASIS, EXAMPLE_DEADLINES } from '@/app/_lib/example';
+import { EXAMPLE_DEADLINES } from '@/app/_lib/example';
 import { loadInstitutions } from '@/lib/rules/loader';
 import { verificationBadge } from '@/lib/rules/verification';
 import {
@@ -85,34 +85,34 @@ export function EntrySection({ hasCase }: { hasCase: boolean }) {
             금융 절차를 대신 관리합니다.
           </h1>
           <p className="mt-5 max-w-xl text-lg text-white/85">
-            사망일 하나만 넣으면 모든 기한이 D-day로 환산되고, 기관별로 필요한 서류가 한 장으로
-            정리됩니다. 물어봐야 답하는 상담 도구가 아니라, 알림을 신청하시면 기한이 다가올 때 먼저
-            알려 드리는 서비스입니다.
+            사망일 하나만 넣으면 기한이 D-day로 환산되고, 기관별 서류가 한 장으로 정리됩니다.
+            기한이 다가오면 메일로 먼저 알려 드립니다.
           </p>
           <div className="mt-7 flex flex-wrap gap-2">
             <Link
               href={hasCase ? '/dashboard' : '/onboarding'}
               role="button"
-              className="inline-flex items-center justify-center rounded-sm bg-white px-7 text-lg font-bold text-navy hover:bg-white/90"
+              className="inline-flex items-center justify-center rounded-lg bg-white px-7 text-lg font-bold text-navy hover:bg-white/90"
             >
               {hasCase ? '내 화면으로' : '시작하기'}
             </Link>
             <Link
               href="#flow"
               role="button"
-              className="inline-flex items-center justify-center rounded-sm border border-white/40 px-7 font-semibold text-white hover:border-white"
+              className="inline-flex items-center justify-center rounded-lg border border-white/40 px-7 font-semibold text-white hover:border-white"
             >
               어떻게 쓰는지 보기
             </Link>
           </div>
-          <p className="mt-4 text-sm text-white/70">
-            회원가입이 필요하지 않습니다. 주민등록번호와 생년월일은 입력받지 않습니다.
+          <p className="mt-5 text-sm text-white/70">
+            회원가입 없이 시작합니다. 주민등록번호는 입력받지 않고, 넣으신 내용은 창을 닫으면
+            사라집니다.
           </p>
         </div>
 
         {/* 기한 예시 — 실제 엔진 산출값 */}
-        <aside className="rounded-sm bg-white/10 p-5">
-          <p className="text-sm text-white/70">{EXAMPLE_BASIS}</p>
+        <aside className="rounded-xl bg-white/10 p-6">
+          <p className="text-sm text-white/70">2026.08.13 기준 예시</p>
           <p className="mt-3 text-4xl font-black tabular-nums">D-{lead.d_day}</p>
           <p className="font-bold">{lead.name}</p>
           <ul className="mt-4 space-y-1.5 border-t border-white/20 pt-3 text-white/80">
@@ -469,7 +469,7 @@ export function BoundarySection({ onDemo }: { onDemo: () => void }) {
           </ul>
         </div>
 
-        <div className="rounded-sm border-2 border-navy bg-subtle px-5 py-6 text-center">
+        <div className="rounded-lg border-2 border-navy bg-subtle px-5 py-6 text-center">
           <p className="text-lg font-bold">사망일 하나면 시작됩니다.</p>
           <p className="mt-1 text-sm text-muted">
             나머지는 나중에 채워도 됩니다.

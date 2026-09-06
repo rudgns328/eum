@@ -6,8 +6,10 @@
  * 처음 오신 분이 읽는 순서대로 놓는다.
  *   ① 무엇을 해 주는 서비스인가        EntrySection
  *   ② 어떻게 진행되고 무엇을 받는가     FlowSection
- *   ③ 넣은 내용은 어디에 남는가        SessionSection
- *   ④ 알아두실 사항 / 유의사항 / 근거
+ *   ③ 알아두실 사항 / 유의사항 / 근거
+
+ * 저장 방식은 섹션을 따로 두지 않는다. 히어로 한 줄과, 실제로 입력하는
+ * 화면의 안내 띠(PageShell)로 알린다 — 앞에 늘어놓으면 읽히지 않는다.
  *
  * 케이스는 이 탭에서만 산다(lib/case/store.ts). 그래서 상단 띠는 "저장된
  * 케이스"가 아니라 "이번 이용 중인 내용"이라고 적는다 — 창을 닫으면
@@ -16,7 +18,7 @@
 
 import Link from 'next/link';
 
-import { FlowSection, SessionSection } from '@/app/_components/flow';
+import { FlowSection } from '@/app/_components/flow';
 import {
   BoundarySection,
   EntrySection,
@@ -52,7 +54,6 @@ export default function Home() {
 
       <EntrySection hasCase={flags.exists} />
       <FlowSection />
-      <SessionSection />
       <NoticeSection />
       <BoundarySection onDemo={startDemo} />
       <ReferenceSection />

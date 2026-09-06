@@ -138,7 +138,7 @@ const nextKey = () => {
 
 const label = 'block text-base font-semibold';
 const input =
-  'mt-1 w-full rounded-sm border border-line-strong bg-surface px-3 py-2 text-base focus:border-accent';
+  'mt-1 w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-base focus:border-accent';
 
 /**
  * 소개 화면의 사망일 입력을 ?death= 로 받는다.
@@ -303,7 +303,7 @@ function OnboardingForm() {
       <>
         <div className="grid gap-3 sm:grid-cols-[8rem_1fr_auto]">
           <select
-            className="rounded-sm border border-line-strong bg-surface px-3 py-2"
+            className="rounded-lg border border-line-strong bg-surface px-3 py-2"
             value={heir.relation}
             onChange={(e) => updateHeir(heir.key, { relation: e.target.value as Relation })}
             aria-label={`${label} 관계`}
@@ -316,7 +316,7 @@ function OnboardingForm() {
           </select>
           <div>
             <input
-              className={`w-full rounded-sm border bg-surface px-3 py-2 ${
+              className={`w-full rounded-lg border bg-surface px-3 py-2 ${
                 isValidName(heir.name) ? 'border-line-strong' : 'border-critical'
               }`}
               value={heir.name}
@@ -500,7 +500,7 @@ function OnboardingForm() {
                 type="button"
                 onClick={() => setStep(item.no)}
                 aria-current={state === 'current' ? 'step' : undefined}
-                className={`w-full rounded-sm border px-4 py-3 text-left ${
+                className={`w-full rounded-lg border px-4 py-3 text-left ${
                   state === 'current'
                     ? 'border-accent bg-surface'
                     : 'border-line bg-background hover:border-accent/50'
@@ -650,7 +650,7 @@ function OnboardingForm() {
                 {heirs
                   .filter((heir) => !heir.substitutes_for_key)
                   .map((heir) => (
-                    <div key={heir.key} className="rounded-sm border border-line p-3">
+                    <div key={heir.key} className="rounded-lg border border-line p-3">
                       {renderHeirFields(heir)}
 
                       {/* 대습상속 — 피대습자 아래에 들여써서 관계가 보이게 한다.
@@ -670,7 +670,7 @@ function OnboardingForm() {
                             {heirs
                               .filter((sub) => sub.substitutes_for_key === heir.key)
                               .map((sub) => (
-                                <div key={sub.key} className="rounded-sm border border-line bg-subtle p-3">
+                                <div key={sub.key} className="rounded-lg border border-line bg-subtle p-3">
                                   {renderHeirFields(sub, true)}
                                 </div>
                               ))}
@@ -724,7 +724,7 @@ function OnboardingForm() {
               <div className="mt-4 flex items-center gap-2 text-base">
                 <span className="font-semibold">협의분할</span>
                 <select
-                  className="rounded-sm border border-line-strong bg-surface px-3 py-2"
+                  className="rounded-lg border border-line-strong bg-surface px-3 py-2"
                   value={agreement}
                   onChange={(e) => setAgreement(e.target.value as '' | 'yes' | 'no')}
                   aria-label="협의분할 진행 여부"
@@ -763,7 +763,7 @@ function OnboardingForm() {
                           {maskName(draftById.get(share.heir_id)?.name ?? '') || '○○'}{' '}
                           <span className="text-muted">({RELATION_LABEL[share.relation]})</span>
                           {share.substitutes_for && (
-                            <span className="ml-2 rounded-sm border border-accent px-1.5 py-0.5 text-sm text-accent">
+                            <span className="ml-2 rounded-lg border border-accent px-1.5 py-0.5 text-sm text-accent">
                               대습상속
                             </span>
                           )}
@@ -797,10 +797,10 @@ function OnboardingForm() {
                   );
                   const badge = institution ? verificationBadge(institution) : null;
                   return (
-                    <div key={asset.key} className="rounded-sm border border-line p-3">
+                    <div key={asset.key} className="rounded-lg border border-line p-3">
                       <div className="grid gap-3 sm:grid-cols-[1fr_8rem_auto]">
                         <select
-                          className="rounded-sm border border-line-strong bg-surface px-3 py-2"
+                          className="rounded-lg border border-line-strong bg-surface px-3 py-2"
                           value={asset.institution_id}
                           onChange={(e) =>
                             updateAsset(asset.key, { institution_id: e.target.value })
@@ -815,7 +815,7 @@ function OnboardingForm() {
                           ))}
                         </select>
                         <select
-                          className="rounded-sm border border-line-strong bg-surface px-3 py-2"
+                          className="rounded-lg border border-line-strong bg-surface px-3 py-2"
                           value={asset.type}
                           onChange={(e) => updateAsset(asset.key, { type: e.target.value })}
                           aria-label={`자산 ${index + 1} 종류`}
@@ -838,7 +838,7 @@ function OnboardingForm() {
                       {asset.type === 'securities' ? (
                         <div className="mt-3 grid gap-3 sm:grid-cols-2">
                           <input
-                            className="rounded-sm border border-line-strong bg-surface px-3 py-2"
+                            className="rounded-lg border border-line-strong bg-surface px-3 py-2"
                             inputMode="numeric"
                             maxLength={AMOUNT_MAX_DIGITS}
                             value={asset.deposit_amount}
@@ -849,7 +849,7 @@ function OnboardingForm() {
                             aria-label="예탁금"
                           />
                           <input
-                            className="rounded-sm border border-line-strong bg-surface px-3 py-2"
+                            className="rounded-lg border border-line-strong bg-surface px-3 py-2"
                             inputMode="numeric"
                             maxLength={AMOUNT_MAX_DIGITS}
                             value={asset.securities_valuation}
@@ -866,7 +866,7 @@ function OnboardingForm() {
                       ) : (
                         <div className="mt-3 grid gap-3 sm:grid-cols-2">
                           <input
-                            className="rounded-sm border border-line-strong bg-surface px-3 py-2"
+                            className="rounded-lg border border-line-strong bg-surface px-3 py-2"
                             inputMode="numeric"
                             maxLength={AMOUNT_MAX_DIGITS}
                             value={asset.amount}
@@ -876,7 +876,7 @@ function OnboardingForm() {
                           />
                           {asset.type === 'insurance' && (
                             <select
-                              className="rounded-sm border border-line-strong bg-surface px-3 py-2"
+                              className="rounded-lg border border-line-strong bg-surface px-3 py-2"
                               value={asset.beneficiary_designated}
                               onChange={(e) =>
                                 updateAsset(asset.key, {
@@ -939,10 +939,10 @@ function OnboardingForm() {
                 {debts.map((debt, index) => (
                   <div
                     key={debt.key}
-                    className="grid gap-3 rounded-sm border border-line p-3 sm:grid-cols-[1fr_1fr_auto]"
+                    className="grid gap-3 rounded-lg border border-line p-3 sm:grid-cols-[1fr_1fr_auto]"
                   >
                     <select
-                      className="rounded-sm border border-line-strong bg-surface px-3 py-2"
+                      className="rounded-lg border border-line-strong bg-surface px-3 py-2"
                       value={debt.institution_id}
                       onChange={(e) => updateDebt(debt.key, { institution_id: e.target.value })}
                       aria-label={`부채 ${index + 1} 기관`}
@@ -955,7 +955,7 @@ function OnboardingForm() {
                       ))}
                     </select>
                     <input
-                      className="rounded-sm border border-line-strong bg-surface px-3 py-2"
+                      className="rounded-lg border border-line-strong bg-surface px-3 py-2"
                       inputMode="numeric"
                       maxLength={AMOUNT_MAX_DIGITS}
                       value={debt.amount}

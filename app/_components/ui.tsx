@@ -27,16 +27,16 @@ import { SESSION_NOTICE, useLeaveGuard, useTookSomething } from '@/app/_lib/sess
 // ---------------------------------------------------------------------------
 
 export const btnPrimary =
-  'inline-flex items-center justify-center rounded-sm bg-accent px-6 font-bold text-white hover:bg-accent-dark disabled:opacity-50';
+  'inline-flex items-center justify-center rounded-lg bg-accent px-6 font-bold text-white hover:bg-accent-dark disabled:opacity-50';
 
 export const btnOutline =
-  'inline-flex items-center justify-center rounded-sm border border-line-strong bg-surface px-6 font-semibold text-foreground hover:border-accent hover:text-accent';
+  'inline-flex items-center justify-center rounded-lg border border-line-strong bg-surface px-6 font-semibold text-foreground hover:border-accent hover:text-accent';
 
 export const btnSmall =
-  'inline-flex items-center justify-center rounded-sm border border-line-strong bg-surface px-3 text-base font-medium text-muted hover:border-accent hover:text-accent';
+  'inline-flex items-center justify-center rounded-lg border border-line-strong bg-surface px-3 text-base font-medium text-muted hover:border-accent hover:text-accent';
 
 export const fieldInput =
-  'w-full rounded-sm border border-line-strong bg-surface px-3 py-2 text-base focus:border-accent';
+  'w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-base focus:border-accent';
 
 // ---------------------------------------------------------------------------
 // 면 · 제목
@@ -51,7 +51,7 @@ export function Card({
   className?: string;
 }) {
   return (
-    <section className={`rounded-sm border border-line bg-surface p-5 ${className}`}>
+    <section className={`rounded-xl border border-line bg-surface p-5 ${className}`}>
       {children}
     </section>
   );
@@ -70,7 +70,7 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <section className={`rounded-sm border border-line bg-surface ${className}`}>
+    <section className={`overflow-hidden rounded-xl border border-line bg-surface ${className}`}>
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-subtle px-5 py-3">
         <h2 className="text-lg font-bold">{title}</h2>
         {aside}
@@ -114,7 +114,7 @@ export function NoticeBox({
   const border = tone === 'warning' ? 'border-l-critical' : 'border-l-accent';
   const bg = tone === 'warning' ? 'bg-critical/5' : 'bg-accent-soft';
   return (
-    <div className={`rounded-sm border border-line border-l-4 ${border} ${bg} p-4`}>
+    <div className={`rounded-lg border border-line border-l-4 ${border} ${bg} p-4`}>
       {title && <p className="mb-1 font-bold">{title}</p>}
       <div className="text-base">{children}</div>
     </div>
@@ -124,7 +124,7 @@ export function NoticeBox({
 /** 검증되지 않은 데이터에 붙는 표시 */
 export function CheckingBadge({ label = '확인 중' }: { label?: string }) {
   return (
-    <span className="inline-flex items-center rounded-sm border border-checking bg-white px-1.5 py-0.5 text-sm font-semibold text-checking">
+    <span className="inline-flex items-center rounded-md border border-checking bg-white px-1.5 py-0.5 text-sm font-semibold text-checking">
       {label}
     </span>
   );
@@ -149,7 +149,7 @@ const SEVERITY_LABEL: Record<string, string> = {
 export function SeverityTag({ severity }: { severity: string }) {
   return (
     <span
-      className={`inline-flex shrink-0 items-center rounded-sm border px-1.5 py-0.5 text-sm font-semibold ${
+      className={`inline-flex shrink-0 items-center rounded-md border px-1.5 py-0.5 text-sm font-semibold ${
         SEVERITY_STYLE[severity] ?? SEVERITY_STYLE.info
       }`}
     >
@@ -163,7 +163,7 @@ export function ProgressBar({ done, total }: { done: number; total: number }) {
   return (
     <div className="flex items-center gap-3">
       <div
-        className="h-4 flex-1 overflow-hidden rounded-sm border border-line bg-subtle"
+        className="h-4 flex-1 overflow-hidden rounded-full border border-line bg-subtle"
         role="progressbar"
         aria-valuenow={done}
         aria-valuemin={0}
@@ -250,7 +250,7 @@ function Wordmark() {
   return (
     <Link href="/" className="flex items-center gap-2.5 py-3" aria-label="이음 홈">
       <span
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-navy text-lg font-black text-white"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-navy text-lg font-black text-white"
         aria-hidden
       >
         잇
@@ -282,7 +282,7 @@ function Header({ current }: { current: string }) {
       <div className="mx-auto flex w-full max-w-[64rem] items-center gap-x-6 px-4">
         <Link href="/" className="hidden items-center gap-2.5 py-3 lg:flex" aria-label="이음 홈">
           <span
-            className="flex h-9 w-9 items-center justify-center rounded-sm bg-navy text-lg font-black text-white"
+            className="flex h-9 w-9 items-center justify-center rounded-lg bg-navy text-lg font-black text-white"
             aria-hidden
           >
             잇
@@ -566,7 +566,7 @@ export function Disclosure({
   defaultOpen?: boolean;
 }) {
   return (
-    <details className="group rounded-sm border border-line bg-surface" open={defaultOpen}>
+    <details className="group overflow-hidden rounded-xl border border-line bg-surface" open={defaultOpen}>
       <summary className="flex cursor-pointer list-none items-center gap-2 px-5 py-4 font-bold">
         <span
           className="flex h-5 w-5 shrink-0 items-center justify-center border border-line-strong text-sm leading-none text-accent"

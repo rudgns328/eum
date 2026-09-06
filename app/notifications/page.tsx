@@ -257,7 +257,7 @@ export default function NotificationsPage() {
               <div className="mt-4 flex flex-wrap gap-3">
                 <input
                   type="email"
-                  className={`min-w-0 flex-1 rounded-sm border bg-surface px-3 py-2 text-base ${
+                  className={`min-w-0 flex-1 rounded-lg border bg-surface px-3 py-2 text-base ${
                     email.trim() === '' || isValidEmail(email)
                       ? 'border-line-strong'
                       : 'border-critical'

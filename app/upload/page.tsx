@@ -61,7 +61,7 @@ const DOC_OPTIONS: Array<{ value: ParsedDocumentType; label: string }> = [
   { value: 'fss_query_result', label: '금융거래 조회 결과' },
 ];
 
-const input = 'rounded-sm border border-line-strong bg-surface px-3 py-2 text-base';
+const input = 'rounded-lg border border-line-strong bg-surface px-3 py-2 text-base';
 
 type Stage = 'select' | 'parsing' | 'review';
 
@@ -351,7 +351,7 @@ export default function UploadPage() {
               <SectionTitle>상속인</SectionTitle>
               <div className="space-y-3">
                 {heirs.map((heir, index) => (
-                  <div key={index} className="rounded-sm border border-line p-3">
+                  <div key={index} className="rounded-lg border border-line p-3">
                     <div className="grid gap-3 sm:grid-cols-[8rem_1fr_auto]">
                       <select
                         className={input}
@@ -453,7 +453,7 @@ export default function UploadPage() {
               <SectionTitle>자산</SectionTitle>
               <div className="space-y-3">
                 {assets.map((asset, index) => (
-                  <div key={index} className="rounded-sm border border-line p-3">
+                  <div key={index} className="rounded-lg border border-line p-3">
                     <div className="grid gap-3 sm:grid-cols-[1fr_10rem_auto]">
                       <select
                         className={input}
@@ -596,7 +596,7 @@ function ReadNote({
   }
 
   return (
-    <div className="mt-2 rounded-sm border border-line border-l-4 border-l-high bg-high/5 p-3">
+    <div className="mt-2 rounded-lg border border-line border-l-4 border-l-high bg-high/5 p-3">
       <p className="flex flex-wrap items-center gap-2 text-sm font-bold text-high">
         <CheckingBadge label="확인 필요" />
         {draft.uncertain.length > 0 ? draft.uncertain.join(' · ') : '판독 확신이 낮습니다'}

@@ -143,7 +143,7 @@ export default function PrintPage() {
   return (
     <PageShell current="/print">
       {/* 화면에서만 보이는 조작부 */}
-      <div className="no-print mb-6 flex flex-wrap items-center gap-3 rounded-sm border border-line bg-subtle px-5 py-4">
+      <div className="no-print mb-6 flex flex-wrap items-center gap-3 rounded-lg border border-line bg-subtle px-5 py-4">
         <div className="flex-1">
           <p className="font-bold">인쇄용 안내서</p>
           <p className="text-base text-muted">
@@ -268,7 +268,7 @@ export default function PrintPage() {
                 return (
                   <div
                     key={id}
-                    className="print-block rounded-sm border border-line-strong p-3"
+                    className="print-block rounded-lg border border-line-strong p-3"
                   >
                     <div className="flex items-start gap-2">
                       <span className="check-box mt-[0.35em]" aria-hidden />
