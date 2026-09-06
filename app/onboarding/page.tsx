@@ -58,7 +58,7 @@ import {
 import type { HeirInput, Relation } from '@/lib/engines/types';
 import type { ParsedFamilyCert, ParsedFssQueryResult } from '@/lib/llm/schemas';
 import { parseDocument } from '@/app/_lib/parseDocument';
-import { droppedRelations, toAssetDrafts, toHeirDrafts } from '@/lib/case/import';
+import { debtRows, droppedRelations, toAssetDrafts, toHeirDrafts } from '@/lib/case/import';
 import { loadInstitutions } from '@/lib/rules/loader';
 import { verificationBadge } from '@/lib/rules/verification';
 
@@ -684,13 +684,21 @@ function OnboardingForm() {
       setAssets(
         drafts.map((draft) => {
           const matched = institutions.find((i) => i.institution_id === draft.institution_id);
+          const type = matched ? assetTypeFor(matched.type) : 'deposit';
+          const money = draft.amount === null ? '' : String(draft.amount);
+          /*
+           * 증권은 예탁금과 평가액을 나눠 받는다(04 §6.3). 조회 결과에는
+           * 금액이 하나뿐이라 어느 쪽인지 알 수 없다. 소액 판정은 둘의
+           * 합계로 하므로 평가액 자리에 넣어 총액을 맞추고, 나누는 일은
+           * 사용자가 화면에서 한다. amount 자리에 두면 저장에서 사라진다.
+           */
           return {
             key: nextKey(),
             institution_id: draft.institution_id ?? '',
-            type: matched ? assetTypeFor(matched.type) : 'deposit',
-            amount: draft.amount === null ? '' : String(draft.amount),
+            type,
+            amount: type === 'securities' ? '' : money,
             deposit_amount: '',
-            securities_valuation: '',
+            securities_valuation: type === 'securities' ? money : '',
             beneficiary_designated: '' as const,
             group_insurance: '' as const,
             claim_by_delegation: '' as const,
@@ -698,10 +706,18 @@ function OnboardingForm() {
         }),
       );
       const unmatched = drafts.filter((d) => d.institution_id === null).length;
+      // 빚으로 보이는 항목은 자산에 넣지 않는다. 빼놓았다는 사실을 알린다.
+      const debts = debtRows(parsed.data as ParsedFssQueryResult);
       setReadNote(
-        unmatched > 0
-          ? `자산 ${drafts.length}건을 채웠습니다. 그중 ${unmatched}건은 기관을 직접 고르셔야 합니다.`
-          : `자산 ${drafts.length}건을 채웠습니다. 맞는지 확인해 주세요.`,
+        [
+          `자산 ${drafts.length}건을 채웠습니다.`,
+          unmatched > 0 ? `그중 ${unmatched}건은 기관을 직접 고르셔야 합니다.` : '맞는지 확인해 주세요.',
+          debts.length > 0
+            ? `빚으로 보이는 항목은 넣지 않았습니다 — ${debts.join(', ')}. 아래 부채란에 직접 넣어 주세요.`
+            : '',
+        ]
+          .filter(Boolean)
+          .join(' '),
       );
       return;
     }

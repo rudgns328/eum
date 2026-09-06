@@ -31,6 +31,7 @@ import {
   needsReview,
   toAssetDrafts,
   toHeirDrafts,
+  debtRows,
   droppedRelations,
   type AssetDraft,
   type HeirDraft,
@@ -173,7 +174,8 @@ export default function UploadPage() {
       const drafts = toAssetDrafts(query, institutions);
       setAssets(drafts.length > 0 ? drafts : [blankAsset()]);
       setHeirs([]);
-      setDropped([]);
+      // 빚으로 보이는 항목은 자산 초안에 넣지 않는다. 뺐다는 사실을 알린다.
+      setDropped(debtRows(query));
     }
     setStage('review');
   }
@@ -428,7 +430,10 @@ export default function UploadPage() {
 
             {dropped.length > 0 && (
               <p className="mt-2 text-base text-muted">
-                초안에 넣지 않은 항목: {dropped.join(', ')} — 필요하면 직접 추가해 주세요.
+                초안에 넣지 않은 항목: {dropped.join(', ')} —{' '}
+                {documentType === 'family_cert'
+                  ? '필요하면 직접 추가해 주세요.'
+                  : '빚으로 보이는 항목입니다. 부채는 입력 화면에서 직접 넣어 주세요.'}
               </p>
             )}
           </Card>

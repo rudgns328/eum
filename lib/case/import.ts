@@ -148,11 +148,36 @@ export function matchInstitution(
   return partial.length === 1 ? partial[0].institution_id : null;
 }
 
+/**
+ * 문서에 적힌 상태가 빚을 가리키는가.
+ *
+ * 조회 결과에는 금융채권만이 아니라 금융채무도 함께 나온다(금감원 안내).
+ * 그것을 자산으로 넣으면 두 가지가 어긋난다 — 그 기관의 소액 간소화
+ * 판정이 재산 기준으로 잘못 계산되고, 부채 합계가 0이 되어 상속포기·
+ * 한정승인 검토 항목이 뜨지 않는다.
+ *
+ * 부채 파싱은 설계서 3.3의 범위가 아니다(스키마에 금액의 성격이 없다).
+ * 그래서 자동으로 넣지 않고, 빼놓았다는 사실을 알려 직접 넣게 한다.
+ */
+const DEBT_WORDS = ['대출', '채무', '카드론', '마이너스', '연체', '보증'];
+
+export function looksLikeDebt(status: string | null | undefined): boolean {
+  const text = (status ?? '').replace(/\s/g, '');
+  return DEBT_WORDS.some((word) => text.includes(word));
+}
+
+/** 빚으로 보여 자산 초안에서 빼놓은 항목 */
+export function debtRows(parsed: ParsedFssQueryResult): string[] {
+  return parsed.institutions
+    .filter((row) => looksLikeDebt(row.status))
+    .map((row) => `${row.institution_name ?? '기관 미상'} ${row.status}`.trim());
+}
+
 export function toAssetDrafts(
   parsed: ParsedFssQueryResult,
   institutions: ReadonlyArray<{ institution_id: string; name: string }>,
 ): AssetDraft[] {
-  return parsed.institutions.map((row) => {
+  return parsed.institutions.filter((row) => !looksLikeDebt(row.status)).map((row) => {
     const institutionId = matchInstitution(row.institution_name, institutions);
     const uncertain: string[] = [];
     if (institutionId === null) uncertain.push('기관');

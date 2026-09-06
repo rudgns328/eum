@@ -13,6 +13,8 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
+import { debtRows, looksLikeDebt, toAssetDrafts } from '@/lib/case/import';
+
 function tsxFiles(dir: string): string[] {
   const out: string[] = [];
   for (const entry of readdirSync(dir)) {
@@ -112,3 +114,43 @@ describe('글자 칸', () => {
  * aria-label도 id도 없지만 접근성상 문제가 없는데, 소스만 봐서는 감싸였는지
  * 알기 어렵다. 실제 렌더 결과를 보는 브라우저 점검이 이 일을 맡는다.
  */
+
+describe('조회 결과의 빚은 자산으로 넣지 않는다', () => {
+  /*
+   * 조회 결과에는 금융채권만이 아니라 금융채무도 나온다. 그것을 자산으로
+   * 넣으면 그 기관의 소액 간소화 판정이 재산 기준으로 잘못 계산되고,
+   * 부채 합계가 0이 되어 상속포기·한정승인 검토 항목이 뜨지 않는다.
+   */
+  const parsed = {
+    institutions: [
+      { institution_name: 'KB국민은행', category: '은행', status: '예금 있음', amount: 2_400_000, confidence: 1, note: '' },
+      { institution_name: '하나은행', category: '은행', status: '대출 있음', amount: 38_000_000, confidence: 1, note: '' },
+      { institution_name: '삼성카드', category: '카드', status: '카드론 채무 있음', amount: 1_000_000, confidence: 1, note: '' },
+    ],
+    confidence: 0.95,
+    notes: [],
+  } as unknown as Parameters<typeof toAssetDrafts>[0];
+
+  const institutions = [
+    { institution_id: 'kb_bank', name: 'KB국민은행' },
+    { institution_id: 'hana_bank', name: '하나은행' },
+  ];
+
+  it('빚으로 보이는 줄은 자산 초안에서 뺀다', () => {
+    const drafts = toAssetDrafts(parsed, institutions);
+    expect(drafts.map((d) => d.institution_label)).toEqual(['KB국민은행']);
+  });
+
+  it('뺀 줄을 그대로 돌려준다', () => {
+    expect(debtRows(parsed)).toEqual(['하나은행 대출 있음', '삼성카드 카드론 채무 있음']);
+  });
+
+  it('빚을 가리키는 말을 알아본다', () => {
+    for (const status of ['대출 있음', '채무 있음', '카드론', '마이너스통장', '연체 있음', '지급보증']) {
+      expect(looksLikeDebt(status), status).toBe(true);
+    }
+    for (const status of ['예금 있음', '가입 사실 있음', '위탁계좌 있음', '잔고 있음', '']) {
+      expect(looksLikeDebt(status), status).toBe(false);
+    }
+  });
+});
