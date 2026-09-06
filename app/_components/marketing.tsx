@@ -16,7 +16,7 @@
  */
 
 import Link from 'next/link';
-import type { ReactNode } from 'react';
+import type { MouseEvent, ReactNode } from 'react';
 
 import { EXAMPLE_DEADLINES } from '@/app/_lib/example';
 import { loadInstitutions } from '@/lib/rules/loader';
@@ -66,6 +66,21 @@ function Cite({ children }: { children: ReactNode }) {
 // 1. 민원 진입
 // ---------------------------------------------------------------------------
 
+/**
+ * '어떻게 쓰는지 보기'.
+ *
+ * href="#flow"만 두면 두 번째부터 눌리지 않는다 — 주소에 이미 #flow가
+ * 붙어 있어 브라우저가 아무 일도 하지 않는다. 직접 스크롤시키고, 움직임을
+ * 줄이도록 설정한 분에게는 그대로 즉시 이동한다.
+ */
+function scrollToFlow(event: MouseEvent<HTMLAnchorElement>) {
+  const target = document.getElementById('flow');
+  if (!target) return;
+  event.preventDefault();
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+}
+
 export function EntrySection({ hasCase }: { hasCase: boolean }) {
   const [lead, ...rest] = EXAMPLE_DEADLINES;
 
@@ -91,13 +106,14 @@ export function EntrySection({ hasCase }: { hasCase: boolean }) {
             >
               {hasCase ? '내 화면으로' : '시작하기'}
             </Link>
-            <Link
+            <a
               href="#flow"
               role="button"
+              onClick={scrollToFlow}
               className="inline-flex items-center justify-center rounded-lg border border-white/40 px-7 font-semibold text-white hover:border-white"
             >
               어떻게 쓰는지 보기
-            </Link>
+            </a>
           </div>
           <p className="mt-5 text-sm text-white/70">
             회원가입 없이 시작합니다. 입력하신 내용은 저장되지 않습니다.

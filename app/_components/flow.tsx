@@ -15,7 +15,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
-import { EXAMPLE_BASIS, EXAMPLE_DEADLINES, EXAMPLE_MAIL, EXAMPLE_PLAN } from '@/app/_lib/example';
+import { EXAMPLE_CASE, EXAMPLE_DEADLINES, EXAMPLE_MAIL, EXAMPLE_PLAN } from '@/app/_lib/example';
 import { btnPrimary } from './ui';
 
 /** 결과물 틀. 화면 캡처처럼 보이도록 이름표를 얹는다 */
@@ -103,6 +103,15 @@ function Step({
 export function FlowSection() {
   const deadlines = EXAMPLE_DEADLINES.slice(0, 4);
   const documents = EXAMPLE_PLAN.document_tally.slice(0, 4);
+  const heirCount = EXAMPLE_CASE.heirs.filter((heir) => heir.alive !== false).length;
+  /* 넣은 기관을 그대로 보인다 — 서류 부수가 어디서 나온 값인지 이어 보이게 */
+  const institutionNames = [
+    ...new Map(
+      EXAMPLE_PLAN.document_tally
+        .flatMap((entry) => entry.by_institution)
+        .map((b) => [b.institution_id, b.name]),
+    ).values(),
+  ];
 
   return (
     <section id="flow" className="scroll-mt-4 border-b border-line bg-surface">
@@ -139,17 +148,23 @@ export function FlowSection() {
 
           <Step
             index={2}
-            title="상속인과 재산을 넣습니다"
-            body="가족관계증명서와 조회 결과를 올리시면 AI가 읽어 채웁니다. 기관마다 다른 서류는 한 장으로 합쳐 드립니다."
+            title="상속인과 거래 기관을 넣습니다"
+            body="가족관계증명서와 조회 결과를 올리시면 AI가 읽어 채웁니다. 기관마다 요구하는 서류와 부수가 달라, 합쳐서 한 번에 뗄 목록을 만듭니다."
           >
-            <Output label="한 번에 발급받을 서류">
-              <ul className="divide-y divide-line">
+            <Output label={`상속인 ${heirCount}명 · ${institutionNames.join(' · ')}`}>
+              <p className="text-sm text-muted">이 조합이면 주민센터에서 뗄 것은 이만큼입니다.</p>
+              <ul className="mt-1 divide-y divide-line">
                 {documents.map((entry) => (
                   <li key={entry.doc_id} className="flex items-baseline gap-4 py-2.5">
-                    <span className="w-[4.5rem] shrink-0 font-bold tabular-nums">
-                      {entry.total_copies}부
+                    <span className="w-[3.5rem] shrink-0 text-lg font-black tabular-nums">
+                      {entry.total_copies}통
                     </span>
-                    <span className="flex-1 font-medium">{entry.name}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-medium">{entry.name}</span>
+                      <span className="block text-sm text-muted">
+                        {entry.by_institution.map((b) => `${b.name} ${b.copies}`).join(' · ')}
+                      </span>
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -182,11 +197,10 @@ export function FlowSection() {
           </Step>
         </ol>
 
-        <div className="mt-12 flex flex-wrap items-center gap-4">
+        <div className="mt-12">
           <Link href="/onboarding" role="button" className={btnPrimary}>
             사망일 넣고 시작하기
           </Link>
-          <p className="text-sm text-muted">※ {EXAMPLE_BASIS}</p>
         </div>
       </div>
     </section>
