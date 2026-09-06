@@ -140,6 +140,15 @@ input[type="checkbox"] {
   border-collapse: collapse;
   border-top: 2px solid var(--line-heading);
 }
+/*
+ * 구역 제목의 아래 선 바로 뒤에 표가 오면 표의 위 선과 겹쳐 두 줄이 된다.
+ * 제목이 구역을 긋는 선이므로 표의 위 선을 뺀다.
+ */
+h2 + .gov-table,
+h2 + .print-scroll > .gov-table {
+  border-top: 0;
+}
+
 .gov-table th,
 .gov-table td {
   border-bottom: 1px solid var(--line);

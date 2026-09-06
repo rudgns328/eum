@@ -72,7 +72,7 @@ function Section({
 
 function CheckRow({ children }: { children: React.ReactNode }) {
   return (
-    <li className="flex items-start gap-2 py-1.5">
+    <li className="print-block flex items-start gap-2 py-1.5">
       <span className="check-box mt-[0.3em]" aria-hidden />
       <span className="flex-1">{children}</span>
     </li>
