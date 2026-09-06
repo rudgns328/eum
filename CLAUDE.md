@@ -44,7 +44,7 @@
 ## 개발 순서 — 이 순서를 지킬 것. 앞 Phase 완료 조건 미충족 시 다음으로 넘어가지 않는다
 
 - **Phase 1**: `/lib/engines` + 테스트. 완료 조건: 기한 엔진(말일 기준·영업일 계산 포함, `insurance_claim_prescription` 소멸시효 3년 포함, holidays.json 사용), 상속분 엔진(대습상속 포함) 테스트 전체 통과. 기한 목록 정렬은 severity 우선 + 기한순.
-- **Phase 2**: 규정 DB 스키마 + 로더. data/rules/의 각 JSON에 기록된 `verification.level`과 `unresolved_fields[]`를 그대로 신뢰해 로드한다 — 코드가 검증 레벨을 올리거나 내리지 않는다. null·`verified: false` 필드는 "확인 중"으로 구분 렌더링 가능해야 하며(기관별 하드코딩 금지), `consent_basis` 등 판정 근거가 null인 간소화 규칙은 충족 여부를 단정하지 않고 "확인 중"으로 처리한다.
+- **Phase 2**: 규정 DB 스키마 + 로더. data/rules/의 각 JSON에 기록된 `verification.level`과 `unresolved_fields[]`를 그대로 신뢰해 로드한다 — 코드가 검증 레벨을 올리거나 내리지 않는다. null·`verified: false` 필드는 구분 가능해야 하며(기관별 하드코딩 금지), `consent_basis` 등 판정 근거가 null인 간소화 규칙은 충족 여부를 단정하지 않는다. 그 구분을 화면에 드러내는 곳은 `기관별 안내`와 `데이터와 검증`뿐이다.
 - **Phase 1~2 공통**: deadlines.json의 `time_traps` 8건은 전부 결정론 조건 판정이므로 이 단계에서 규칙으로 구현한다(LLM 불요). Phase 5로 미루지 않는다.
 - **Phase 3**: 대시보드 + 실행 계획 UI. 완료 조건: **LLM 없이** 전체 화면(시간 함정 경고 포함)이 동작할 것
 - **Phase 4**: 문서 파싱. confidence < 0.8 → 사용자 확인 화면, 파싱 실패 → 수동 입력 폼 폴백. 폴백 경로 테스트 필수. 파싱 결과에 주민등록번호·생년월일을 포함하지 않는다(절대규칙 4).
@@ -69,10 +69,11 @@
 | `call_verified` | 고객센터 통화로 확인 완료 |
 
 - `kb_bank` · `hana_bank` · `shinhan_bank` · `yuanta_sec` · `samsung_life` — **`call_verified`** (원문 확보 + 통화 검증 2026-08-21 완료)
-- `kakao_bank` — `source_confirmed`. 기관 정책상 통화 검증 불가(`unavailable_by_policy`), `unresolved_fields` 6개 → UI "확인 중" 배지, **데모 시나리오 제외**
+- `kakao_bank` — `source_confirmed`. 기관 정책상 통화 검증 불가(`unavailable_by_policy`), `unresolved_fields` 6개, **데모 시나리오 제외**
 - `standard.json`(금감원 공통 레이어) — `source_confirmed` (공식 서식 원문 확보)
-- 개별 필드 단위 `verified: false`(예: 하나은행 `heir_family_cert`)는 "확인 중" 표기와 함께 보수적으로(지참 권장) 안내한다
-- `call_verified`가 아닌 데이터는 UI에 "확인 중" 배지를 표시하고, 데모 시나리오에는 `call_verified` 기관만 사용한다
+- 개별 필드 단위 `verified: false`(예: 하나은행 `heir_family_cert`)는 보수적으로(지참 권장) 안내한다
+- **검증 상태는 `기관별 안내`(/institutions)와 `데이터와 검증`(/about)에서만 보여준다.** 확인 단계·확인일자·"확인 중" 배지를 작업 화면(대시보드·실행 계획·서류 등록·입력·안내서)에 두지 않는다 — 사용자가 그 화면에서 할 일과 무관하고, 항목마다 반복되면 정작 할 일을 가린다. 로더는 여전히 `verification.level`과 `unresolved_fields[]`를 그대로 싣고, 미확인 값을 다른 기관 값으로 추정하지 않는다(그 원칙은 표시 위치와 무관하다)
+- 데모 시나리오에는 `call_verified` 기관만 사용한다
 - 실데이터 수집 완료 시 파일 교체만으로 반영되는 구조 유지
 
 ## 작업 방식

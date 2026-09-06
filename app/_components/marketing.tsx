@@ -20,11 +20,9 @@ import type { ReactNode } from 'react';
 
 import { EXAMPLE_DEADLINES } from '@/app/_lib/example';
 import { loadInstitutions } from '@/lib/rules/loader';
-import { verificationBadge } from '@/lib/rules/verification';
 import {
   btnOutline,
   btnPrimary,
-  CheckingBadge,
   NoticeBox,
 } from './ui';
 
@@ -153,7 +151,8 @@ export function NoticeSection() {
               원칙입니다. 소액이라 1인 단독으로 청구할 수 있었던 경로가 닫힐 수 있습니다.
             </NoticeBox>
           </div>
-          <Cite>금융감독원 상속인 금융거래조회서비스 안내문, 2026-08-14 확인</Cite>
+          {/* 확인일자는 '데이터와 검증'에서 본다. 여기서는 출처만 적는다 */}
+          <Cite>금융감독원 상속인 금융거래조회서비스 안내문</Cite>
         </div>
 
         <table className="gov-table self-start">
@@ -275,7 +274,6 @@ export function SupportedSection() {
             className="flex items-center gap-2 rounded-lg border border-line bg-surface px-4 py-2.5 font-semibold"
           >
             {institution.name}
-            {verificationBadge(institution).show_checking_badge && <CheckingBadge />}
           </li>
         ))}
       </ul>

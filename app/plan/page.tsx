@@ -10,7 +10,6 @@ import Link from 'next/link';
 
 import {
   Card,
-  CheckingBadge,
   EmptyState,
   PageShell,
   SectionTitle,
@@ -34,7 +33,6 @@ const STATUS_LABEL: Record<string, string> = {
   single_heir: '상속인 1인 단독 청구 가능',
   partial_consent: '일부 상속인의 동의·방문으로 가능',
   standard: '일반 상속 절차',
-  unverified: '간소화 적용 여부 확인 중',
   not_applicable: '접수 채널 기준 적용',
 };
 
@@ -49,11 +47,6 @@ function DocumentRow({ doc }: { doc: PlanDocument }) {
         <span className="ml-2 text-sm text-muted">
           {SCOPE_LABEL[doc.target_scope] ?? doc.target_scope}
         </span>
-        {doc.status === 'checking' && (
-          <span className="ml-2 align-middle">
-            <CheckingBadge />
-          </span>
-        )}
         {doc.note && <span className="block text-sm text-muted">{doc.note}</span>}
       </span>
     </li>
@@ -70,7 +63,6 @@ function ActionCard({ action, order }: { action: InstitutionAction; order: numbe
           {order}
         </span>
         <h3 className="text-xl font-bold">{action.name}</h3>
-        {action.badge.show_checking_badge && <CheckingBadge />}
         {action.amount !== null && (
           <span className="ml-auto text-base font-semibold tabular-nums">
             {formatWon(action.amount)}
@@ -158,7 +150,6 @@ export default function PlanPage() {
                       {entry.total_copies}부
                     </span>
                     <span className="flex-1 font-medium">{entry.name}</span>
-                    {entry.has_checking && <CheckingBadge />}
                   </div>
                   <p className="ml-[4.75rem] text-sm text-muted">
                     {entry.by_institution.map((b) => `${b.name} ${b.copies}`).join(', ')}
@@ -168,8 +159,7 @@ export default function PlanPage() {
             </ul>
             <p className="mt-3 text-sm text-muted">
               {plan.document_validity_days !== null
-                ? `발급일로부터 ${plan.document_validity_days}일 이내 서류만 유효합니다.`
-                : '발급 유효기간은 확인 중입니다.'}
+                && `발급일로부터 ${plan.document_validity_days}일 이내 서류만 유효합니다.`}
             </p>
           </Card>
 

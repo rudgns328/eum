@@ -335,7 +335,6 @@ export default function PrintPage() {
                             {entry.by_institution
                               .map((b) => `${b.name} ${b.copies}`)
                               .join(" · ")}
-                            {entry.has_checking && " · 일부 요건 확인 중"}
                           </span>
                         </CheckRow>
                       ))}
@@ -343,7 +342,7 @@ export default function PrintPage() {
                     <p className="mt-2 text-sm text-muted">
                       {plan.document_validity_days !== null
                         ? `※ 발급일로부터 ${plan.document_validity_days}일 이내 서류만 유효합니다.`
-                        : "※ 발급 유효기간은 확인 중입니다."}
+                        : ""}
                     </p>
                   </Section>
                 )}

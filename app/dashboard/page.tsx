@@ -26,6 +26,7 @@ import {
   GlossaryList,
   NoticeBox,
 } from '@/app/_components/ui';
+import { SubscribeCard } from '@/app/_components/subscribe-card';
 import { useCase } from '@/app/_lib/useCase';
 import { calculateShares } from '@/lib/engines/shares';
 import { RELATION_LABEL } from '@/lib/case/model';
@@ -182,6 +183,9 @@ export default function DashboardPage() {
             </ul>
           </Card>
         )}
+
+        {/* 기한을 확인한 자리에서 바로 정할 수 있게 둔다 */}
+        <SubscribeCard caseData={caseData} />
 
         <Card>
           <SectionTitle>할 일</SectionTitle>

@@ -23,7 +23,6 @@ import {
   btnPrimary,
   btnSmall,
   Card,
-  CheckingBadge,
   PageShell,
   SectionTitle,
   SeverityTag,
@@ -66,7 +65,6 @@ import {
   toHeirDrafts,
 } from '@/lib/case/import';
 import { loadInstitutions } from '@/lib/rules/loader';
-import { verificationBadge } from '@/lib/rules/verification';
 
 const RELATIONS: Array<{ value: Relation; label: string }> = [
   { value: 'spouse', label: '배우자' },
@@ -1117,7 +1115,6 @@ function OnboardingForm() {
                   const institution = institutions.find(
                     (i) => i.institution_id === asset.institution_id,
                   );
-                  const badge = institution ? verificationBadge(institution) : null;
                   return (
                     <div key={asset.key} className="rounded-lg border border-line p-3">
                       <div className="grid gap-3 sm:grid-cols-[1fr_8rem_auto]">
@@ -1259,18 +1256,12 @@ function OnboardingForm() {
                           )}
                           {asset.type === 'insurance' && (
                             <div className="sm:col-span-2">
-                              <FieldHelp reason="모르면 그대로 두셔도 됩니다. 확인되지 않은 항목은 '확인 중'으로 표시합니다." />
+                              <FieldHelp reason="모르면 그대로 두셔도 됩니다." />
                             </div>
                           )}
                         </div>
                       )}
 
-                      {badge?.show_checking_badge && (
-                        <p className="mt-2 flex items-center gap-2 text-sm text-muted">
-                          <CheckingBadge />
-                          {badge.name}은 통화 검증이 완료되지 않아 일부 요건이 미확인 상태입니다.
-                        </p>
-                      )}
                     </div>
                   );
                 })}

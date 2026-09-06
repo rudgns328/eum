@@ -416,7 +416,7 @@ export default function UploadPage() {
                 </p>
                 <p className="mt-1 text-base text-muted">
                   아는 것만 넣으셔도 됩니다. 빈 항목은 나중에 채워도 되고, 확인되지 않은 항목은
-                  &lsquo;확인 중&rsquo;으로 처리해 단정하지 않습니다.
+                  단정하지 않고 비워 둡니다.
                 </p>
               </>
             ) : (

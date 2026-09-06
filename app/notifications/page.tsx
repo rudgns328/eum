@@ -9,10 +9,8 @@
 
 import {
   useCallback,
-  useEffect,
   useMemo,
   useState,
-  useSyncExternalStore,
 } from "react";
 
 import {
@@ -30,21 +28,12 @@ import {
 import { today, useCase } from "@/app/_lib/useCase";
 import Link from "next/link";
 
-import { markTakeaway } from "@/app/_lib/session";
+import { rememberEmail, useSubscription } from "@/app/_lib/useSubscription";
 import { isValidEmail } from "@/lib/notify/email";
 import {
   buildSchedule,
   type ScheduledNotification,
 } from "@/lib/notify/schedule";
-
-const EMAIL_KEY = "eum.notify.email.v1";
-
-interface SubscribeStatus {
-  /** 서버에 구독 저장소가 설정되어 있는지 */
-  available: boolean;
-  subscribed: boolean;
-  email_masked?: string | null;
-}
 
 /** 서버에 저장되는 값. 화면에 그대로 적어 무엇이 남는지 숨기지 않는다 */
 const STORED_FIELDS =
@@ -55,20 +44,6 @@ const KIND_LABEL: Record<string, string> = {
   query_result_ready: "조회 결과",
   query_result_expiry: "조회 결과 삭제",
 };
-
-/**
- * 입력해 둔 주소. 케이스와 같은 세션 범위다 — 탭을 닫으면 사라진다.
- * 주소를 브라우저에 남겨 두지 않는다.
- */
-function readEmail(): string {
-  try {
-    return window.sessionStorage.getItem(EMAIL_KEY) ?? "";
-  } catch {
-    return "";
-  }
-}
-
-const NOOP_SUBSCRIBE = () => () => {};
 
 function NotificationRow({
   notification,
@@ -104,10 +79,16 @@ function NotificationRow({
 
 export default function NotificationsPage() {
   const { ready, caseData, deadlines } = useCase();
-  // 저장된 주소를 외부 스토어로 읽고, 사용자가 고치기 시작하면 draft가 이긴다.
-  const storedEmail = useSyncExternalStore(NOOP_SUBSCRIBE, readEmail, () => "");
-  const [draftEmail, setDraftEmail] = useState<string | null>(null);
-  const email = draftEmail ?? storedEmail;
+  const {
+    email,
+    setEmail,
+    status: subscription,
+    working,
+    message,
+    subscribe: doSubscribe,
+    unsubscribe,
+  } = useSubscription(caseData);
+  const [consent, setConsent] = useState(false);
   /*
    * 형식 오류는 칸을 벗어난 뒤에만 보여 준다. 적는 도중에는 'name@'처럼
    * 잠깐 형식이 어긋나는 순간이 늘 있어, 그때마다 지적하면 적는 내내
@@ -116,102 +97,10 @@ export default function NotificationsPage() {
   const [emailTouched, setEmailTouched] = useState(false);
   const emailBad = emailTouched && email.trim() !== "" && !isValidEmail(email);
   const [sending, setSending] = useState(false);
-  const [message, setMessage] = useState<{
+  const [sendMessage, setSendMessage] = useState<{
     kind: "ok" | "error";
     text: string;
   } | null>(null);
-
-  // 구독 상태는 서버가 정본이다. 화면 로컬 값과 어긋나지 않도록 조회해서 쓴다.
-  const [subscription, setSubscription] = useState<SubscribeStatus | null>(
-    null,
-  );
-  const [consent, setConsent] = useState(false);
-  const [working, setWorking] = useState(false);
-
-  useEffect(() => {
-    if (!caseData) return;
-    let alive = true;
-    fetch(
-      `/api/notifications/subscribe?case_id=${encodeURIComponent(caseData.case_id)}`,
-    )
-      .then((r) => r.json())
-      .then((data: SubscribeStatus) => {
-        if (alive) setSubscription(data);
-      })
-      .catch(() => {
-        // 조회에 실패해도 일정 화면은 그대로 보여준다.
-        if (alive) setSubscription({ available: false, subscribed: false });
-      });
-    return () => {
-      alive = false;
-    };
-  }, [caseData]);
-
-  const subscribe = useCallback(async () => {
-    if (!caseData) return;
-    setWorking(true);
-    setMessage(null);
-    try {
-      const response = await fetch("/api/notifications/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ case: caseData, email: email.trim(), consent }),
-      });
-      const data = (await response.json()) as { error?: string };
-      if (!response.ok) {
-        setMessage({
-          kind: "error",
-          text: data.error ?? "신청에 실패했습니다.",
-        });
-      } else {
-        setSubscription({
-          available: true,
-          subscribed: true,
-          email_masked: null,
-        });
-        // 서버에 남았으므로 이탈 경고를 끈다.
-        markTakeaway("alerts");
-        setMessage({
-          kind: "ok",
-          text: "알림을 신청했습니다. 기한이 다가오면 메일로 알려 드립니다.",
-        });
-      }
-    } catch {
-      setMessage({
-        kind: "error",
-        text: "신청에 실패했습니다. 화면에서 일정은 그대로 확인할 수 있습니다.",
-      });
-    } finally {
-      setWorking(false);
-    }
-  }, [caseData, email, consent]);
-
-  const unsubscribe = useCallback(async () => {
-    if (!caseData) return;
-    setWorking(true);
-    setMessage(null);
-    try {
-      await fetch(
-        `/api/notifications/subscribe?case_id=${encodeURIComponent(caseData.case_id)}`,
-        {
-          method: "DELETE",
-        },
-      );
-      setSubscription({
-        available: true,
-        subscribed: false,
-        email_masked: null,
-      });
-      setMessage({
-        kind: "ok",
-        text: "알림을 해지했습니다. 저장되어 있던 정보를 삭제했습니다.",
-      });
-    } catch {
-      setMessage({ kind: "error", text: "해지에 실패했습니다." });
-    } finally {
-      setWorking(false);
-    }
-  }, [caseData]);
 
   const schedule = useMemo(
     () =>
@@ -224,12 +113,8 @@ export default function NotificationsPage() {
   const send = useCallback(async () => {
     if (!caseData || !next) return;
     setSending(true);
-    setMessage(null);
-    try {
-      window.sessionStorage.setItem(EMAIL_KEY, email.trim());
-    } catch {
-      // 저장에 실패해도 발송은 진행한다.
-    }
+    setSendMessage(null);
+    rememberEmail(email);
     try {
       const response = await fetch(
         `/api/case/${caseData.case_id}/notifications`,
@@ -249,15 +134,15 @@ export default function NotificationsPage() {
         title?: string;
       };
       if (!response.ok) {
-        setMessage({
+        setSendMessage({
           kind: "error",
           text: data.error ?? "발송에 실패했습니다.",
         });
       } else {
-        setMessage({ kind: "ok", text: `${data.title} 안내를 보냈습니다.` });
+        setSendMessage({ kind: "ok", text: `${data.title} 안내를 보냈습니다.` });
       }
     } catch {
-      setMessage({
+      setSendMessage({
         kind: "error",
         text: "발송에 실패했습니다. 화면에서 일정은 그대로 확인할 수 있습니다.",
       });
@@ -374,7 +259,7 @@ export default function NotificationsPage() {
                     emailBad ? "border-critical" : "border-line-strong"
                   }`}
                   value={email}
-                  onChange={(e) => setDraftEmail(e.target.value)}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
                   aria-label="알림 받을 이메일"
                   aria-invalid={emailBad}
@@ -384,7 +269,7 @@ export default function NotificationsPage() {
                 <button
                   type="button"
                   className={btnPrimary}
-                  onClick={subscribe}
+                  onClick={() => void doSubscribe(consent)}
                   disabled={
                     working ||
                     !consent ||
@@ -457,12 +342,15 @@ export default function NotificationsPage() {
             </div>
           )}
 
-          {message && (
+          {/* 신청·해지와 시험 발송 결과를 한 자리에 보여 준다 */}
+          {(sendMessage ?? message) && (
             <p
               role="status"
-              className={`mt-3 font-semibold ${message.kind === "ok" ? "text-medium" : "text-critical"}`}
+              className={`mt-3 font-semibold ${
+                (sendMessage ?? message)!.kind === "ok" ? "text-medium" : "text-critical"
+              }`}
             >
-              {message.text}
+              {(sendMessage ?? message)!.text}
             </p>
           )}
         </Card>
