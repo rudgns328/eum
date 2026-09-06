@@ -108,6 +108,13 @@ export default function NotificationsPage() {
   const storedEmail = useSyncExternalStore(NOOP_SUBSCRIBE, readEmail, () => "");
   const [draftEmail, setDraftEmail] = useState<string | null>(null);
   const email = draftEmail ?? storedEmail;
+  /*
+   * 형식 오류는 칸을 벗어난 뒤에만 보여 준다. 적는 도중에는 'name@'처럼
+   * 잠깐 형식이 어긋나는 순간이 늘 있어, 그때마다 지적하면 적는 내내
+   * 문구가 떴다 사라진다.
+   */
+  const [emailTouched, setEmailTouched] = useState(false);
+  const emailBad = emailTouched && email.trim() !== "" && !isValidEmail(email);
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState<{
     kind: "ok" | "error";
@@ -364,15 +371,14 @@ export default function NotificationsPage() {
                 <input
                   type="email"
                   className={`min-w-0 flex-1 rounded-lg border bg-surface px-3 py-2 text-base ${
-                    email.trim() === "" || isValidEmail(email)
-                      ? "border-line-strong"
-                      : "border-critical"
+                    emailBad ? "border-critical" : "border-line-strong"
                   }`}
                   value={email}
                   onChange={(e) => setDraftEmail(e.target.value)}
                   placeholder="name@example.com"
                   aria-label="알림 받을 이메일"
-                  aria-invalid={email.trim() !== "" && !isValidEmail(email)}
+                  aria-invalid={emailBad}
+                  onBlur={() => setEmailTouched(true)}
                   maxLength={254}
                 />
                 <button
@@ -390,7 +396,7 @@ export default function NotificationsPage() {
                 </button>
               </div>
 
-              {email.trim() !== "" && !isValidEmail(email) && (
+              {emailBad && (
                 <p className="mt-1 text-sm font-semibold text-critical">
                   이메일 주소 형식을 확인해 주세요. (예: name@example.com)
                 </p>

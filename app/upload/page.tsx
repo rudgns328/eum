@@ -79,6 +79,11 @@ export default function UploadPage() {
   const [heirs, setHeirs] = useState<HeirDraft[]>([]);
   const [assets, setAssets] = useState<AssetDraft[]>([]);
   const [dropped, setDropped] = useState<string[]>([]);
+  /*
+   * 형식 오류는 그 칸을 벗어난 뒤에만 보여 준다. 한글은 IME가 조합하는
+   * 동안 낱자가 잠깐 값에 들어가, 입력하는 내내 문구가 떴다 사라진다.
+   */
+  const [touched, setTouched] = useState<ReadonlySet<string>>(new Set());
 
   if (!ready) {
     return (
@@ -172,6 +177,12 @@ export default function UploadPage() {
     }
     setStage('review');
   }
+
+  const touch = (field: string) =>
+    setTouched((prev) => (prev.has(field) ? prev : new Set(prev).add(field)));
+  const nameBad = (index: number, name: string) =>
+    (!isValidName(name) || name.trim() === '')
+    && (error !== '' || touched.has(`heir:${index}`));
 
   function apply() {
     const next: Case = { ...caseData! };
@@ -395,15 +406,14 @@ export default function UploadPage() {
                       <div>
                         <input
                           className={`w-full ${input} ${
-                            isValidName(heir.name_masked) && heir.name_masked.trim() !== ''
-                              ? ''
-                              : 'border-critical'
+                            nameBad(index, heir.name_masked) ? 'border-critical' : ''
                           }`}
                           value={heir.name_masked}
                           aria-label={`상속인 ${index + 1} 성함`}
-                          aria-invalid={!isValidName(heir.name_masked)}
+                          aria-invalid={nameBad(index, heir.name_masked)}
                           maxLength={NAME_MAX_LENGTH}
                           placeholder="성함 (저장 시 김○○로 마스킹)"
+                          onBlur={() => touch(`heir:${index}`)}
                           onChange={(e) =>
                             setHeirs((prev) =>
                               prev.map((h, i) =>
@@ -412,9 +422,11 @@ export default function UploadPage() {
                             )
                           }
                         />
-                        {!isValidName(heir.name_masked) && (
+                        {nameBad(index, heir.name_masked) && (
                           <p className="mt-1 text-sm font-semibold text-critical">
-                            한글 또는 영문으로 적어 주세요. (예: 김철수)
+                            {heir.name_masked.trim() === ''
+                              ? '성함을 넣으시거나 이 줄을 지워 주세요.'
+                              : '한글 또는 영문으로 적어 주세요. (예: 김철수)'}
                           </p>
                         )}
                       </div>

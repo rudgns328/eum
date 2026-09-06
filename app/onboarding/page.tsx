@@ -199,6 +199,20 @@ function OnboardingForm() {
    */
   const [blocked, setBlocked] = useState(false);
 
+  /*
+   * 형식 오류는 그 칸을 벗어난 뒤에만 보여 준다.
+   *
+   * 한글은 IME가 글자를 조합하는 동안 'ㅎ'처럼 낱자가 잠깐 값에 들어간다.
+   * 입력하는 동안 검사하면 그때마다 '한글로 적어 주세요'가 떴다 사라진다.
+   * 다 적기도 전에 지적하는 셈이라, 벗어났을 때(또는 저장이 막혔을 때)만
+   * 알린다. 한 번 보인 뒤에는 고치는 즉시 사라진다.
+   */
+  const [touched, setTouched] = useState<ReadonlySet<string>>(new Set());
+  const touch = (field: string) =>
+    setTouched((prev) => (prev.has(field) ? prev : new Set(prev).add(field)));
+  /** 이 칸의 오류를 지금 보여도 되는가 */
+  const showsError = (field: string) => blocked || touched.has(field);
+
   const updateHeir = (key: string, patch: Partial<HeirDraft>) =>
     setHeirs((prev) => prev.map((h) => (h.key === key ? { ...h, ...patch } : h)));
 
@@ -354,6 +368,8 @@ function OnboardingForm() {
    */
   function renderHeirFields(heir: HeirDraft, isSubstitute = false) {
     const label = isSubstitute ? '대습상속인' : '상속인';
+    const nameField = `heir:${heir.key}`;
+    const nameBad = !isValidName(heir.name) && showsError(nameField);
     return (
       <>
         <div className="grid gap-3 sm:grid-cols-[8rem_1fr_auto]">
@@ -372,16 +388,17 @@ function OnboardingForm() {
           <div>
             <input
               className={`w-full rounded-lg border bg-surface px-3 py-2 ${
-                isValidName(heir.name) ? 'border-line-strong' : 'border-critical'
+                nameBad ? 'border-critical' : 'border-line-strong'
               }`}
               value={heir.name}
               onChange={(e) => updateHeir(heir.key, { name: e.target.value })}
+              onBlur={() => touch(nameField)}
               placeholder="성함 (저장 시 김○○로 마스킹)"
               aria-label={`${label} 성함`}
-              aria-invalid={!isValidName(heir.name)}
+              aria-invalid={nameBad}
               maxLength={NAME_MAX_LENGTH}
             />
-            {!isValidName(heir.name) && (
+            {nameBad && (
               <p className="mt-1 text-sm font-semibold text-critical">
                 한글 또는 영문으로 적어 주세요. (예: 김철수)
               </p>
@@ -548,6 +565,7 @@ function OnboardingForm() {
 
   // 그릴 때마다 다시 본다. 고치는 즉시 문구가 사라진다.
   const problem = validate();
+  const labelBad = !isValidLabel(decedentLabel) && showsError('decedent');
 
   return (
     <PageShell current="/onboarding" title="상속 절차 시작하기" description="사망일만 넣어도 기한이 바로 계산됩니다. 상속인과 재산은 나중에 채워도 됩니다.">
@@ -608,14 +626,15 @@ function OnboardingForm() {
                   </label>
                   <input
                     id="decedent"
-                    className={`${input} ${isValidLabel(decedentLabel) ? '' : 'border-critical'}`}
+                    className={`${input} ${labelBad ? 'border-critical' : ''}`}
                     value={decedentLabel}
                     onChange={(e) => setDecedentLabel(e.target.value)}
                     placeholder="아버님"
-                    aria-invalid={!isValidLabel(decedentLabel)}
+                    aria-invalid={labelBad}
+                    onBlur={() => touch('decedent')}
                     maxLength={LABEL_MAX_LENGTH}
                   />
-                  {isValidLabel(decedentLabel) ? (
+                  {!labelBad ? (
                     <p className="mt-1 text-sm text-muted">이름 대신 관계 호칭만 저장합니다.</p>
                   ) : (
                     <p className="mt-1 text-sm font-semibold text-critical">
@@ -883,7 +902,7 @@ function OnboardingForm() {
                             </option>
                           ))}
                         </select>
-                        {assetIncomplete(asset) && (
+                        {blocked && assetIncomplete(asset) && (
                           <p className="text-sm font-semibold text-critical sm:col-span-3">
                             기관을 고르셔야 이 자산이 계산에 들어갑니다. 넣지 않으실 경우 이 줄을
                             지워 주세요.
@@ -1051,14 +1070,14 @@ function OnboardingForm() {
                   >
                     <select
                       className={`rounded-lg border bg-surface px-3 py-2 ${
-                        debtIncomplete(debt) && debt.institution_id === ''
+                        blocked && debtIncomplete(debt) && debt.institution_id === ''
                           ? 'border-critical'
                           : 'border-line-strong'
                       }`}
                       value={debt.institution_id}
                       onChange={(e) => updateDebt(debt.key, { institution_id: e.target.value })}
                       aria-label={`부채 ${index + 1} 기관`}
-                      aria-invalid={debtIncomplete(debt) && debt.institution_id === ''}
+                      aria-invalid={blocked && debtIncomplete(debt) && debt.institution_id === ''}
                     >
                       <option value="">기관 선택</option>
                       {institutions.map((i) => (
@@ -1069,7 +1088,7 @@ function OnboardingForm() {
                     </select>
                     <input
                       className={`rounded-lg border bg-surface px-3 py-2 ${
-                        debtIncomplete(debt) && toNumber(debt.amount) === null
+                        blocked && debtIncomplete(debt) && toNumber(debt.amount) === null
                           ? 'border-critical'
                           : 'border-line-strong'
                       }`}
@@ -1079,7 +1098,7 @@ function OnboardingForm() {
                       onChange={(e) => updateDebt(debt.key, { amount: e.target.value })}
                       placeholder="금액 (원)"
                       aria-label={`부채 ${index + 1} 금액`}
-                      aria-invalid={debtIncomplete(debt) && toNumber(debt.amount) === null}
+                      aria-invalid={blocked && debtIncomplete(debt) && toNumber(debt.amount) === null}
                     />
                     <button
                       type="button"
@@ -1088,7 +1107,7 @@ function OnboardingForm() {
                     >
                       삭제
                     </button>
-                    {debtIncomplete(debt) && (
+                    {blocked && debtIncomplete(debt) && (
                       <p className="text-sm font-semibold text-critical sm:col-span-3">
                         기관과 금액을 모두 넣으셔야 이 부채가 계산에 들어갑니다. 넣지 않으실
                         경우 이 줄을 지워 주세요.
