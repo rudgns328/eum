@@ -167,10 +167,22 @@ export default function PrintPage() {
       </div>
 
       <article className="print-plain">
+        {/*
+         * 예시 표시는 인쇄물 안에 넣는다. 화면의 안내 띠는 no-print라
+         * 종이에는 남지 않아, 나중에 자기 안내서로 착각할 수 있다.
+         */}
+        {caseData.is_demo && (
+          <p className="print-block mb-3 border-2 border-foreground px-3 py-2 font-bold">
+            예시 데이터로 만든 견본입니다. 실제 사례가 아닙니다.
+          </p>
+        )}
+
         {/* 머리말 */}
         <header className="print-block border-b-2 border-foreground pb-3">
           <p className="text-sm text-muted">이음 — 상속 금융절차 안내</p>
-          <h1 className="text-2xl font-black tracking-tight">상속 절차 안내서</h1>
+          <h1 className="text-2xl font-black tracking-tight">
+            상속 절차 안내서{caseData.is_demo && ' (예시)'}
+          </h1>
           <table className="gov-table mt-3">
             <tbody>
               <tr>

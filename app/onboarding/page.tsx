@@ -16,7 +16,7 @@
  */
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 
 import {
   btnOutline,
@@ -28,12 +28,14 @@ import {
   SectionTitle,
   SeverityTag,
   SourceNote,
+  useCaseFlags,
   useStartDemo,
   Disclosure,
   FieldHelp,
   GlossaryList,
 } from '@/app/_components/ui';
 import { today, useCase } from '@/app/_lib/useCase';
+import { caseStore } from '@/lib/case/store';
 import { calculateDeadlines } from '@/lib/engines/deadlines';
 import { calculateShares } from '@/lib/engines/shares';
 import { isIsoDate } from '@/lib/engines/dateutil';
@@ -165,7 +167,16 @@ function OnboardingForm() {
   const router = useRouter();
   const { save } = useCase();
   const startDemo = useStartDemo();
+  const flags = useCaseFlags();
   const institutions = useMemo(() => loadInstitutions(), []);
+
+  // 예시를 보다가 자기 정보를 넣으러 왔다면 예시는 그 자리에서 끝난다.
+  // 예시 데이터는 사용자가 넣은 것이 아니므로 확인을 묻지 않는다.
+  // 남겨 두면 이 빈 폼 위에 '예시 데이터로 보는 중' 띠가 떠 어느 쪽을
+  // 보고 있는지 알 수 없게 된다.
+  useEffect(() => {
+    if (flags.isDemo) caseStore.clear();
+  }, [flags.isDemo]);
 
   const searchParams = useSearchParams();
   const initialDeath = searchParams.get('death') ?? '';

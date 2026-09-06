@@ -208,6 +208,18 @@ export function useCaseFlags(): CaseFlags {
 }
 
 /**
+ * 예시를 끝낸다. 예시 데이터는 사용자가 입력한 것이 아니므로 확인을 묻지
+ * 않는다 — 지울 것이 없다.
+ */
+export function useExitDemo(): (to?: string) => void {
+  const router = useRouter();
+  return (to = '/') => {
+    caseStore.clear();
+    router.push(to);
+  };
+}
+
+/**
  * 예시 케이스를 만들어 저장한 뒤 대시보드로 보낸다.
  * 케이스는 한 벌뿐이라 예시를 켜면 입력한 내용이 덮인다. 되돌릴 수 없으므로
  * 먼저 묻는다 — 구경하려다 입력한 것을 잃게 두지 않는다.
@@ -279,9 +291,12 @@ function Wordmark() {
 function Header({ current }: { current: string }) {
   const flags = useCaseFlags();
   const items = flags.exists ? CASE_NAV : VISITOR_NAV;
-  const cta = flags.exists
-    ? { href: '/dashboard', label: '내 기한 보기' }
-    : { href: '/onboarding', label: '시작하기' };
+  // 예시 중에는 '내 기한 보기'가 예시로 되돌아갈 뿐이라 길이 막힌다.
+  const cta = flags.isDemo
+    ? { href: '/onboarding', label: '내 정보로 시작하기' }
+    : flags.exists
+      ? { href: '/dashboard', label: '내 기한 보기' }
+      : { href: '/onboarding', label: '시작하기' };
 
   return (
     <header className="border-b-2 border-navy bg-surface">
@@ -446,6 +461,31 @@ function SkipLink() {
 }
 
 /** 작업 화면 셸 */
+/**
+ * 예시 안내 띠. 보고 있다는 사실만 알리고 끝나면 나갈 길이 없어서,
+ * 예시를 끄고 자기 정보를 넣으러 갈 수단을 함께 둔다.
+ */
+function DemoBanner() {
+  const exitDemo = useExitDemo();
+  return (
+    <div className="no-print border-b border-line bg-[#fff8e1]">
+      <div className="mx-auto flex w-full max-w-[64rem] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 text-sm">
+        <p className="flex-1">
+          <span className="font-bold">예시 데이터로 보는 중입니다.</span> 실제 사례가 아니며, 통화
+          검증이 끝난 5개 기관으로만 구성했습니다.
+        </p>
+        <button
+          type="button"
+          className="shrink-0 font-bold text-accent underline-offset-2 hover:underline"
+          onClick={() => exitDemo('/onboarding')}
+        >
+          내 정보로 시작하기 &gt;
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function PageShell({
   current,
   title,
@@ -466,14 +506,7 @@ export function PageShell({
       <SkipLink />
       <Header current={current} />
       {title && <PageHeader current={current} title={title} description={description} />}
-      {flags.isDemo && (
-        <div className="no-print border-b border-line bg-[#fff8e1]">
-          <p className="mx-auto w-full max-w-[64rem] px-4 py-2 text-sm">
-            <span className="font-bold">예시 데이터로 보는 중입니다.</span> 실제 사례가 아니며, 통화
-            검증이 끝난 5개 기관으로만 구성했습니다.
-          </p>
-        </div>
-      )}
+      {flags.isDemo && <DemoBanner />}
       {flags.exists && !flags.isDemo && (
         <div className="no-print border-b border-line bg-subtle">
           <p className="mx-auto w-full max-w-[64rem] px-4 py-2 text-sm text-muted">

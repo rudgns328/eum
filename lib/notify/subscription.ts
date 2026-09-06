@@ -105,10 +105,22 @@ export function newUnsubscribeToken(): string {
  * 스프레드를 쓰지 않는다. Case에 필드가 추가되어도 여기에 적지 않는 한
  * 서버로 나가지 않는다.
  */
+export class DemoCaseError extends Error {
+  constructor() {
+    super('예시 데이터로는 알림을 신청할 수 없습니다.');
+    this.name = 'DemoCaseError';
+  }
+}
+
 export function toSubscription(
   caseData: Case,
   input: { email: string; token?: string },
 ): Subscription {
+  // 예시 케이스는 서버로 나가지 않는다. 있지도 않은 사람의 기한이 저장되고
+  // 그 날짜로 메일이 나간다. 화면에서도 막지만 여기서 한 번 더 막는다 —
+  // 신청 경로가 하나 더 생겨도 새어 나가지 않게.
+  if (caseData.is_demo === true) throw new DemoCaseError();
+
   const subscription: Subscription = {
     case_id: caseData.case_id,
     email: input.email.trim(),

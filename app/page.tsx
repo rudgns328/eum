@@ -25,11 +25,12 @@ import {
   NoticeSection,
   SupportedSection,
 } from '@/app/_components/marketing';
-import { MarketingShell, useCaseFlags, useStartDemo } from '@/app/_components/ui';
+import { MarketingShell, useCaseFlags, useExitDemo, useStartDemo } from '@/app/_components/ui';
 
 export default function Home() {
   const flags = useCaseFlags();
   const startDemo = useStartDemo();
+  const exitDemo = useExitDemo();
 
   return (
     <MarketingShell>
@@ -48,6 +49,15 @@ export default function Home() {
             <Link href="/dashboard" className="font-bold text-accent underline-offset-2 hover:underline">
               이어서 보기 &gt;
             </Link>
+            {flags.isDemo && (
+              <button
+                type="button"
+                className="font-bold text-accent underline-offset-2 hover:underline"
+                onClick={() => exitDemo()}
+              >
+                예시 종료
+              </button>
+            )}
           </div>
         </div>
       )}

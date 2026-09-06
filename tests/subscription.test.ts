@@ -12,12 +12,17 @@ import {
   ALLOWED_FIELDS,
   assertNoForbiddenFields,
   MemorySubscriptionStore,
+  DemoCaseError,
   toSubscription,
 } from '@/lib/notify/subscription';
 import { normalizeSupabaseUrl, SupabaseSubscriptionStore } from '@/lib/notify/supabase';
 
 const TODAY = '2026-09-20';
-const CASE = buildDemoCase(TODAY);
+/**
+ * 구성은 예시 케이스를 빌리되 is_demo는 끈다. 예시 케이스는 서버로
+ * 나가지 않으므로(toSubscription이 막는다) 실제 케이스 대역이 될 수 없다.
+ */
+const CASE = { ...buildDemoCase(TODAY), is_demo: false };
 const EMAIL = 'heir@example.com';
 
 describe('저장 범위 — 허용 목록 밖은 나가지 않는다', () => {
@@ -164,5 +169,18 @@ describe('프로젝트 주소 정규화 — 설정 실수를 흡수한다', () =
     await store.listAll();
     const [url] = f.mock.calls[0];
     expect(url).toBe('https://abcd.supabase.co/rest/v1/notification_subscriptions?select=*');
+  });
+});
+
+describe('예시 케이스', () => {
+  it('서버로 나가지 않는다', () => {
+    // 화면에서도 막지만 여기서 한 번 더 막는다. 신청 경로가 하나 더
+    // 생겨도, 있지도 않은 사람의 기한이 저장되고 메일이 나가면 안 된다.
+    const demo = { ...CASE, is_demo: true };
+    expect(() => toSubscription(demo, { email: EMAIL })).toThrow(DemoCaseError);
+  });
+
+  it('실제 케이스는 그대로 통과한다', () => {
+    expect(() => toSubscription(CASE, { email: EMAIL })).not.toThrow();
   });
 });

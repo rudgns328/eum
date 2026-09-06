@@ -20,7 +20,11 @@ import {
 } from '@/lib/notify/subscription';
 
 const BASE = 'https://ieum.example';
-const CASE = buildDemoCase('2026-09-20');
+/**
+ * 구성은 예시 케이스를 빌리되 is_demo는 끈다. 예시 케이스는 서버로
+ * 나가지 않으므로(toSubscription이 막는다) 실제 케이스 대역이 될 수 없다.
+ */
+const CASE = { ...buildDemoCase('2026-09-20'), is_demo: false };
 
 function subscription(overrides: Partial<Subscription> = {}): Subscription {
   return { ...toSubscription(CASE, { email: 'heir@example.com' }), ...overrides };

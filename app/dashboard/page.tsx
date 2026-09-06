@@ -265,7 +265,7 @@ export default function DashboardPage() {
             안내서 출력 · PDF 저장
           </Link>
           <Link href="/onboarding" role="button" className={btnOutline}>
-            입력 내용 다시 등록
+            {caseData.is_demo ? '내 정보로 시작하기' : '입력 내용 다시 등록'}
           </Link>
           <button
             type="button"
@@ -275,7 +275,8 @@ export default function DashboardPage() {
               router.replace('/');
             }}
           >
-            입력 내용 지우기
+            {/* 예시는 사용자가 넣은 것이 아니다. '입력 내용'이라 부르지 않는다 */}
+            {caseData.is_demo ? '예시 종료' : '입력 내용 지우기'}
           </button>
         </div>
       </div>

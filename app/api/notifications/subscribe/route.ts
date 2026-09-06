@@ -9,7 +9,7 @@
  */
 
 import { isValidEmail } from '@/lib/notify/email';
-import { toSubscription } from '@/lib/notify/subscription';
+import { DemoCaseError, toSubscription } from '@/lib/notify/subscription';
 import { defaultSubscriptionStore, SupabaseRequestError } from '@/lib/notify/supabase';
 import type { Case } from '@/lib/case/model';
 
@@ -98,6 +98,10 @@ export async function POST(request: Request): Promise<Response> {
     await store.upsert(subscription);
     return Response.json({ subscribed: true, email: subscription.email });
   } catch (error) {
+    // 예시 케이스는 저장 실패가 아니라 잘못된 요청이다. 이유를 그대로 알린다.
+    if (error instanceof DemoCaseError) {
+      return Response.json({ error: error.message }, { status: 400 });
+    }
     console.warn('[subscribe]', error instanceof Error ? error.message : 'unknown');
     return Response.json({ error: '구독 저장에 실패했습니다.' }, { status: 502 });
   }
