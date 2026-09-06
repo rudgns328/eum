@@ -168,25 +168,52 @@ input[type="checkbox"] {
  *   · 항목이 페이지 경계에서 잘리지 않게 한다
  *   · 네비게이션·버튼처럼 종이에서 의미 없는 것은 감춘다
  * ------------------------------------------------------------------------ */
+/*
+ * 인쇄 여백 틀은 종이에서만 표다. 화면에서는 표가 내용만큼 폭을 밀어내
+ * 좁은 화면에서 본문이 잘린다. 블록으로 되돌린다.
+ */
+@media screen {
+  .print-frame,
+  .print-frame thead,
+  .print-frame tfoot,
+  .print-frame tbody,
+  .print-frame tr,
+  .print-frame td {
+    display: block;
+  }
+
+  .print-frame-space {
+    display: none;
+  }
+}
+
 @media print {
   /*
-   * 여백 9mm.
+   * 여백 6mm.
    *
-   * 브라우저는 이 여백 안에 날짜·인터넷 주소·쪽번호를 찍는다. 자리가 좁으면
-   * 찍지 않는다. 측정값(Chrome):
-   *     ~5mm  아무것도 찍지 않음
-   *   7~9mm  쪽번호만 찍음
-   *   10mm~  날짜·주소·쪽번호를 모두 찍음
-   * 9mm을 쓴다 — 날짜와 주소는 빠지고 쪽번호는 남는다. 여러 장을 들고 다니는
-   * 문서라 쪽번호는 있는 편이 낫고, 출력일은 문서 머리말에 이미 적혀 있다.
-   * 사용자가 인쇄 창 설정을 바꾸지 않아도 이대로 나온다.
+   * 브라우저는 이 여백 안에 날짜·인터넷 주소·쪽번호를 찍는다. 자리가 없으면
+   * 찍지 않는다. 실제 인쇄 대화상자(CSS 여백을 그대로 쓰는 '기본값')로 잰 값:
+   *   ~8mm  아무것도 찍지 않음
+   *   9mm~  날짜·주소·쪽번호를 모두 찍음
+   * 경계에 붙이지 않도록 6mm을 쓴다.
    *
-   * @page 여백은 모든 쪽에 걸린다. 본문 padding으로 대신하면 첫 쪽에만
-   * 걸려 둘째 쪽부터 글자가 종이 끝에 붙는다.
+   * 이 값만으로는 지면 여백이 좁다. 모자란 만큼은 .print-frame이 만든다 —
+   * 표 머리·꼬리는 모든 쪽에 반복되므로 매 쪽 같은 여백이 생긴다. 본문
+   * padding으로 하면 첫 쪽에만 걸린다.
    */
   @page {
     size: A4;
-    margin: 9mm;
+    margin: 6mm;
+  }
+
+  /* 매 쪽 위아래 여백. thead/tfoot는 쪽마다 다시 그려진다 */
+  .print-frame {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .print-frame-space {
+    height: 8mm;
   }
 
   html {
@@ -243,8 +270,8 @@ input[type="checkbox"] {
   .print-plain {
     background: #fff !important;
     color: #000 !important;
-    /* 좌우는 조금 더 넉넉하게 — 9mm + 3mm */
-    padding: 0 3mm;
+    /* 좌우는 조금 더 넉넉하게 — 6mm + 6mm */
+    padding: 0 6mm;
   }
 
   /*

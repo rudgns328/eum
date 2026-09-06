@@ -9,8 +9,14 @@ import type { ReactNode } from 'react';
  * metadata는 서버 컴포넌트에서만 쓸 수 있어(next generate-metadata 문서)
  * 화면은 클라이언트 컴포넌트로 두고 제목만 여기서 정한다.
  */
+/*
+ * 이 제목이 두 곳에 쓰인다.
+ *   1. 인쇄 창에서 'PDF로 저장'을 고를 때의 파일 이름
+ *   2. 머리글을 켜 둔 경우 지면 가운데에 찍히는 글자
+ * 내려받은 파일이 다른 파일들 사이에서 구분되도록 서비스 이름을 앞에 둔다.
+ */
 export const metadata: Metadata = {
-  title: '상속 절차 안내서',
+  title: '이음 - 상속 절차 안내서',
 };
 
 export default function PrintLayout({ children }: { children: ReactNode }) {
