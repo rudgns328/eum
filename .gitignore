@@ -41,3 +41,13 @@ yarn-error.log*
 next-env.d.ts
 
 # 측정용 샘플 문서 (개인정보가 없더라도 저장소에 두지 않는다)
+
+# 파이썬 캐시
+__pycache__/
+*.pyc
+
+# 제출 서류·양식 주입 스크립트 — 저장소에 올리지 않는다
+docs/제출/
+scripts/hwpx/
+__pycache__/
+*.pyc
