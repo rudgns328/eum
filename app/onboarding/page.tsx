@@ -193,7 +193,11 @@ function OnboardingForm() {
   ]);
   const [assets, setAssets] = useState<AssetDraft[]>([]);
   const [debts, setDebts] = useState<DebtDraft[]>([]);
-  const [error, setError] = useState('');
+  /*
+   * 문구를 담아 두지 않고, '한 번 막힌 적이 있는가'만 담는다. 담아 두면
+   * 사용자가 고친 뒤에도 지난 문구가 남아 아직 문제가 있는 것처럼 보인다.
+   */
+  const [blocked, setBlocked] = useState(false);
 
   const updateHeir = (key: string, patch: Partial<HeirDraft>) =>
     setHeirs((prev) => prev.map((h) => (h.key === key ? { ...h, ...patch } : h)));
@@ -221,50 +225,91 @@ function OnboardingForm() {
     return Number.isFinite(value) ? value : Number.MAX_SAFE_INTEGER;
   };
 
+  /*
+   * 저장하면 조용히 사라지는 행을 가려낸다.
+   *
+   * 완전히 빈 행은 '추가'만 누르고 둔 것이라 그냥 버려도 잃는 것이 없다.
+   * 일부만 채운 행은 사용자가 무언가를 넣은 것이다. 말없이 버리면 부채
+   * 총액이 줄어 상속포기·한정승인 검토 항목이 뜨지 않을 수 있다.
+   *
+   * 금액은 요구하지 않는다 — 보험은 가입 사실만 알고 청구금액을 모르는
+   * 상태가 정상이고, 예금도 잔액을 모를 수 있다. 기관만 있으면 저장된다.
+   */
+  const assetBlank = (draft: AssetDraft) =>
+    draft.institution_id === ''
+    && toNumber(draft.amount) === null
+    && toNumber(draft.deposit_amount) === null
+    && toNumber(draft.securities_valuation) === null;
+  /** 기관을 고르지 않으면 저장에서 빠진다 */
+  const assetIncomplete = (draft: AssetDraft) =>
+    draft.institution_id === '' && !assetBlank(draft);
+
+  const debtBlank = (draft: DebtDraft) =>
+    draft.institution_id === '' && toNumber(draft.amount) === null;
+  /** 부채는 기관과 금액이 모두 있어야 저장된다 */
+  const debtIncomplete = (draft: DebtDraft) =>
+    (draft.institution_id === '' || toNumber(draft.amount) === null) && !debtBlank(draft);
+
   /**
    * 날짜의 앞뒤 관계를 본다.
    *
    * 사망일이 미래이거나, 상속개시를 안 날이 사망일보다 앞서면 기한이 통째로
    * 어긋난다. 입력 단계에서 막지 않으면 D-day가 조용히 틀린 채로 흘러간다.
    */
-  function validate(): string {
+  /**
+   * 문제가 있으면 문구와 그 문제가 있는 단계를 함께 돌려준다.
+   *
+   * 예전에는 문구에 '상속인'·'금액'이 들어 있는지로 단계를 추측했다.
+   * 문구를 하나 늘릴 때마다 엉뚱한 단계로 데려갈 수 있어 단계를 명시한다.
+   */
+  type Problem = { message: string; step: 1 | 2 | 3 };
+
+  function validate(): Problem | null {
     const now = today();
-    if (!isIsoDate(deathDate)) return '사망일을 입력해 주세요.';
-    if (deathDate > now) return '사망일이 오늘보다 뒤입니다. 날짜를 확인해 주세요.';
-    if (deathDate < '1900-01-01') return '사망일을 다시 확인해 주세요.';
+    const at = (step: 1 | 2 | 3, message: string): Problem => ({ message, step });
+    if (!isIsoDate(deathDate)) return at(1, '사망일을 입력해 주세요.');
+    if (deathDate > now) return at(1, '사망일이 오늘보다 뒤입니다. 날짜를 확인해 주세요.');
+    if (deathDate < '1900-01-01') return at(1, '사망일을 다시 확인해 주세요.');
 
     if (awarenessDate) {
       if (awarenessDate < deathDate) {
-        return '상속개시를 안 날은 사망일보다 앞설 수 없습니다.';
+        return at(1, '상속개시를 안 날은 사망일보다 앞설 수 없습니다.');
       }
-      if (awarenessDate > now) return '상속개시를 안 날이 오늘보다 뒤입니다.';
+      if (awarenessDate > now) return at(1, '상속개시를 안 날이 오늘보다 뒤입니다.');
     }
 
     if (fssDate) {
-      if (fssDate < deathDate) return '금융거래조회 신청일은 사망일보다 앞설 수 없습니다.';
-      if (fssDate > now) return '금융거래조회 신청일이 오늘보다 뒤입니다.';
+      if (fssDate < deathDate) return at(1, '금융거래조회 신청일은 사망일보다 앞설 수 없습니다.');
+      if (fssDate > now) return at(1, '금융거래조회 신청일이 오늘보다 뒤입니다.');
     }
 
     if (!isValidLabel(decedentLabel)) {
-      return '피상속인 호칭을 다시 확인해 주세요. 한글 또는 영문으로 적어 주세요.';
+      return at(1, '피상속인 호칭을 다시 확인해 주세요. 한글 또는 영문으로 적어 주세요.');
     }
 
-    if (heirs.length === 0) return '상속인을 한 명 이상 입력해 주세요.';
+    if (heirs.length === 0) return at(2, '상속인을 한 명 이상 입력해 주세요.');
     if (heirs.some((heir) => !isValidName(heir.name))) {
-      return '상속인 성함을 다시 확인해 주세요. 한글 또는 영문으로 적어 주세요.';
+      return at(2, '상속인 성함을 다시 확인해 주세요. 한글 또는 영문으로 적어 주세요.');
     }
 
     const amounts: string[] = [
       ...assets.flatMap((a) => [a.amount, a.deposit_amount, a.securities_valuation]),
       ...debts.map((d) => d.amount),
     ];
+    if (assets.some(assetIncomplete)) {
+      return at(3, '자산에 기관을 고르지 않은 항목이 있습니다. 기관을 고르시거나 그 줄을 지워 주세요.');
+    }
+    if (debts.some(debtIncomplete)) {
+      return at(3, '부채에 기관이나 금액이 비어 있는 항목이 있습니다. 채우시거나 그 줄을 지워 주세요.');
+    }
+
     const tooLarge = amounts.some((raw) => {
       const value = toNumber(raw);
       return value !== null && String(value).length > AMOUNT_MAX_DIGITS;
     });
-    if (tooLarge) return '금액이 너무 큽니다. 자릿수를 확인해 주세요.';
+    if (tooLarge) return at(3, '금액이 너무 큽니다. 자릿수를 확인해 주세요.');
 
-    return '';
+    return null;
   }
 
   // --- 즉시 미리보기 (결정론 엔진 그대로) ---------------------------------
@@ -478,31 +523,31 @@ function OnboardingForm() {
 
   /** 어느 단계에서든 지금까지 넣은 것만으로 시작할 수 있다 */
   function submit() {
-    const message = validate();
-    if (message) {
-      setError(message);
+    const problem = validate();
+    if (problem) {
+      setBlocked(true);
       // 문제가 있는 단계로 데려간다. 사용자가 어디를 고쳐야 하는지 찾게 두지 않는다.
-      setStep(message.includes('상속인') ? 2 : message.includes('금액') ? 3 : 1);
+      setStep(problem.step);
       return;
     }
-    setError('');
+    setBlocked(false);
     save(buildCase());
     router.push('/dashboard');
   }
 
   function goNext() {
-    const message = validate();
+    const problem = validate();
     // 다음 단계에서 채울 항목의 문제는 아직 지적하지 않는다.
-    const belongsToThisStep =
-      (step === 1 && !message.includes('상속인') && !message.includes('금액'))
-      || (step === 2 && message.includes('상속인'));
-    if (message && belongsToThisStep) {
-      setError(message);
+    if (problem && problem.step === step) {
+      setBlocked(true);
       return;
     }
-    setError('');
+    setBlocked(false);
     setStep((prev) => Math.min(3, prev + 1));
   }
+
+  // 그릴 때마다 다시 본다. 고치는 즉시 문구가 사라진다.
+  const problem = validate();
 
   return (
     <PageShell current="/onboarding" title="상속 절차 시작하기" description="사망일만 넣어도 기한이 바로 계산됩니다. 상속인과 재산은 나중에 채워도 됩니다.">
@@ -838,6 +883,12 @@ function OnboardingForm() {
                             </option>
                           ))}
                         </select>
+                        {assetIncomplete(asset) && (
+                          <p className="text-sm font-semibold text-critical sm:col-span-3">
+                            기관을 고르셔야 이 자산이 계산에 들어갑니다. 넣지 않으실 경우 이 줄을
+                            지워 주세요.
+                          </p>
+                        )}
                         <p
                           className="flex items-center px-1 font-semibold text-muted"
                           aria-label={`자산 ${index + 1} 종류`}
@@ -999,10 +1050,15 @@ function OnboardingForm() {
                     className="grid gap-3 rounded-lg border border-line p-3 sm:grid-cols-[1fr_1fr_auto]"
                   >
                     <select
-                      className="rounded-lg border border-line-strong bg-surface px-3 py-2"
+                      className={`rounded-lg border bg-surface px-3 py-2 ${
+                        debtIncomplete(debt) && debt.institution_id === ''
+                          ? 'border-critical'
+                          : 'border-line-strong'
+                      }`}
                       value={debt.institution_id}
                       onChange={(e) => updateDebt(debt.key, { institution_id: e.target.value })}
                       aria-label={`부채 ${index + 1} 기관`}
+                      aria-invalid={debtIncomplete(debt) && debt.institution_id === ''}
                     >
                       <option value="">기관 선택</option>
                       {institutions.map((i) => (
@@ -1012,13 +1068,18 @@ function OnboardingForm() {
                       ))}
                     </select>
                     <input
-                      className="rounded-lg border border-line-strong bg-surface px-3 py-2"
+                      className={`rounded-lg border bg-surface px-3 py-2 ${
+                        debtIncomplete(debt) && toNumber(debt.amount) === null
+                          ? 'border-critical'
+                          : 'border-line-strong'
+                      }`}
                       inputMode="numeric"
                       maxLength={AMOUNT_MAX_DIGITS}
                       value={debt.amount}
                       onChange={(e) => updateDebt(debt.key, { amount: e.target.value })}
                       placeholder="금액 (원)"
                       aria-label={`부채 ${index + 1} 금액`}
+                      aria-invalid={debtIncomplete(debt) && toNumber(debt.amount) === null}
                     />
                     <button
                       type="button"
@@ -1027,6 +1088,12 @@ function OnboardingForm() {
                     >
                       삭제
                     </button>
+                    {debtIncomplete(debt) && (
+                      <p className="text-sm font-semibold text-critical sm:col-span-3">
+                        기관과 금액을 모두 넣으셔야 이 부채가 계산에 들어갑니다. 넣지 않으실
+                        경우 이 줄을 지워 주세요.
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -1043,9 +1110,10 @@ function OnboardingForm() {
           </>
         )}
 
-        {error && (
+        {/* 지금 실제로 문제가 있을 때만 보인다. 고치면 그 자리에서 사라진다 */}
+        {blocked && problem && (
           <p role="alert" className="font-semibold text-critical">
-            {error}
+            {problem.message}
           </p>
         )}
 

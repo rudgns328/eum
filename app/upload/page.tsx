@@ -182,6 +182,15 @@ export default function UploadPage() {
         setError('상속인을 한 명 이상 입력해 주세요.');
         return;
       }
+      /*
+       * 성함이 빈 줄은 저장에서 빠진다. 말없이 버리면 상속인 수가 줄어
+       * 소액 간소화 판정이 달라진다. 문서에서 읽지 못한 줄일 수 있으므로
+       * 지우는 것도 사용자가 정하게 한다.
+       */
+      if (usable.length !== heirs.length) {
+        setError('성함이 비어 있는 상속인이 있습니다. 채우시거나 그 줄을 지워 주세요.');
+        return;
+      }
       if (heirs.some((h) => !isValidName(h.name_masked))) {
         setError('상속인 성함을 다시 확인해 주세요. 한글 또는 영문으로 적어 주세요.');
         return;
@@ -194,6 +203,16 @@ export default function UploadPage() {
         is_visiting: draft.is_visiting,
       }));
     } else {
+      /*
+       * 기관을 고르지 않은 줄은 저장에서 빠진다. 완전히 빈 줄은 '추가'만
+       * 누르고 둔 것이라 그냥 버려도 잃는 것이 없지만, 금액을 넣어 둔 줄을
+       * 말없이 버리면 사용자가 넣은 것이 사라진다.
+       */
+      const dropped = assets.filter((a) => a.institution_id === null && a.amount !== null);
+      if (dropped.length > 0) {
+        setError('기관을 고르지 않은 자산이 있습니다. 기관을 고르시거나 그 줄을 지워 주세요.');
+        return;
+      }
       const usable = assets.filter((a) => a.institution_id !== null);
       if (usable.some((a) => a.amount !== null && String(a.amount).length > AMOUNT_MAX_DIGITS)) {
         setError('금액이 너무 큽니다. 자릿수를 확인해 주세요.');
@@ -376,7 +395,9 @@ export default function UploadPage() {
                       <div>
                         <input
                           className={`w-full ${input} ${
-                            isValidName(heir.name_masked) ? '' : 'border-critical'
+                            isValidName(heir.name_masked) && heir.name_masked.trim() !== ''
+                              ? ''
+                              : 'border-critical'
                           }`}
                           value={heir.name_masked}
                           aria-label={`상속인 ${index + 1} 성함`}
@@ -458,9 +479,14 @@ export default function UploadPage() {
                   <div key={index} className="rounded-lg border border-line p-3">
                     <div className="grid gap-3 sm:grid-cols-[1fr_6rem_10rem_auto]">
                       <select
-                        className={input}
+                        className={`${input} ${
+                          asset.institution_id === null && asset.amount !== null
+                            ? 'border-critical'
+                            : ''
+                        }`}
                         value={asset.institution_id ?? ''}
                         aria-label={`자산 ${index + 1} 기관`}
+                        aria-invalid={asset.institution_id === null && asset.amount !== null}
                         onChange={(e) => {
                           // 종류는 기관 업권에서 나온다. 문서에서 읽은 값이
                           // 남아 있으면 '삼성생명 예금'처럼 어긋난 채 저장된다.
