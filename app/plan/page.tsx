@@ -98,12 +98,11 @@ function ActionCard({ action, order }: { action: InstitutionAction; order: numbe
           문의 <span className="font-semibold tabular-nums">{action.contact}</span>
         </p>
       )}
+      {/*
+       * 미확인 항목은 위의 '확인 중' 배지로 알린다. 내부 필드 이름
+       * (document_validity_days 같은 것)을 늘어놓지 않는다.
+       */}
       <SourceNote source={action.source} />
-      {action.badge.unresolved_fields.length > 0 && (
-        <p className="mt-1 text-sm text-muted">
-          확인 중인 항목: {action.badge.unresolved_fields.join(', ')}
-        </p>
-      )}
     </Card>
   );
 }
@@ -181,6 +180,12 @@ export default function PlanPage() {
           <div className="flex flex-wrap gap-3">
             <Link href="/print" role="button" className={btnPrimary}>
               안내서 출력 · PDF 저장
+            </Link>
+            <Link
+              href="/institutions"
+              className="inline-flex items-center font-bold text-accent underline-offset-2 hover:underline"
+            >
+              기관별 안내 보기 &gt;
             </Link>
           </div>
         </div>

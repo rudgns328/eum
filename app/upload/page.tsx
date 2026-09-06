@@ -590,9 +590,8 @@ export default function UploadPage() {
 
           {reviewCount > 0 && !parseFailed && (
             <NoticeBox title="이대로 반영하셔도 됩니다">
-              확인이 필요한 항목을 그대로 두고 반영해도 서비스는 동작합니다. 확인되지 않은 값은
-              단정하지 않고 &lsquo;확인 중&rsquo;으로 표시합니다. 문서가 흐릿했다면 다시 찍어
-              올리시는 편이 더 정확합니다.
+              확인되지 않은 값은 &lsquo;확인 중&rsquo;으로 표시됩니다. 문서가 흐릿했다면 다시
+              찍어 올리시는 편이 정확합니다.
             </NoticeBox>
           )}
 

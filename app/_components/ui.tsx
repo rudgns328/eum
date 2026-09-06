@@ -90,12 +90,28 @@ export function SectionTitle({ children }: { children: ReactNode }) {
  * 확인일자도 화면의 다른 날짜와 같은 표기(점)를 쓴다. 한 카드 안에서
  * 2026.10.06과 2026-08-22가 섞이면 통일이 안 된 것처럼 보인다.
  */
-export function SourceNote({ source }: { source?: SourceRef }) {
+/**
+ * 출처 표기 (절대규칙 5).
+ *
+ * 확인일자는 기본으로 넣지 않는다. 작업 화면에서는 항목마다 붙어 한 화면에
+ * 열 번 넘게 반복되는데, 사용자가 그 화면에서 할 일과는 상관이 없다.
+ * 언제 확인한 값인지가 필요한 자리 — 기관별 안내·데이터와 검증, 그리고
+ * 들고 다니는 안내서 — 에서만 `withDate`로 켠다.
+ */
+export function SourceNote({
+  source,
+  withDate = false,
+}: {
+  source?: SourceRef;
+  withDate?: boolean;
+}) {
   if (!source) return null;
   return (
     <p className="mt-2 text-sm text-muted">
       출처: {source.institution}
-      {source.verified_at ? `, ${source.verified_at.replaceAll('-', '.')} 확인` : ''}
+      {withDate && source.verified_at
+        ? `, ${source.verified_at.replaceAll('-', '.')} 확인`
+        : ''}
       {source.document ? ` (${source.document})` : ''}
     </p>
   );
@@ -257,18 +273,25 @@ const VISITOR_NAV = [
   { href: '/about', label: '데이터와 검증' },
 ] as const;
 
+/*
+ * '안내서 출력'은 화면이 아니라 가져가는 동작이라 탭에 두지 않는다.
+ * 머리말 버튼으로 올린다 — 이용 중에 가장 중요한 다음 행동이다.
+ */
 const CASE_NAV = [
   { href: '/dashboard', label: '내 기한' },
   { href: '/plan', label: '실행 계획' },
   { href: '/upload', label: '서류 등록' },
   { href: '/alerts', label: '확인 항목' },
   { href: '/notifications', label: '알림 설정' },
-  { href: '/print', label: '안내서 출력' },
 ] as const;
 
-export const NAV_LABEL: Record<string, string> = Object.fromEntries(
-  [...VISITOR_NAV, ...CASE_NAV].map((item) => [item.href, item.label]),
-);
+/** 탭에는 없지만 breadcrumb 이름은 필요하다 */
+const EXTRA_LABELS: Record<string, string> = { '/print': '안내서 출력' };
+
+export const NAV_LABEL: Record<string, string> = {
+  ...Object.fromEntries([...VISITOR_NAV, ...CASE_NAV].map((item) => [item.href, item.label])),
+  ...EXTRA_LABELS,
+};
 
 /** 로고와 서비스명. 좁은 화면에서는 로고 줄에, 넓은 화면에서는 메뉴 줄에 둔다 */
 function Wordmark() {
@@ -291,11 +314,15 @@ function Wordmark() {
 function Header({ current }: { current: string }) {
   const flags = useCaseFlags();
   const items = flags.exists ? CASE_NAV : VISITOR_NAV;
-  // 예시 중에는 '내 기한 보기'가 예시로 되돌아갈 뿐이라 길이 막힌다.
+  /*
+   * 예시 중에는 '내 기한 보기'가 예시로 되돌아갈 뿐이라 길이 막힌다.
+   * 이용 중 버튼은 '안내서 출력'이다 — '내 기한 보기'는 바로 옆 탭과
+   * 같은 곳으로 가서 자리를 낭비했다.
+   */
   const cta = flags.isDemo
     ? { href: '/onboarding', label: '내 정보로 시작하기' }
     : flags.exists
-      ? { href: '/dashboard', label: '내 기한 보기' }
+      ? { href: '/print', label: '안내서 출력' }
       : { href: '/onboarding', label: '시작하기' };
 
   return (
@@ -422,9 +449,8 @@ export function SiteFooter() {
           </nav>
         </div>
         <p>
-          규정과 기한을 정리해 보여줍니다. 법률 판단, 상속세 계산, 절세 안내는 제공하지 않으며, 최종
-          확인은 해당 기관에서 해야 하는 사항입니다. 개인정보를 저장하지 않으며, 입력하신 내용은
-          창을 닫으면 사라집니다.
+          규정과 기한을 정리해 보여 드립니다. 법률 판단과 상속세 계산은 하지 않으며, 최종 확인은
+          해당 기관에서 하는 사항입니다.
         </p>
         <p className="mt-2">
           이 서비스는 정부기관이나 금융기관이 제공하는 것이 아닙니다. 2026 금융 AI Challenge 출품작입니다.
@@ -611,7 +637,6 @@ export function FieldHelp({
       {entry && (
         <p className="mt-0.5">
           출처: {entry.source.institution}
-          {entry.source.verified_at ? `, ${entry.source.verified_at} 확인` : ''}
         </p>
       )}
     </div>
@@ -663,7 +688,6 @@ export function GlossaryList({ keys = GLOSSARY_ORDER }: { keys?: readonly Glossa
               ))}
               <p className="mt-1 text-sm text-muted">
                 출처: {entry.source.institution}
-                {entry.source.verified_at ? `, ${entry.source.verified_at} 확인` : ''}
                 {entry.source.document ? ` (${entry.source.document})` : ''}
               </p>
             </dd>

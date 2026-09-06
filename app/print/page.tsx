@@ -527,10 +527,7 @@ export default function PrintPage() {
                     ))}
                   </ul>
                   <p className="mt-3 text-sm text-muted">
-                    통화 검증이 완료되지 않은 항목은 &lsquo;확인 중&rsquo;으로
-                    표시하며, 미확인 값을 다른 기관 값으로 추정하지 않습니다.
-                    규정은 변경될 수 있으므로 방문 전 해당 기관에 확인해 주시기
-                    바랍니다.
+                    규정은 바뀔 수 있습니다. 방문 전 해당 기관에 확인해 주세요.
                   </p>
                 </Section>
 

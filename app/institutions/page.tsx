@@ -27,8 +27,8 @@ export default function InstitutionsPage() {
         <section>
           <SectionTitle>규정을 확인한 기관</SectionTitle>
           <p className="mb-4 text-base text-muted">
-            각 기관의 공식 안내 원문을 확보한 곳입니다. 고객센터 통화까지 마친 기관은 그렇게
-            표시하고, 마치지 못한 곳은 &lsquo;확인 중&rsquo;으로 남겨 둡니다.
+            공식 안내 원문을 확보한 기관입니다. 통화 확인까지 마치지 못한 곳은 &lsquo;확인
+            중&rsquo;으로 표시합니다.
           </p>
           <InstitutionTable />
         </section>

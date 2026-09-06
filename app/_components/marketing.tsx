@@ -101,8 +101,7 @@ export function EntrySection({ hasCase }: { hasCase: boolean }) {
             </Link>
           </div>
           <p className="mt-5 text-sm text-white/70">
-            회원가입 없이 시작합니다. 주민등록번호는 입력받지 않고, 넣으신 내용은 창을 닫으면
-            사라집니다.
+            회원가입 없이 시작합니다. 입력하신 내용은 저장되지 않습니다.
           </p>
         </div>
 
@@ -190,7 +189,7 @@ export function NoticeSection() {
 const BOUNDARIES = [
   {
     title: '법률 판단을 하지 않습니다',
-    body: '한정승인을 해야 하는지와 같은 판단은 다루지 않습니다. 상황과 기한을 사실로 알리고, 전문가 상담이 필요한 지점에서 멈춥니다.',
+    body: '상황과 기한을 사실로 알리고, 전문가 상담이 필요한 지점에서 멈춥니다.',
   },
   {
     title: '상속세를 계산하지 않습니다',
@@ -198,7 +197,7 @@ const BOUNDARIES = [
   },
   {
     title: '개인정보를 저장하지 않습니다',
-    body: '이름은 마스킹본만 남기고 주민등록번호와 생년월일은 다루지 않습니다. 등록한 문서는 내용을 읽은 즉시 버립니다.',
+    body: '이름은 마스킹본만 남기고, 등록한 문서는 읽은 즉시 버립니다.',
   },
 ] as const;
 

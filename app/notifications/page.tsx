@@ -435,9 +435,7 @@ export default function NotificationsPage() {
           {!caseData.is_demo && (
             <div className="mt-4 border-t border-line pt-4">
               <NoticeBox title="저장하지 않는 것">
-                이름(마스킹본 포함) · 상속인 구성 · 미성년 여부 · 금액 · 기관 ·
-                부채는 서버에 저장하지 않습니다. 모든 알림 메일에 해지 링크가
-                들어 있고, 해지하시면 저장된 정보가 즉시 삭제됩니다.
+                이름 · 상속인 구성 · 금액 · 기관 · 부채는 저장하지 않습니다.
               </NoticeBox>
             </div>
           )}

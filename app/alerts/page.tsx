@@ -252,8 +252,8 @@ export default function AlertsPage() {
       </div>
 
       <p className="mt-6 text-sm text-muted">
-        조건부 표시는 전제 중 일부가 확인되지 않아 &ldquo;…인 경우&rdquo;로만 성립하는 항목입니다.
-        온보딩에서 내점 예정 상속인과 협의분할 여부를 입력하면 확정 여부가 갈립니다.
+        조건부는 전제 중 일부가 아직 확인되지 않은 항목입니다. 내점 예정 상속인과 협의분할 여부를
+        넣으시면 확정됩니다.
       </p>
     </PageShell>
   );
