@@ -88,15 +88,15 @@ export function EntrySection({ hasCase }: { hasCase: boolean }) {
     <section className="border-b border-line bg-navy text-white">
       <div className="mx-auto grid w-full max-w-[64rem] items-center gap-10 px-4 py-14 lg:grid-cols-[1fr_20rem]">
         <div>
-          <h1 className="text-3xl font-black leading-snug tracking-tight sm:text-[2.3rem]">
-            상속인이 3개월 안에 끝내야 하는
+          <h1 className="text-3xl font-black leading-snug tracking-tight sm:text-[2.4rem]">
+            기한을 놓치면 빚까지 물려받습니다.
             <br />
-            금융 절차를 대신 관리합니다.
+            남은 날은 저희가 세겠습니다.
           </h1>
           <p className="mt-5 max-w-xl text-lg text-white/85">
-            사망일 하나만 넣으면 기한이 D-day로 환산되고, 기관별 서류가 한 장으로 정리됩니다.
-            가족관계증명서와 조회 결과는 올리시면 AI가 읽어 채웁니다. 기한이 다가오면 메일로 먼저
-            알려 드립니다.
+            상속포기·한정승인 3개월, 상속세 신고 6개월. 사망일 하나만 넣으시면 남은 날이 D-day로
+            서고, 기관마다 다른 서류가 한 장으로 모입니다. 증명서는 사진으로 올리시면 AI가 읽어
+            채우고, 기한이 가까워지면 메일이 먼저 갑니다.
           </p>
           <div className="mt-7 flex flex-wrap gap-2">
             <Link
