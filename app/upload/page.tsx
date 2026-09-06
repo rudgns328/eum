@@ -37,6 +37,8 @@ import {
 } from '@/lib/case/import';
 import {
   AMOUNT_MAX_DIGITS,
+  ASSET_TYPE_LABEL,
+  assetTypeFor,
   isValidName,
   maskName,
   NAME_MAX_LENGTH,
@@ -454,20 +456,29 @@ export default function UploadPage() {
               <div className="space-y-3">
                 {assets.map((asset, index) => (
                   <div key={index} className="rounded-lg border border-line p-3">
-                    <div className="grid gap-3 sm:grid-cols-[1fr_10rem_auto]">
+                    <div className="grid gap-3 sm:grid-cols-[1fr_6rem_10rem_auto]">
                       <select
                         className={input}
                         value={asset.institution_id ?? ''}
                         aria-label={`자산 ${index + 1} 기관`}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          // 종류는 기관 업권에서 나온다. 문서에서 읽은 값이
+                          // 남아 있으면 '삼성생명 예금'처럼 어긋난 채 저장된다.
+                          const picked = institutions.find(
+                            (i) => i.institution_id === e.target.value,
+                          );
                           setAssets((prev) =>
                             prev.map((a, i) =>
                               i === index
-                                ? { ...a, institution_id: e.target.value || null }
+                                ? {
+                                    ...a,
+                                    institution_id: e.target.value || null,
+                                    type: picked ? assetTypeFor(picked.type) : a.type,
+                                  }
                                 : a,
                             ),
-                          )
-                        }
+                          );
+                        }}
                       >
                         <option value="">기관 선택</option>
                         {institutions.map((i) => (
@@ -476,6 +487,9 @@ export default function UploadPage() {
                           </option>
                         ))}
                       </select>
+                      <p className="flex items-center px-1 text-base font-semibold text-muted">
+                        {asset.institution_id ? ASSET_TYPE_LABEL[asset.type] ?? '' : ''}
+                      </p>
                       <input
                         className={`${input} ${
                           asset.amount !== null && String(asset.amount).length > AMOUNT_MAX_DIGITS

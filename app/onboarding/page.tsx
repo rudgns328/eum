@@ -892,6 +892,11 @@ function OnboardingForm() {
                             placeholder={asset.type === 'insurance' ? '청구금액 (원)' : '금액 (원)'}
                             aria-label="금액"
                           />
+                          {asset.type === 'deposit' && (
+                            <div className="sm:col-span-2">
+                              <FieldHelp reason="이 기관에 있는 계좌 잔액을 모두 합해 적으면 됩니다. 소액 간소화는 상품별 금액이 아니라 기관별 합계금액으로 판정됩니다." />
+                            </div>
+                          )}
                           {asset.type === 'insurance' && (
                             <select
                               className="rounded-lg border border-line-strong bg-surface px-3 py-2"

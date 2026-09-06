@@ -192,14 +192,22 @@ export function newCaseId(): string {
  * 만들어지고, 그 조합은 조용히 결과를 바꾼다 — 보험으로 잡히지 않으면
  * 보험금 청구권 소멸시효 기한이 계산되지 않는다.
  */
-export function assetTypeFor(institutionType: string): CaseAsset['type'] {
+export function assetTypeFor(institutionType: string): 'deposit' | 'insurance' | 'securities' {
   if (institutionType === 'insurance') return 'insurance';
   if (institutionType === 'securities') return 'securities';
   return 'deposit';
 }
 
+/**
+ * 화면에 보이는 자산 종류.
+ *
+ * 은행 쪽을 '예금'이라 부르지 않는다. 적금을 가진 분이 해당 없다고 보고
+ * 빼면 합계가 줄어 소액 간소화 판정이 바뀐다. 규정이 판정에 쓰는 값은
+ * 상품별 금액이 아니라 그 기관 '합계금액'이다
+ * (KB국민은행 "상속예금(원금기준) 합계금액", 2026-08-21 확인).
+ */
 export const ASSET_TYPE_LABEL: Record<string, string> = {
-  deposit: '예금',
+  deposit: '은행 계좌',
   securities: '증권',
   insurance: '보험',
 };
