@@ -216,7 +216,7 @@ const AI_WORK = [
     },
   },
   {
-    title: '지금 이 집에 걸리는 것을 짚어 드립니다',
+    title: '더 확인할 것이 남았는지 찾아냅니다',
     body: '규칙 엔진이 걸러 낸 항목을 지금 상황과 다시 맞춰 봅니다. 해당하는 것만 남기고, 무엇이 아직 확인되지 않았는지를 규정 문장 옆에 풀어 씁니다.',
     example: {
       from: '삼성생명 — 가입 사실만 확인, 청구 금액 미확정',
@@ -276,14 +276,18 @@ export function GuardStats() {
         <div className="rounded-2xl border border-white/25 bg-white/[0.06] p-6">
           <p className="text-lg font-bold">AI가 맡는 일</p>
           <p className="mt-1 text-sm text-white/60">규칙만으로는 닿지 않는 자리</p>
-          <ul className="mt-4 grid gap-5 md:grid-cols-2">
+          <ul className="mt-3 divide-y divide-white/10">
             {AI_WORK.map((item) => (
-              <li key={item.title} className="flex flex-col">
-                <p className="font-bold">{item.title}</p>
-                <p className="mt-1 text-white/80">{item.body}</p>
-                <div className="mt-2.5 rounded-xl bg-navy-dark/60 px-4 py-3 text-sm md:mt-auto md:pt-3">
+              <li key={item.title} className="grid gap-3 py-6 last:pb-0 md:grid-cols-2 md:gap-8">
+                <div>
+                  <p className="font-bold">{item.title}</p>
+                  <p className="mt-1.5 text-white/80">{item.body}</p>
+                </div>
+                <div className="self-start rounded-xl bg-navy-dark/60 px-4 py-3.5 text-sm">
                   <p className="text-white/60">{item.example.from}</p>
-                  <p className="mt-1 font-semibold text-white">↓ {item.example.to}</p>
+                  <p className="mt-1.5 font-semibold leading-relaxed text-white">
+                    ↓ {item.example.to}
+                  </p>
                 </div>
               </li>
             ))}
@@ -293,7 +297,7 @@ export function GuardStats() {
         <div className="rounded-2xl border border-white/25 p-6">
           <p className="text-lg font-bold">규칙 엔진이 맡는 일</p>
           <p className="mt-1 text-sm text-white/60">AI를 거치지 않습니다</p>
-          <ul className="mt-4 grid gap-5 md:grid-cols-2">
+          <ul className="mt-4 grid gap-x-10 gap-y-6 md:grid-cols-2">
             {RULE_WORK.map((item) => (
               <li key={item.title}>
                 <p className="font-bold">{item.title}</p>
