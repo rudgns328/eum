@@ -229,28 +229,30 @@ export default function PrintPage() {
                   <h1 className="text-2xl font-black tracking-tight">
                     상속 절차 안내서{caseData.is_demo && " (예시)"}
                   </h1>
-                  <table className="gov-table mt-3">
-                    <tbody>
-                      <tr>
-                        <th scope="row" className="w-[7rem]">
-                          피상속인
-                        </th>
-                        <td>{caseData.decedent_label}</td>
-                        <th scope="row" className="w-[7rem]">
-                          사망일
-                        </th>
-                        <td className="tabular-nums">
-                          {dot(caseData.death_date)}
-                        </td>
-                      </tr>
-                      <tr>
-                        <th scope="row">상속인</th>
-                        <td className="tabular-nums">{heirCount}명</td>
-                        <th scope="row">출력일</th>
-                        <td className="tabular-nums">{dot(printedOn)}</td>
-                      </tr>
-                    </tbody>
-                  </table>
+                  <div className="print-scroll">
+                    <table className="gov-table mt-3">
+                      <tbody>
+                        <tr>
+                          <th scope="row" className="w-[7rem]">
+                            피상속인
+                          </th>
+                          <td>{caseData.decedent_label}</td>
+                          <th scope="row" className="w-[7rem]">
+                            사망일
+                          </th>
+                          <td className="tabular-nums">
+                            {dot(caseData.death_date)}
+                          </td>
+                        </tr>
+                        <tr>
+                          <th scope="row">상속인</th>
+                          <td className="tabular-nums">{heirCount}명</td>
+                          <th scope="row">출력일</th>
+                          <td className="tabular-nums">{dot(printedOn)}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                   <p className="mt-2 text-sm text-muted">
                     ※ 이 문서는 정부기관이나 금융기관이 발행한 것이 아닙니다.
                     규정과 기한을 정리한 안내이며, 최종 확인은 해당 기관에서
@@ -265,52 +267,58 @@ export default function PrintPage() {
 
                 {/* 1. 기한 */}
                 <Section no={1} title="기한">
-                  <table className="gov-table">
-                    <thead>
-                      <tr>
-                        <th scope="col" className="w-[8rem]">
-                          기한일
-                        </th>
-                        <th scope="col">항목</th>
-                        <th scope="col" className="w-[5rem]">
-                          남은 기간
-                        </th>
-                        <th scope="col" className="w-[4rem]">
-                          중요도
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {deadlines.map((deadline) => (
-                        <tr key={deadline.deadline_id}>
-                          <td className="font-bold tabular-nums">
-                            {dot(deadline.due_date)}
-                          </td>
-                          <td>
-                            {deadline.name}
-                            {deadline.consequence && (
-                              <span className="block text-sm text-muted">
-                                <span className="font-bold">지키지 못하면</span>{" "}
-                                {deadline.consequence}
-                              </span>
-                            )}
-                            {deadline.legal_basis && (
-                              <span className="block text-sm text-muted">
-                                근거: {deadline.legal_basis}
-                              </span>
-                            )}
-                          </td>
-                          <td className="tabular-nums">
-                            {deadline.expired ? "경과" : `D-${deadline.d_day}`}
-                          </td>
-                          <td>
-                            {SEVERITY_LABEL[deadline.severity] ??
-                              deadline.severity}
-                          </td>
+                  <div className="print-scroll">
+                    <table className="gov-table">
+                      <thead>
+                        <tr>
+                          <th scope="col" className="w-[8rem]">
+                            기한일
+                          </th>
+                          <th scope="col">항목</th>
+                          <th scope="col" className="w-[5rem]">
+                            남은 기간
+                          </th>
+                          <th scope="col" className="w-[4rem]">
+                            중요도
+                          </th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {deadlines.map((deadline) => (
+                          <tr key={deadline.deadline_id}>
+                            <td className="font-bold tabular-nums">
+                              {dot(deadline.due_date)}
+                            </td>
+                            <td>
+                              {deadline.name}
+                              {deadline.consequence && (
+                                <span className="block text-sm text-muted">
+                                  <span className="font-bold">
+                                    지키지 못하면
+                                  </span>{" "}
+                                  {deadline.consequence}
+                                </span>
+                              )}
+                              {deadline.legal_basis && (
+                                <span className="block text-sm text-muted">
+                                  근거: {deadline.legal_basis}
+                                </span>
+                              )}
+                            </td>
+                            <td className="tabular-nums">
+                              {deadline.expired
+                                ? "경과"
+                                : `D-${deadline.d_day}`}
+                            </td>
+                            <td>
+                              {SEVERITY_LABEL[deadline.severity] ??
+                                deadline.severity}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </Section>
 
                 {/* 2. 서류 합산 */}
@@ -457,43 +465,45 @@ export default function PrintPage() {
                   !shares.requires_expert &&
                   shares.shares.length > 0 && (
                     <Section no={5} title="법정상속분">
-                      <table className="gov-table">
-                        <thead>
-                          <tr>
-                            <th scope="col">상속인</th>
-                            <th scope="col" className="w-[6rem]">
-                              관계
-                            </th>
-                            <th scope="col" className="w-[9rem]">
-                              상속분
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {shares.shares.map((share) => {
-                            const heir = caseData.heirs.find(
-                              (h) => h.heir_id === share.heir_id,
-                            );
-                            return (
-                              <tr key={share.heir_id}>
-                                <td>
-                                  {heir?.name_masked ?? share.heir_id}
-                                  {share.substitutes_for && (
-                                    <span className="ml-1 text-sm text-muted">
-                                      (대습상속)
-                                    </span>
-                                  )}
-                                </td>
-                                <td>{RELATION_LABEL[share.relation]}</td>
-                                <td className="whitespace-nowrap tabular-nums">
-                                  {share.fraction_label} (
-                                  {(share.share * 100).toFixed(1)}%)
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
+                      <div className="print-scroll">
+                        <table className="gov-table">
+                          <thead>
+                            <tr>
+                              <th scope="col">상속인</th>
+                              <th scope="col" className="w-[6rem]">
+                                관계
+                              </th>
+                              <th scope="col" className="w-[9rem]">
+                                상속분
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {shares.shares.map((share) => {
+                              const heir = caseData.heirs.find(
+                                (h) => h.heir_id === share.heir_id,
+                              );
+                              return (
+                                <tr key={share.heir_id}>
+                                  <td>
+                                    {heir?.name_masked ?? share.heir_id}
+                                    {share.substitutes_for && (
+                                      <span className="ml-1 text-sm text-muted">
+                                        (대습상속)
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td>{RELATION_LABEL[share.relation]}</td>
+                                  <td className="whitespace-nowrap tabular-nums">
+                                    {share.fraction_label} (
+                                    {(share.share * 100).toFixed(1)}%)
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
                       <p className="mt-2 text-sm text-muted">
                         ※ 민법 조문을 기계적으로 적용한 결과입니다. 실제 분할은
                         협의 내용에 따라 달라집니다.

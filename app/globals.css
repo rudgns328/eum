@@ -172,17 +172,36 @@ input[type="checkbox"] {
  * 인쇄 여백 틀은 종이에서만 표다. 화면에서는 표가 내용만큼 폭을 밀어내
  * 좁은 화면에서 본문이 잘린다. 블록으로 되돌린다.
  */
+/*
+ * 표는 칸 수만큼 폭이 필요해 좁은 화면에서 오른쪽이 잘린다. 화면에서는
+ * 상자 안에서 옆으로 밀어 보게 하고, 종이에서는 그대로 펼친다.
+ */
+.print-scroll {
+  overflow-x: auto;
+}
+
+@media print {
+  .print-scroll {
+    overflow: visible;
+  }
+}
+
 @media screen {
+  /*
+   * 자식 선택자로만 고른다. 후손 선택자를 쓰면 안내서 안의 표(.gov-table)
+   * 칸까지 블록이 되어 표가 세로로 쌓인다.
+   */
   .print-frame,
-  .print-frame thead,
-  .print-frame tfoot,
-  .print-frame tbody,
-  .print-frame tr,
-  .print-frame td {
+  .print-frame > thead,
+  .print-frame > tbody,
+  .print-frame > tfoot,
+  .print-frame > * > tr,
+  .print-frame > * > tr > td {
     display: block;
   }
 
-  .print-frame-space {
+  .print-frame > thead,
+  .print-frame > tfoot {
     display: none;
   }
 }
