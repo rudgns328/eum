@@ -1,9 +1,13 @@
 /**
  * Phase 3 — 케이스 저장 계층.
  *
- * 저장소를 인터페이스로 분리해 둔다. MVP는 브라우저 로컬 저장을 쓰고,
- * Supabase 어댑터는 같은 인터페이스를 구현해 교체한다(CLAUDE.md 기술 스택).
- * 화면 코드는 CaseStore만 알고 구현체를 모른다.
+ * 저장 범위는 '이 탭, 이 세션'이다. 창을 닫으면 사라진다.
+ * 브라우저에 남겨 두면 기기마다 보이는 내용이 달라져 사용자가 규칙을
+ * 알 수 없다 — PC에서 넣은 것이 폰에는 없는데 알림 메일은 계속 온다.
+ * 그래서 한 문장으로 설명되는 쪽을 택했다: "창을 닫으면 사라집니다."
+ *
+ * 사용자가 가지고 나가는 것은 둘뿐이다 — 신청한 알림(서버에 9개 필드,
+ * 절대규칙 4의 예외)과 내려받은 PDF 안내서.
  *
  * useSyncExternalStore로 구독하므로 getSnapshot은 값이 바뀌지 않는 한
  * 같은 참조를 돌려줘야 한다. 캐시를 두는 이유다.
@@ -56,17 +60,20 @@ abstract class BaseCaseStore implements CaseStore {
 }
 
 /**
- * 브라우저 로컬 저장 어댑터.
+ * 세션 저장 어댑터. sessionStorage를 쓰므로 탭을 닫으면 사라지고,
+ * 새로고침·뒤로가기에서는 살아남는다. 입력 도중 화면을 되돌렸다고
+ * 처음부터 다시 넣게 하지는 않는다.
+ *
  * 저장 직전 stripPersonalData를 통과시켜 개인정보 필드를 제거한다
  * (절대규칙 4의 마지막 방어선).
  */
-export class LocalCaseStore extends BaseCaseStore {
+export class SessionCaseStore extends BaseCaseStore {
   private loaded = false;
 
   private get storage(): Storage | null {
     if (typeof window === 'undefined') return null;
     try {
-      return window.localStorage;
+      return window.sessionStorage;
     } catch {
       // 프라이빗 모드 등에서 접근이 막히면 메모리로만 동작한다.
       return null;
@@ -127,4 +134,4 @@ export class MemoryCaseStore extends BaseCaseStore {
   }
 }
 
-export const caseStore: CaseStore = new LocalCaseStore();
+export const caseStore: CaseStore = new SessionCaseStore();

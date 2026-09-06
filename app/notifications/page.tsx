@@ -22,6 +22,7 @@ import {
   NoticeBox,
 } from '@/app/_components/ui';
 import { today, useCase } from '@/app/_lib/useCase';
+import { markTakeaway } from '@/app/_lib/session';
 import { isValidEmail } from '@/lib/notify/email';
 import { buildSchedule, type ScheduledNotification } from '@/lib/notify/schedule';
 
@@ -43,10 +44,13 @@ const KIND_LABEL: Record<string, string> = {
   query_result_expiry: '조회 결과 삭제',
 };
 
-/** 저장된 주소. 문자열이라 값이 같으면 같은 스냅샷으로 취급된다 */
+/**
+ * 입력해 둔 주소. 케이스와 같은 세션 범위다 — 탭을 닫으면 사라진다.
+ * 주소를 브라우저에 남겨 두지 않는다.
+ */
 function readEmail(): string {
   try {
-    return window.localStorage.getItem(EMAIL_KEY) ?? '';
+    return window.sessionStorage.getItem(EMAIL_KEY) ?? '';
   } catch {
     return '';
   }
@@ -124,6 +128,8 @@ export default function NotificationsPage() {
         setMessage({ kind: 'error', text: data.error ?? '신청에 실패했습니다.' });
       } else {
         setSubscription({ available: true, subscribed: true, email_masked: null });
+        // 서버에 남았으므로 이탈 경고를 끈다.
+        markTakeaway('alerts');
         setMessage({ kind: 'ok', text: '알림을 신청했습니다. 기한이 다가오면 메일로 알려 드립니다.' });
       }
     } catch {
@@ -163,7 +169,7 @@ export default function NotificationsPage() {
     setSending(true);
     setMessage(null);
     try {
-      window.localStorage.setItem(EMAIL_KEY, email.trim());
+      window.sessionStorage.setItem(EMAIL_KEY, email.trim());
     } catch {
       // 저장에 실패해도 발송은 진행한다.
     }

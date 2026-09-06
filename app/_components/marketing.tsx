@@ -4,12 +4,11 @@
  * 소개 화면 — 공공 서비스 주화면 구성.
  *
  *   1 민원 진입    사망일을 바로 넣는 자리 + 기한 예시
- *   2 주요 서비스  네 가지를 같은 크기 상자로
- *   3 이용 절차    1 → 2 → 3 → 4 흐름
- *   4 알아두실 사항 / 확인된 기관 현황
- *   5 기관별 소액 기준 표
- *   6 검증 지표
- *   7 이용 시 유의사항
+ *   2 알아두실 사항 / 확인된 기관 현황
+ *   3 기관별 소액 기준 표 · 검증 지표 (근거 자료)
+ *   4 이용 시 유의사항
+ *
+ * 이용 흐름과 결과물, 저장 방식은 flow.tsx가 맡는다.
  *
  * 대화창을 두지 않는다(절대규칙 1). 기관 규정 수치에는 출처와 확인일자를
  * 붙인다(절대규칙 5).
@@ -21,7 +20,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
-import { calculateDeadlines } from '@/lib/engines/deadlines';
+import { EXAMPLE_BASIS, EXAMPLE_DEADLINES } from '@/app/_lib/example';
 import { loadInstitutions } from '@/lib/rules/loader';
 import { verificationBadge } from '@/lib/rules/verification';
 import {
@@ -73,22 +72,6 @@ function Cite({ children }: { children: ReactNode }) {
 // 1. 민원 진입
 // ---------------------------------------------------------------------------
 
-/**
- * 예시 기한은 실제 기한 엔진이 계산한 값이다.
- *
- * 기준일을 고정한 이유 둘. 서버·클라이언트 렌더 결과가 어긋나지 않아야 하고,
- * 예시 숫자가 날마다 바뀌면 발표 자료와 어긋나기 때문이다.
- * 기획서 4.3의 예시와 같은 날짜를 쓴다.
- */
-const EXAMPLE_DEATH = '2026-07-20';
-const EXAMPLE_TODAY = '2026-08-13';
-
-const EXAMPLE_DEADLINES = calculateDeadlines(EXAMPLE_DEATH, {
-  today: EXAMPLE_TODAY,
-  has_real_estate: true,
-  has_insurance: true,
-});
-
 export function EntrySection({ hasCase }: { hasCase: boolean }) {
   const [lead, ...rest] = EXAMPLE_DEADLINES;
 
@@ -115,11 +98,11 @@ export function EntrySection({ hasCase }: { hasCase: boolean }) {
               {hasCase ? '내 화면으로' : '시작하기'}
             </Link>
             <Link
-              href="#services"
+              href="#flow"
               role="button"
               className="inline-flex items-center justify-center rounded-sm border border-white/40 px-7 font-semibold text-white hover:border-white"
             >
-              무엇을 해 주는지 보기
+              어떻게 쓰는지 보기
             </Link>
           </div>
           <p className="mt-4 text-sm text-white/70">
@@ -129,7 +112,7 @@ export function EntrySection({ hasCase }: { hasCase: boolean }) {
 
         {/* 기한 예시 — 실제 엔진 산출값 */}
         <aside className="rounded-sm bg-white/10 p-5">
-          <p className="text-sm text-white/70">사망일 2026.07.20 · 2026.08.13 기준 예시</p>
+          <p className="text-sm text-white/70">{EXAMPLE_BASIS}</p>
           <p className="mt-3 text-4xl font-black tabular-nums">D-{lead.d_day}</p>
           <p className="font-bold">{lead.name}</p>
           <ul className="mt-4 space-y-1.5 border-t border-white/20 pt-3 text-white/80">
@@ -145,67 +128,6 @@ export function EntrySection({ hasCase }: { hasCase: boolean }) {
         </aside>
       </div>
     </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// 2. 주요 서비스
-// ---------------------------------------------------------------------------
-
-const SERVICES = [
-  {
-    href: '/dashboard',
-    step: '사망일 입력',
-    title: '기한 관제',
-    body: '사망일 하나로 기한 6종을 D-day로 환산합니다. 말일 기산, 윤년, 공휴일을 반영한 순수 계산이며 AI를 쓰지 않습니다.',
-  },
-  {
-    href: '/upload',
-    step: '서류 등록',
-    title: '서류 등록',
-    body: '가족관계증명서와 금융거래 조회 결과를 읽어 상속인 구성과 기관별 재산을 초안으로 만듭니다. 읽지 못하면 직접 입력으로 이어집니다.',
-  },
-  {
-    href: '/plan',
-    step: '재산·부채 등록',
-    title: '기관별 실행 계획',
-    body: '기관마다 다른 서류 요건을 상황에 맞춰 계산하고, 전 기관 서류를 종류별로 합산합니다. 주민센터 방문 횟수를 줄입니다.',
-  },
-  {
-    href: '/alerts',
-    step: '기한 알림 수신',
-    title: '누락 항목 확인',
-    body: '묻기를 기다리지 않고 규정과 상황을 대조해, 해당되는데 아직 하지 않은 것을 찾아 알립니다.',
-  },
-] as const;
-
-export function ServiceSection() {
-  return (
-    <Band id="services" tone="subtle">
-      <BandTitle sub="1단계만 마쳐도 시작할 수 있습니다. 입력 전에도 각 화면을 열어 볼 수 있습니다.">
-        이음이 대신 해 드리는 일
-      </BandTitle>
-      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {SERVICES.map((service, index) => (
-          <li key={service.title} className="flex">
-            <Link
-              href={service.href}
-              className="flex w-full flex-col rounded-sm border border-line bg-surface p-5 hover:border-accent"
-            >
-              <span className="mb-3 flex items-center gap-2 text-sm font-bold text-accent">
-                <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-navy text-white">
-                  {index + 1}
-                </span>
-                {service.step}
-              </span>
-              <span className="text-lg font-bold">{service.title}</span>
-              <span className="mt-1.5 flex-1 text-base text-muted">{service.body}</span>
-              <span className="mt-4 text-sm font-bold text-accent">화면 열기 &gt;</span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </Band>
   );
 }
 

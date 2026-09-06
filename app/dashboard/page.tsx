@@ -275,7 +275,7 @@ export default function DashboardPage() {
               router.replace('/');
             }}
           >
-            케이스 초기화
+            입력 내용 지우기
           </button>
         </div>
       </div>

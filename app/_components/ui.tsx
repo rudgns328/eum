@@ -20,6 +20,7 @@ import { GLOSSARY, GLOSSARY_ORDER, type GlossaryKey } from '@/app/_lib/glossary'
 import { buildDemoCase } from '@/lib/case/demo';
 import { caseStore } from '@/lib/case/store';
 import { today } from '@/app/_lib/useCase';
+import { SESSION_NOTICE, useLeaveGuard, useTookSomething } from '@/app/_lib/session';
 
 // ---------------------------------------------------------------------------
 // 버튼 · 입력 클래스
@@ -206,10 +207,21 @@ export function useCaseFlags(): CaseFlags {
   );
 }
 
-/** 예시 케이스를 만들어 저장한 뒤 대시보드로 보낸다 */
+/**
+ * 예시 케이스를 만들어 저장한 뒤 대시보드로 보낸다.
+ * 케이스는 한 벌뿐이라 예시를 켜면 입력한 내용이 덮인다. 되돌릴 수 없으므로
+ * 먼저 묻는다 — 구경하려다 입력한 것을 잃게 두지 않는다.
+ */
 export function useStartDemo(): () => void {
   const router = useRouter();
+  const flags = useCaseFlags();
   return () => {
+    if (flags.exists && !flags.isDemo) {
+      const ok = window.confirm(
+        '입력하신 내용이 예시 데이터로 바뀝니다. 되돌릴 수 없습니다. 계속하시겠습니까?',
+      );
+      if (!ok) return;
+    }
     caseStore.save(buildDemoCase(today()));
     router.push('/dashboard');
   };
@@ -364,8 +376,8 @@ export function SiteFooter() {
         <p className="mb-2 text-base font-black text-navy">이음 — 상속 금융절차 안내</p>
         <p>
           규정과 기한을 정리해 보여줍니다. 법률 판단, 상속세 계산, 절세 안내는 제공하지 않으며, 최종
-          확인은 해당 기관에서 해야 하는 사항입니다. 개인정보를 저장하지 않고, 입력한 내용은 이
-          브라우저에만 남습니다.
+          확인은 해당 기관에서 해야 하는 사항입니다. 개인정보를 저장하지 않으며, 입력하신 내용은
+          창을 닫으면 사라집니다.
         </p>
         <p className="mt-2">
           이 서비스는 정부기관이나 금융기관이 제공하는 것이 아닙니다. 2026 금융 AI Challenge 출품작입니다.
@@ -414,6 +426,9 @@ export function PageShell({
   children: ReactNode;
 }) {
   const flags = useCaseFlags();
+  const tookSomething = useTookSomething();
+  // 입력은 했는데 알림도 PDF도 받지 않은 상태에서만 경고한다.
+  useLeaveGuard(flags.exists && !flags.isDemo && !tookSomething);
   return (
     <>
       <SkipLink />
@@ -424,6 +439,13 @@ export function PageShell({
           <p className="mx-auto w-full max-w-[64rem] px-4 py-2 text-sm">
             <span className="font-bold">예시 데이터로 보는 중입니다.</span> 실제 사례가 아니며, 통화
             검증이 끝난 5개 기관으로만 구성했습니다.
+          </p>
+        </div>
+      )}
+      {flags.exists && !flags.isDemo && (
+        <div className="no-print border-b border-line bg-subtle">
+          <p className="mx-auto w-full max-w-[64rem] px-4 py-2 text-sm text-muted">
+            {SESSION_NOTICE} 알림을 신청하시거나 안내서를 내려받으시면 그 내용은 남습니다.
           </p>
         </div>
       )}

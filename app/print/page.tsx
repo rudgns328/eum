@@ -21,6 +21,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
 
 import { btnOutline, btnPrimary, EmptyState, PageShell } from '@/app/_components/ui';
+import { markTakeaway } from '@/app/_lib/session';
 import { today, useCase } from '@/app/_lib/useCase';
 import { buildCandidates } from '@/lib/detect/candidates';
 import { institutionMap } from '@/lib/rules/loader';
@@ -149,7 +150,15 @@ export default function PrintPage() {
             인쇄 창에서 &lsquo;PDF로 저장&rsquo;을 고르면 파일로 받을 수 있습니다.
           </p>
         </div>
-        <button type="button" className={btnPrimary} onClick={() => window.print()}>
+        <button
+          type="button"
+          className={btnPrimary}
+          onClick={() => {
+            // 손에 남는 결과물이므로 이탈 경고를 끈다.
+            markTakeaway('pdf');
+            window.print();
+          }}
+        >
           인쇄 · PDF로 저장
         </button>
         <button type="button" className={btnOutline} onClick={() => router.back()}>
