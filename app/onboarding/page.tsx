@@ -58,7 +58,7 @@ import {
 import type { HeirInput, Relation } from '@/lib/engines/types';
 import type { ParsedFamilyCert, ParsedFssQueryResult } from '@/lib/llm/schemas';
 import { parseDocument } from '@/app/_lib/parseDocument';
-import { droppedRelations, needsReview, toAssetDrafts, toHeirDrafts } from '@/lib/case/import';
+import { droppedRelations, toAssetDrafts, toHeirDrafts } from '@/lib/case/import';
 import { loadInstitutions } from '@/lib/rules/loader';
 import { verificationBadge } from '@/lib/rules/verification';
 
@@ -620,7 +620,9 @@ function OnboardingForm() {
           deceased: false,
         })),
       );
-      const unsure = drafts.filter(needsReview).length;
+      // '5건 확인 필요'만으로는 무엇을 봐야 할지 알 수 없다. 문서에서
+      // 확정하지 못한 항목의 이름을 그대로 적는다.
+      const unsure = [...new Set(drafts.flatMap((draft) => draft.uncertain))];
       /*
        * 초안에서 빠진 사람을 알린다. 상속개시 전 사망한 자녀는 대습상속
        * 대상일 수 있어(민법 제1001조) 말없이 버리면 안 된다.
@@ -629,7 +631,9 @@ function OnboardingForm() {
       setReadNote(
         [
           `상속인 ${drafts.length}명을 채웠습니다.`,
-          unsure > 0 ? `그중 ${unsure}건은 확인이 필요합니다.` : '맞는지 확인해 주세요.',
+          unsure.length > 0
+            ? `문서에서 확정하지 못한 항목: ${unsure.join(' · ')}`
+            : '맞는지 확인해 주세요.',
           skipped.length > 0 ? `넣지 않은 항목: ${skipped.join(', ')}` : '',
         ]
           .filter(Boolean)

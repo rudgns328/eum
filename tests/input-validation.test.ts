@@ -11,6 +11,7 @@ import { describe, expect, it } from 'vitest';
 import { isValidEmail } from '@/lib/notify/email';
 import {
   AMOUNT_MAX_DIGITS,
+  maskName,
   LABEL_MAX_LENGTH,
   NAME_MAX_LENGTH,
   isValidLabel,
@@ -21,6 +22,22 @@ describe('isValidName', () => {
   it('사람 이름 형태를 받는다', () => {
     for (const name of ['김민수', '이', '남궁 민수', '홍 길동', 'John Smith', '金民秀']) {
       expect(isValidName(name), name).toBe(true);
+    }
+  });
+
+  it('마스킹된 이름을 이름으로 인정한다', () => {
+    // 문서를 읽어 채운 상속인은 이미 마스킹된 채로 들어온다. 이것을 막으면
+    // 문서로 채운 목록 전체가 오류로 물든다.
+    for (const masked of ['김○○', '이○○', '○○', '김○']) {
+      expect(isValidName(masked), masked).toBe(true);
+    }
+    expect(isValidLabel('아버님')).toBe(true);
+  });
+
+  it('마스킹으로 만든 이름과 원본 이름이 모두 통과한다', () => {
+    for (const name of ['김철수', '남궁 민수', 'John Smith']) {
+      expect(isValidName(name), name).toBe(true);
+      expect(isValidName(maskName(name)), maskName(name)).toBe(true);
     }
   });
 
