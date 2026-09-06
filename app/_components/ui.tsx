@@ -221,6 +221,7 @@ const GNB = [
   { href: '/upload', label: '서류 등록' },
   { href: '/alerts', label: '확인 항목' },
   { href: '/notifications', label: '알림 설정' },
+  { href: '/print', label: '안내서 출력' },
 ] as const;
 
 export const NAV_LABEL: Record<string, string> = Object.fromEntries(
@@ -283,7 +284,7 @@ export function PageHeader({
   description?: string;
 }) {
   return (
-    <div className="border-b border-line bg-subtle">
+    <div className="no-print border-b border-line bg-subtle">
       <div className="mx-auto w-full max-w-[64rem] px-4 py-5">
         <nav aria-label="위치" className="mb-2 text-sm text-muted">
           <Link href="/" className="hover:underline">
@@ -376,7 +377,7 @@ export function PageShell({
       <Header current={current} />
       {title && <PageHeader current={current} title={title} description={description} />}
       {flags.isDemo && (
-        <div className="border-b border-line bg-[#fff8e1]">
+        <div className="no-print border-b border-line bg-[#fff8e1]">
           <p className="mx-auto w-full max-w-[64rem] px-4 py-2 text-sm">
             <span className="font-bold">예시 데이터로 보는 중입니다.</span> 실제 사례가 아니며, 통화
             검증이 끝난 5개 기관으로만 구성했습니다.

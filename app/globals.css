@@ -156,3 +156,74 @@ input[type="checkbox"] {
   background: var(--subtle);
   font-weight: 700;
 }
+
+/* ---------------------------------------------------------------------------
+ * 인쇄 / PDF 저장
+ *
+ * 사용자는 이 문서를 들고 주민센터와 은행에 간다. 화면용 크기와 색을 그대로
+ * 인쇄하면 종이가 낭비되고 읽기 어렵다.
+ *
+ *   · 본문 10.5pt — 화면의 17px는 종이에서 지나치게 크다
+ *   · 배경색을 빼고 선으로만 구분한다 (잉크 절약)
+ *   · 항목이 페이지 경계에서 잘리지 않게 한다
+ *   · 네비게이션·버튼처럼 종이에서 의미 없는 것은 감춘다
+ * ------------------------------------------------------------------------ */
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm 12mm;
+  }
+
+  html {
+    font-size: 10.5pt;
+  }
+
+  body {
+    background: #fff;
+    line-height: 1.45;
+  }
+
+  nav,
+  footer,
+  .no-print {
+    display: none !important;
+  }
+
+  main {
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* 한 항목이 두 페이지에 걸쳐 잘리지 않게 한다 */
+  .print-block {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .print-page-break {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  /* 종이에서는 면이 아니라 선으로만 구분한다 */
+  .print-plain {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  a {
+    text-decoration: none;
+    color: #000;
+  }
+}
+
+/** 인쇄물의 체크 칸. 종이에 손으로 표시하며 다닌다 */
+.check-box {
+  display: inline-block;
+  width: 0.85em;
+  height: 0.85em;
+  border: 1.5px solid #1b1d1f;
+  border-radius: 1px;
+  flex: none;
+}

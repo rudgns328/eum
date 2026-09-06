@@ -256,6 +256,9 @@ export default function DashboardPage() {
           <Link href="/plan" role="button" className={btnPrimary}>
             실행 계획 보기
           </Link>
+          <Link href="/print" role="button" className={btnOutline}>
+            안내서 출력 · PDF 저장
+          </Link>
           <Link href="/onboarding" role="button" className={btnOutline}>
             입력 내용 다시 등록
           </Link>

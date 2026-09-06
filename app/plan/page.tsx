@@ -6,6 +6,8 @@
  * 기관별 액션 카드 + 통합 서류 목록. LLM을 호출하지 않는다.
  */
 
+import Link from 'next/link';
+
 import {
   Card,
   CheckingBadge,
@@ -14,6 +16,7 @@ import {
   SectionTitle,
   SourceNote,
   formatWon,
+  btnPrimary,
 } from '@/app/_components/ui';
 import { useCase } from '@/app/_lib/useCase';
 import type { InstitutionAction, PlanDocument } from '@/lib/plan/plan';
@@ -174,6 +177,12 @@ export default function PlanPage() {
           {ordered.map((action, index) => (
             <ActionCard key={action.institution_id} action={action} order={index + 1} />
           ))}
+
+          <div className="flex flex-wrap gap-3">
+            <Link href="/print" role="button" className={btnPrimary}>
+              안내서 출력 · PDF 저장
+            </Link>
+          </div>
         </div>
       )}
     </PageShell>
