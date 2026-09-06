@@ -24,9 +24,11 @@ import {
   EmptyState,
   PageShell,
   SectionTitle,
+  NoticeBox,
 } from '@/app/_components/ui';
 import { useCase } from '@/app/_lib/useCase';
 import {
+  needsReview,
   toAssetDrafts,
   toHeirDrafts,
   droppedRelations,
@@ -191,8 +193,14 @@ export default function UploadPage() {
     router.push('/dashboard');
   }
 
-  const needsReview = result?.status === 'needs_review';
+  const lowConfidence = result?.status === 'needs_review';
   const parseFailed = result?.status === 'failed' || (result === null && stage === 'review');
+
+  // 점수가 아니라 '몇 개를 확인하면 되는지'를 화면의 주어로 삼는다.
+  const drafts: Array<{ uncertain: string[]; confidence: number }> =
+    documentType === 'family_cert' ? heirs : assets;
+  const draftCount = drafts.length;
+  const reviewCount = drafts.filter(needsReview).length;
 
   return (
     <PageShell current="/upload" title="서류 등록" description="문서를 올리면 내용을 읽어 초안을 만듭니다. 반영 전에 직접 확인하고 고칠 수 있습니다.">
@@ -270,25 +278,41 @@ export default function UploadPage() {
 
       {stage === 'review' && (
         <div className="mt-4 space-y-5">
-          <Card className={needsReview ? 'border-l-4 border-l-high' : ''}>
+          <Card className={reviewCount > 0 ? 'border-l-4 border-l-high' : ''}>
             <div className="flex flex-wrap items-center gap-3">
               <SectionTitle>
                 {parseFailed ? '직접 입력' : '읽은 내용 확인'}
               </SectionTitle>
-              {needsReview && <CheckingBadge label="확인 필요" />}
+              {(lowConfidence || reviewCount > 0) && <CheckingBadge label="확인 필요" />}
             </div>
 
             {parseFailed ? (
-              <p className="text-base">
-                문서를 읽지 못했습니다. 아래에 직접 입력하면 그대로 반영됩니다.
-              </p>
+              <>
+                <p className="text-base">
+                  문서를 읽지 못했습니다. 아래에 직접 입력하시면 결과는 같습니다.
+                </p>
+                <p className="mt-1 text-base text-muted">
+                  아는 것만 넣으셔도 됩니다. 빈 항목은 나중에 채워도 되고, 확인되지 않은 항목은
+                  &lsquo;확인 중&rsquo;으로 처리해 단정하지 않습니다.
+                </p>
+              </>
             ) : (
-              <p className="text-base text-muted">
-                판독 신뢰도 {Math.round((result?.confidence ?? 0) * 100)}%
-                {needsReview
-                  ? ' — 값이 맞는지 항목마다 확인해 주세요.'
-                  : ' — 반영 전에 한 번 확인해 주세요.'}
-              </p>
+              /* 점수만 던지지 않는다. 몇 개를 읽었고 무엇을 하면 되는지 말한다. */
+              <>
+                <p className="text-lg font-bold">
+                  {reviewCount === 0
+                    ? `${draftCount}개 항목을 모두 읽었습니다.`
+                    : `${draftCount}개 중 ${draftCount - reviewCount}개를 읽었습니다.`}
+                </p>
+                <p className="mt-1 text-base">
+                  {reviewCount === 0
+                    ? '반영 전에 한 번만 훑어봐 주세요.'
+                    : `${reviewCount}개만 확인해 주시면 됩니다. 아래에 표시해 두었습니다.`}
+                </p>
+                <p className="mt-2 text-sm text-muted">
+                  전체 판독 확신도 {Math.round((result?.confidence ?? 0) * 100)}%
+                </p>
+              </>
             )}
 
             {result && result.status !== 'failed' && result.data.notes.length > 0 && (
@@ -381,13 +405,11 @@ export default function UploadPage() {
                         />
                         영업점 방문 예정
                       </label>
-                      {heir.uncertain.length > 0 && (
-                        <span className="flex items-center gap-2 text-sm text-muted">
-                          <CheckingBadge label="확인 필요" />
-                          {heir.uncertain.join(', ')}
-                        </span>
-                      )}
                     </div>
+                    <ReadNote
+                      draft={heir}
+                      action="모르시면 그대로 두셔도 됩니다."
+                    />
                   </div>
                 ))}
               </div>
@@ -455,13 +477,11 @@ export default function UploadPage() {
                     <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted">
                       {asset.institution_label && <span>문서 표기: {asset.institution_label}</span>}
                       {asset.status && <span>· {asset.status}</span>}
-                      {asset.uncertain.length > 0 && (
-                        <>
-                          <CheckingBadge label="확인 필요" />
-                          {asset.uncertain.join(', ')}
-                        </>
-                      )}
                     </p>
+                    <ReadNote
+                      draft={asset}
+                      action="금액을 모르시면 비워 두셔도 됩니다."
+                    />
                   </div>
                 ))}
               </div>
@@ -473,9 +493,18 @@ export default function UploadPage() {
                 자산 추가
               </button>
               <p className="mt-3 text-sm text-muted">
-                기관을 고르지 않은 항목은 반영되지 않습니다.
+                기관을 고르지 않은 항목은 반영되지 않습니다. 반영한 뒤에도 이 화면에서 다시 올려
+                고칠 수 있습니다.
               </p>
             </Card>
+          )}
+
+          {reviewCount > 0 && !parseFailed && (
+            <NoticeBox title="이대로 반영하셔도 됩니다">
+              확인이 필요한 항목을 그대로 두고 반영해도 서비스는 동작합니다. 확인되지 않은 값은
+              단정하지 않고 &lsquo;확인 중&rsquo;으로 표시합니다. 문서가 흐릿했다면 다시 찍어
+              올리시는 편이 더 정확합니다.
+            </NoticeBox>
           )}
 
           <div className="flex flex-wrap gap-3">
@@ -504,6 +533,46 @@ export default function UploadPage() {
   );
 }
 
+/**
+ * 항목 한 줄의 판독 상태.
+ *
+ * 확신도만 보여주고 끝내지 않는다. 왜 확신하지 못했는지(AI 문장)와 그래서
+ * 무엇을 하면 되는지(우리가 쓴 문장)를 함께 준다. 마지막 한 줄이 중요하다 —
+ * 몰라도 괜찮다고 말해줘야 손을 뗄 수 있고, 실제로 우리 엔진은 확인되지 않은
+ * 항목을 단정하지 않는다.
+ */
+function ReadNote({
+  draft,
+  action,
+}: {
+  draft: { uncertain: string[]; confidence: number; note: string };
+  action: string;
+}) {
+  const percent = Math.round(draft.confidence * 100);
+
+  if (!needsReview(draft)) {
+    return (
+      <p className="mt-2 text-sm text-medium">
+        <span aria-hidden>✓</span> 또렷하게 읽었습니다 · 확신 {percent}%
+      </p>
+    );
+  }
+
+  return (
+    <div className="mt-2 rounded-sm border border-line border-l-4 border-l-high bg-high/5 p-3">
+      <p className="flex flex-wrap items-center gap-2 text-sm font-bold text-high">
+        <CheckingBadge label="확인 필요" />
+        {draft.uncertain.length > 0 ? draft.uncertain.join(' · ') : '판독 확신이 낮습니다'}
+        <span className="font-normal text-muted">확신 {percent}%</span>
+      </p>
+      {draft.note && <p className="mt-1 text-base">{draft.note}</p>}
+      <p className="mt-1 text-sm text-muted">
+        → {action} 확인되지 않은 항목은 &lsquo;확인 중&rsquo;으로 처리하고 단정하지 않습니다.
+      </p>
+    </div>
+  );
+}
+
 function blankHeir(): HeirDraft {
   return {
     relation: 'child',
@@ -511,6 +580,9 @@ function blankHeir(): HeirDraft {
     is_minor: false,
     is_visiting: false,
     uncertain: [],
+    // 사용자가 직접 넣는 줄이라 확인 대상이 아니다.
+    confidence: 1,
+    note: '',
   };
 }
 
@@ -522,5 +594,7 @@ function blankAsset(): AssetDraft {
     amount: null,
     status: '',
     uncertain: [],
+    confidence: 1,
+    note: '',
   };
 }

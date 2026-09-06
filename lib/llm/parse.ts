@@ -19,6 +19,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 
 import { stripPersonalData } from '@/lib/case/model';
+import { isClean } from './guard';
 import {
   DOCUMENT_LABEL,
   SCHEMAS,
@@ -125,7 +126,16 @@ const SYSTEM_PROMPT = `당신은 한국 공문서에서 구조화 데이터를 �
 - 이름은 성 한 글자만 남기고 나머지 글자를 ○로 바꾼 마스킹본으로만 반환합니다.
   예: 김철수 → 김○○, 남궁민수 → 남○○○
 - confidence는 전체 판독 신뢰도입니다. 문서가 흐리거나 일부가 가려졌거나
-  글자가 확실하지 않으면 낮게 매기고, 그 이유를 notes에 적습니다.`;
+  글자가 확실하지 않으면 낮게 매기고, 그 이유를 notes에 적습니다.
+- 항목(사람·기관)마다 그 항목만의 confidence와 note를 따로 매깁니다.
+  확신도는 그 항목을 얼마나 또렷하게 읽었는지만 나타냅니다. 값 자체는
+  문서 전체를 함께 보고 평소대로 판단합니다.
+  · 또렷하게 읽었으면 0.9 이상, note는 빈 문자열
+  · 글자가 흐리거나 칸이 가려졌거나 표기가 모호하면 낮추고,
+    무엇 때문인지 한 문장으로 적습니다
+    예) "출생연월일 칸이 흐려 미성년 여부를 판단하지 못했습니다"
+    예) "금액 칸이 가려져 읽지 못했습니다"
+  · note에는 사실만 적습니다. 무엇을 하라는 권유나 판단은 쓰지 않습니다.`;
 
 const USER_INSTRUCTION: Record<ParsedDocumentType, string> = {
   family_cert:
@@ -204,6 +214,32 @@ function readConfidence(value: unknown): number | null {
 }
 
 /**
+ * 항목별 note는 사용자 화면에 그대로 나가는 LLM 문장이다. guard를 통과하지
+ * 못하면 버린다(CLAUDE.md 절대규칙 3).
+ *
+ * 버려도 항목 자체는 남는다. 확신도 숫자와 화면의 결정론 안내 문구가 그대로
+ * 있으므로 사용자가 잃는 정보가 없다.
+ */
+function sanitizeNotes(data: ParsedData): ParsedData {
+  const clean = (note: unknown): string =>
+    typeof note === 'string' && note.trim() !== '' && isClean(note) ? note : '';
+
+  if ('relations' in data && Array.isArray(data.relations)) {
+    return {
+      ...data,
+      relations: data.relations.map((r) => ({ ...r, note: clean(r.note) })),
+    };
+  }
+  if ('institutions' in data && Array.isArray(data.institutions)) {
+    return {
+      ...data,
+      institutions: data.institutions.map((i) => ({ ...i, note: clean(i.note) })),
+    };
+  }
+  return data;
+}
+
+/**
  * 문서 하나를 파싱한다. 예외를 던지지 않는다 — 모든 실패는 status: 'failed'다.
  */
 export async function parseDocument(
@@ -250,7 +286,7 @@ export async function parseDocument(
   if (confidence === null) return fail(input.documentType, 'invalid_output');
 
   // 스키마가 막고 있지만, 반환 직전에 한 번 더 개인 식별 필드를 제거한다.
-  const data = stripPersonalData(parsed) as ParsedData;
+  const data = sanitizeNotes(stripPersonalData(parsed) as ParsedData);
 
   if (confidence < CONFIDENCE_THRESHOLD) {
     return {

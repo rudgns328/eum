@@ -17,6 +17,10 @@ export interface HeirDraft {
   is_visiting: boolean;
   /** 파싱에서 확정하지 못해 사용자 확인이 필요한 필드 */
   uncertain: string[];
+  /** 이 항목 하나에 대한 판독 확신도 */
+  confidence: number;
+  /** 확신이 낮은 이유. guard를 통과한 문장만 들어온다 */
+  note: string;
 }
 
 export interface AssetDraft {
@@ -28,6 +32,26 @@ export interface AssetDraft {
   amount: number | null;
   status: string;
   uncertain: string[];
+  /** 이 항목 하나에 대한 판독 확신도 */
+  confidence: number;
+  /** 확신이 낮은 이유. guard를 통과한 문장만 들어온다 */
+  note: string;
+}
+
+/**
+ * 확신도를 0~1로 정리한다.
+ *
+ * 모델이 범위를 벗어난 값이나 숫자가 아닌 값을 줄 수 있다. 알 수 없으면
+ * 0으로 두어 '확인 필요' 쪽으로 기운다 — 놓치는 것보다 한 번 더 묻는 편이 낫다.
+ */
+export function normalizeConfidence(value: unknown): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return 0;
+  return Math.min(1, Math.max(0, value));
+}
+
+/** 이 항목을 사용자가 확인해야 하는가 */
+export function needsReview(draft: { uncertain: string[]; confidence: number }): boolean {
+  return draft.uncertain.length > 0 || draft.confidence < 0.8;
 }
 
 /** 원문 관계 표기 → 엔진 relation. 모델이 매핑하지 못했을 때의 보조 경로 */
@@ -76,6 +100,8 @@ export function toHeirDrafts(parsed: ParsedFamilyCert): HeirDraft[] {
       is_minor: entry.is_minor === true,
       is_visiting: false,
       uncertain,
+      confidence: normalizeConfidence(entry.confidence),
+      note: typeof entry.note === 'string' ? entry.note : '',
     });
   }
 
@@ -140,6 +166,8 @@ export function toAssetDrafts(
       amount: row.amount,
       status: row.status,
       uncertain,
+      confidence: normalizeConfidence(row.confidence),
+      note: typeof row.note === 'string' ? row.note : '',
     };
   });
 }

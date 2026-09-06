@@ -26,6 +26,13 @@ export interface ParsedRelation {
   alive: boolean | null;
   /** 만 19세 미만 여부. 판정 불가면 null */
   is_minor: boolean | null;
+  /** 이 항목 하나에 대한 판독 확신도 0.0~1.0 */
+  confidence: number;
+  /**
+   * 확신이 낮은 이유. 사용자에게 그대로 노출되므로 사실만 적는다.
+   * guard 필터를 통과하지 못하면 버린다(CLAUDE.md 절대규칙 3).
+   */
+  note: string;
 }
 
 export interface ParsedFamilyCert {
@@ -74,7 +81,15 @@ export const FAMILY_CERT_SCHEMA = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['relation_label', 'relation', 'name_masked', 'alive', 'is_minor'],
+        required: [
+          'relation_label',
+          'relation',
+          'name_masked',
+          'alive',
+          'is_minor',
+          'confidence',
+          'note',
+        ],
         properties: {
           relation_label: { type: 'string', description: '문서에 적힌 관계 표기 그대로' },
           relation: {
@@ -88,6 +103,15 @@ export const FAMILY_CERT_SCHEMA = {
           is_minor: {
             type: ['boolean', 'null'],
             description: '만 19세 미만 여부만. 생년월일은 반환하지 말 것',
+          },
+          confidence: {
+            type: 'number',
+            description: '이 사람 한 명에 대한 판독 확신도 0.0~1.0',
+          },
+          note: {
+            type: 'string',
+            description:
+              '확신이 낮으면 그 이유를 한 문장으로. 예: "출생연월일 칸이 흐려 미성년 여부를 판단하지 못했습니다". 확신하면 빈 문자열. 무엇을 하라는 권유는 쓰지 말 것',
           },
         },
       },
@@ -121,6 +145,10 @@ export interface ParsedInstitutionRow {
   status: string;
   /** 금액이 적혀 있지 않으면 null — 추정 금지 */
   amount: number | null;
+  /** 이 항목 하나에 대한 판독 확신도 0.0~1.0 */
+  confidence: number;
+  /** 확신이 낮은 이유. 사용자에게 노출되므로 사실만 적는다 */
+  note: string;
 }
 
 export interface ParsedFssQueryResult {
@@ -152,6 +180,15 @@ export const FSS_QUERY_RESULT_SCHEMA = {
           amount: {
             type: ['number', 'null'],
             description: '문서에 금액이 적혀 있을 때만. 없으면 null (추정 금지)',
+          },
+          confidence: {
+            type: 'number',
+            description: '이 행 하나에 대한 판독 확신도 0.0~1.0',
+          },
+          note: {
+            type: 'string',
+            description:
+              '확신이 낮으면 그 이유를 한 문장으로. 예: "금액 칸이 가려져 읽지 못했습니다". 확신하면 빈 문자열. 무엇을 하라는 권유는 쓰지 말 것',
           },
         },
       },
