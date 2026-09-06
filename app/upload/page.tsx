@@ -36,6 +36,7 @@ import {
   type HeirDraft,
 } from '@/lib/case/import';
 import {
+  AMOUNT_MAX_DIGITS,
   isValidName,
   maskName,
   NAME_MAX_LENGTH,
@@ -192,6 +193,10 @@ export default function UploadPage() {
       }));
     } else {
       const usable = assets.filter((a) => a.institution_id !== null);
+      if (usable.some((a) => a.amount !== null && String(a.amount).length > AMOUNT_MAX_DIGITS)) {
+        setError('금액이 너무 큽니다. 자릿수를 확인해 주세요.');
+        return;
+      }
       next.assets = usable.map<CaseAsset>((draft) => ({
         institution_id: draft.institution_id as string,
         type: draft.type === 'other' ? 'deposit' : draft.type,
@@ -472,12 +477,22 @@ export default function UploadPage() {
                         ))}
                       </select>
                       <input
-                        className={input}
+                        className={`${input} ${
+                          asset.amount !== null && String(asset.amount).length > AMOUNT_MAX_DIGITS
+                            ? 'border-critical'
+                            : ''
+                        }`}
                         inputMode="numeric"
                         aria-label={`자산 ${index + 1} 금액`}
                         placeholder="금액 (원)"
+                        maxLength={AMOUNT_MAX_DIGITS}
+                        aria-invalid={
+                          asset.amount !== null && String(asset.amount).length > AMOUNT_MAX_DIGITS
+                        }
                         value={asset.amount === null ? '' : String(asset.amount)}
                         onChange={(e) => {
+                          // 잘라내지 않는다. 소액 간소화 판정이 금액 경계로
+                          // 갈리므로, 몰래 줄인 숫자보다 막고 알리는 편이 낫다.
                           const digits = e.target.value.replace(/[^\d]/g, '');
                           setAssets((prev) =>
                             prev.map((a, i) =>

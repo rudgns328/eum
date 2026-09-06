@@ -22,6 +22,7 @@ import {
   NoticeBox,
 } from '@/app/_components/ui';
 import { today, useCase } from '@/app/_lib/useCase';
+import { isValidEmail } from '@/lib/notify/email';
 import { buildSchedule, type ScheduledNotification } from '@/lib/notify/schedule';
 
 const EMAIL_KEY = 'eum.notify.email.v1';
@@ -250,11 +251,17 @@ export default function NotificationsPage() {
               <div className="mt-4 flex flex-wrap gap-3">
                 <input
                   type="email"
-                  className="min-w-0 flex-1 rounded-sm border border-line-strong bg-surface px-3 py-2 text-base"
+                  className={`min-w-0 flex-1 rounded-sm border bg-surface px-3 py-2 text-base ${
+                    email.trim() === '' || isValidEmail(email)
+                      ? 'border-line-strong'
+                      : 'border-critical'
+                  }`}
                   value={email}
                   onChange={(e) => setDraftEmail(e.target.value)}
                   placeholder="name@example.com"
                   aria-label="알림 받을 이메일"
+                  aria-invalid={email.trim() !== '' && !isValidEmail(email)}
+                  maxLength={254}
                 />
                 <button
                   type="button"
@@ -265,6 +272,12 @@ export default function NotificationsPage() {
                   {working ? '신청 중' : '알림 신청'}
                 </button>
               </div>
+
+              {email.trim() !== '' && !isValidEmail(email) && (
+                <p className="mt-1 text-sm font-semibold text-critical">
+                  이메일 주소 형식을 확인해 주세요. (예: name@example.com)
+                </p>
+              )}
 
               <label className="mt-3 flex items-start gap-2 text-base">
                 <input

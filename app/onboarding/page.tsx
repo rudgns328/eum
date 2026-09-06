@@ -38,8 +38,10 @@ import { calculateDeadlines } from '@/lib/engines/deadlines';
 import { calculateShares } from '@/lib/engines/shares';
 import { isIsoDate } from '@/lib/engines/dateutil';
 import {
+  AMOUNT_MAX_DIGITS,
   isValidLabel,
   isValidName,
+  LABEL_MAX_LENGTH,
   maskName,
   NAME_MAX_LENGTH,
   newCaseId,
@@ -195,16 +197,18 @@ function OnboardingForm() {
   /**
    * 금액 파싱. 숫자만 남기고, 실수로 자릿수를 잘못 넣은 값을 막는다.
    *
-   * 상한은 1조원이다. 그 이상은 오타로 보는 편이 안전하다 — 소액 간소화
-   * 판정이 금액 경계로 갈리므로 잘못된 자릿수가 조용히 결과를 바꾼다.
+   * 상한은 입력칸의 maxLength와 같은 자릿수다. 칸에 들어가는 값을 검증이
+   * 되돌려보내면 사용자는 이유를 알 수 없다 — 소액 간소화 판정이 금액
+   * 경계로 갈리므로 잘못된 자릿수는 막되, 기준은 한 곳에서만 정한다.
    */
-  const MAX_AMOUNT = 1_000_000_000_000;
 
   const toNumber = (raw: string): number | null => {
     const cleaned = raw.replace(/[^\d]/g, '');
     if (cleaned === '') return null;
     const value = Number(cleaned);
-    return Number.isSafeInteger(value) ? value : null;
+    // 안전 정수를 벗어나면 null이 아니라 큰 값을 돌려준다. null로 돌리면
+    // 자릿수를 잘못 넣은 금액이 '금액 없음'으로 조용히 바뀐다.
+    return Number.isFinite(value) ? value : Number.MAX_SAFE_INTEGER;
   };
 
   /**
@@ -246,7 +250,7 @@ function OnboardingForm() {
     ];
     const tooLarge = amounts.some((raw) => {
       const value = toNumber(raw);
-      return value !== null && value > MAX_AMOUNT;
+      return value !== null && String(value).length > AMOUNT_MAX_DIGITS;
     });
     if (tooLarge) return '금액이 너무 큽니다. 자릿수를 확인해 주세요.';
 
@@ -543,12 +547,20 @@ function OnboardingForm() {
                   </label>
                   <input
                     id="decedent"
-                    className={input}
+                    className={`${input} ${isValidLabel(decedentLabel) ? '' : 'border-critical'}`}
                     value={decedentLabel}
                     onChange={(e) => setDecedentLabel(e.target.value)}
                     placeholder="아버님"
+                    aria-invalid={!isValidLabel(decedentLabel)}
+                    maxLength={LABEL_MAX_LENGTH}
                   />
-                  <p className="mt-1 text-sm text-muted">이름 대신 관계 호칭만 저장합니다.</p>
+                  {isValidLabel(decedentLabel) ? (
+                    <p className="mt-1 text-sm text-muted">이름 대신 관계 호칭만 저장합니다.</p>
+                  ) : (
+                    <p className="mt-1 text-sm font-semibold text-critical">
+                      한글 또는 영문으로 적어 주세요. (예: 아버님)
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className={label} htmlFor="awareness-date">
@@ -828,6 +840,7 @@ function OnboardingForm() {
                           <input
                             className="rounded-sm border border-line-strong bg-surface px-3 py-2"
                             inputMode="numeric"
+                            maxLength={AMOUNT_MAX_DIGITS}
                             value={asset.deposit_amount}
                             onChange={(e) =>
                               updateAsset(asset.key, { deposit_amount: e.target.value })
@@ -838,6 +851,7 @@ function OnboardingForm() {
                           <input
                             className="rounded-sm border border-line-strong bg-surface px-3 py-2"
                             inputMode="numeric"
+                            maxLength={AMOUNT_MAX_DIGITS}
                             value={asset.securities_valuation}
                             onChange={(e) =>
                               updateAsset(asset.key, { securities_valuation: e.target.value })
@@ -854,6 +868,7 @@ function OnboardingForm() {
                           <input
                             className="rounded-sm border border-line-strong bg-surface px-3 py-2"
                             inputMode="numeric"
+                            maxLength={AMOUNT_MAX_DIGITS}
                             value={asset.amount}
                             onChange={(e) => updateAsset(asset.key, { amount: e.target.value })}
                             placeholder={asset.type === 'insurance' ? '청구금액 (원)' : '금액 (원)'}
@@ -942,6 +957,7 @@ function OnboardingForm() {
                     <input
                       className="rounded-sm border border-line-strong bg-surface px-3 py-2"
                       inputMode="numeric"
+                      maxLength={AMOUNT_MAX_DIGITS}
                       value={debt.amount}
                       onChange={(e) => updateDebt(debt.key, { amount: e.target.value })}
                       placeholder="금액 (원)"

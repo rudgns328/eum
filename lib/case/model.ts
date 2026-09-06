@@ -92,6 +92,12 @@ const HANGUL_JAMO = /[\u3131-\u318E]/;
 
 export const NAME_MAX_LENGTH = 20;
 
+/** 호칭('아버님')의 최대 길이 */
+export const LABEL_MAX_LENGTH = 10;
+
+/** 금액 입력의 최대 자릿수. 1조원까지 받는다 */
+export const AMOUNT_MAX_DIGITS = 13;
+
 export function isValidName(raw: string): boolean {
   const trimmed = raw.trim();
   if (trimmed.length === 0) return true; // 선택 입력
@@ -107,7 +113,7 @@ export function isValidName(raw: string): boolean {
 export function isValidLabel(raw: string): boolean {
   const trimmed = raw.trim();
   if (trimmed.length === 0) return true; // 비우면 '피상속인'이 된다
-  if (trimmed.length > 10) return false;
+  if (trimmed.length > LABEL_MAX_LENGTH) return false;
   if (HANGUL_JAMO.test(trimmed)) return false;
   return NAME_SHAPE.test(trimmed);
 }
