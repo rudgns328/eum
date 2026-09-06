@@ -1013,7 +1013,7 @@ function OnboardingForm() {
             className={`${btnPrimary} text-lg`}
             onClick={submit}
           >
-            {step === 3 ? '대시보드로 이동' : '이대로 시작하기'}
+            {step === 3 ? '내 기한 보기' : '이대로 시작하기'}
           </button>
         </div>
 

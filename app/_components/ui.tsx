@@ -231,9 +231,22 @@ export function useStartDemo(): () => void {
 // 머리말
 // ---------------------------------------------------------------------------
 
-const GNB = [
+/**
+ * 메뉴는 상태에 따라 다르다.
+ *
+ * 아무것도 넣지 않은 방문자에게 '대시보드 · 확인 항목 · 안내서 출력'을
+ * 보여주면 눌러도 빈 화면이 나온다. 그건 내비게이션이 아니라 화면 목록이다.
+ * 둘러보기는 '예시 데이터로 둘러보기'가 맡는다 — 빈 화면을 보는 것보다
+ * 채워진 화면을 보는 편이 실제 둘러보기에 가깝다.
+ */
+const VISITOR_NAV = [
   { href: '/', label: '서비스 소개' },
-  { href: '/dashboard', label: '대시보드' },
+  { href: '/institutions', label: '기관별 안내' },
+  { href: '/about', label: '데이터와 검증' },
+] as const;
+
+const CASE_NAV = [
+  { href: '/dashboard', label: '내 기한' },
   { href: '/plan', label: '실행 계획' },
   { href: '/upload', label: '서류 등록' },
   { href: '/alerts', label: '확인 항목' },
@@ -242,7 +255,7 @@ const GNB = [
 ] as const;
 
 export const NAV_LABEL: Record<string, string> = Object.fromEntries(
-  GNB.map((item) => [item.href, item.label]),
+  [...VISITOR_NAV, ...CASE_NAV].map((item) => [item.href, item.label]),
 );
 
 /** 로고와 서비스명. 좁은 화면에서는 로고 줄에, 넓은 화면에서는 메뉴 줄에 둔다 */
@@ -264,18 +277,24 @@ function Wordmark() {
 }
 
 function Header({ current }: { current: string }) {
+  const flags = useCaseFlags();
+  const items = flags.exists ? CASE_NAV : VISITOR_NAV;
+  const cta = flags.exists
+    ? { href: '/dashboard', label: '내 기한 보기' }
+    : { href: '/onboarding', label: '시작하기' };
+
   return (
     <header className="border-b-2 border-navy bg-surface">
       {/*
        * 좁은 화면에서는 로고 줄과 메뉴 줄을 나눈다.
-       * 한 줄에 메뉴 7개와 버튼을 넣으면 390px에서 가로로 넘쳐, 본문 글자까지
+       * 한 줄에 메뉴와 버튼을 함께 넣으면 390px에서 가로로 넘쳐, 본문 글자까지
        * 화면 밖으로 잘려 나갔다.
        */}
       <div className="mx-auto w-full max-w-[64rem] px-4">
         <div className="flex items-center justify-between gap-3 lg:hidden">
           <Wordmark />
-          <Link href="/onboarding" role="button" className={`${btnPrimary} px-4`}>
-            시작하기
+          <Link href={cta.href} role="button" className={`${btnPrimary} px-4`}>
+            {cta.label}
           </Link>
         </div>
       </div>
@@ -297,7 +316,7 @@ function Header({ current }: { current: string }) {
           aria-label="주메뉴"
           className="-mx-4 flex flex-1 gap-x-0 overflow-x-auto px-4 lg:mx-0 lg:flex-none lg:overflow-visible lg:px-0"
         >
-          {GNB.map((item) => {
+          {items.map((item) => {
             const active = current === item.href;
             return (
               <Link
@@ -317,11 +336,11 @@ function Header({ current }: { current: string }) {
         </nav>
 
         <Link
-          href="/onboarding"
+          href={cta.href}
           role="button"
           className={`ml-auto hidden ${btnPrimary} px-5 lg:inline-flex`}
         >
-          시작하기
+          {cta.label}
         </Link>
       </div>
     </header>
@@ -373,7 +392,20 @@ export function SiteFooter() {
   return (
     <footer className="mt-auto border-t-2 border-navy bg-subtle">
       <div className="mx-auto w-full max-w-[64rem] px-4 py-7 text-sm text-muted">
-        <p className="mb-2 text-base font-black text-navy">이음 — 상속 금융절차 안내</p>
+        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-b border-line pb-4">
+          <p className="text-base font-black text-navy">이음 — 상속 금융절차 안내</p>
+          <nav aria-label="안내 메뉴" className="flex flex-wrap gap-x-5 gap-y-1">
+            {VISITOR_NAV.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="font-semibold text-foreground underline-offset-2 hover:text-accent hover:underline"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
         <p>
           규정과 기한을 정리해 보여줍니다. 법률 판단, 상속세 계산, 절세 안내는 제공하지 않으며, 최종
           확인은 해당 기관에서 해야 하는 사항입니다. 개인정보를 저장하지 않으며, 입력하신 내용은

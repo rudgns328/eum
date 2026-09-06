@@ -37,7 +37,7 @@ export default function DashboardPage() {
 
   if (!ready) {
     return (
-      <PageShell current="/dashboard" title="대시보드" description="기한과 확인 항목, 이번에 할 일을 한 화면에 모아 보여줍니다.">
+      <PageShell current="/dashboard" title="내 기한" description="기한과 확인 항목, 이번에 할 일을 한 화면에 모아 보여줍니다.">
         <p className="text-muted">불러오는 중입니다.</p>
       </PageShell>
     );
@@ -47,9 +47,9 @@ export default function DashboardPage() {
   // 설명해, 입력 전에도 메뉴를 자유롭게 둘러볼 수 있게 한다.
   if (!caseData) {
     return (
-      <PageShell current="/dashboard" title="대시보드" description="기한과 확인 항목, 이번에 할 일을 한 화면에 모아 보여줍니다.">
+      <PageShell current="/dashboard" title="내 기한" description="기한과 확인 항목, 이번에 할 일을 한 화면에 모아 보여줍니다.">
         <EmptyState
-          title="대시보드"
+          title="내 기한"
           description="기한 D-day와 진행률, 확인이 필요한 항목을 한 화면에 모아 보여줍니다."
           bullets={[
             '사망일 기준으로 계산한 기한 6종을 중요도 순으로 표시합니다.',
@@ -69,7 +69,7 @@ export default function DashboardPage() {
   const openTasks = tasks.filter((t) => !doneIds.has(t.task_id));
 
   return (
-    <PageShell current="/dashboard" title="대시보드" description="기한과 확인 항목, 이번에 할 일을 한 화면에 모아 보여줍니다.">
+    <PageShell current="/dashboard" title="내 기한" description="기한과 확인 항목, 이번에 할 일을 한 화면에 모아 보여줍니다.">
       {/* 진행 현황 요약 — 공공 화면의 신청 현황 띠 */}
       <div className="mb-5 grid gap-px border border-line bg-line sm:grid-cols-[repeat(3,minmax(0,1fr))_18rem]">
         <div className="bg-subtle px-4 py-3">

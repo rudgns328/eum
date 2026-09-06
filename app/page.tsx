@@ -23,7 +23,7 @@ import {
   BoundarySection,
   EntrySection,
   NoticeSection,
-  ReferenceSection,
+  SupportedSection,
 } from '@/app/_components/marketing';
 import { MarketingShell, useCaseFlags, useStartDemo } from '@/app/_components/ui';
 
@@ -55,8 +55,8 @@ export default function Home() {
       <EntrySection hasCase={flags.exists} />
       <FlowSection />
       <NoticeSection />
+      <SupportedSection />
       <BoundarySection onDemo={startDemo} />
-      <ReferenceSection />
     </MarketingShell>
   );
 }

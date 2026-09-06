@@ -410,7 +410,7 @@ export default function PrintPage() {
           인쇄 · PDF로 저장
         </button>
         <Link href="/dashboard" role="button" className={btnOutline}>
-          대시보드로
+          내 기한으로
         </Link>
       </div>
     </PageShell>
