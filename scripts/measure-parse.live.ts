@@ -37,6 +37,8 @@ const MEDIA: Record<string, string> = {
 };
 
 interface RelationAnswer {
+  /** 사람 구분용 라벨. 채점에는 쓰지 않고 결과 표시에만 쓴다 */
+  label?: string;
   relation: string | null;
   alive: boolean | null;
   is_minor: boolean | null;
@@ -51,6 +53,8 @@ interface InstitutionAnswer {
 interface Answer {
   document_type: ParsedDocumentType;
   label: string;
+  /** 미성년 판정 기준일. 정답지가 어느 날을 기준으로 적혔는지 명시한다 */
+  today?: string;
   note?: string;
   relations?: RelationAnswer[];
   institutions?: InstitutionAnswer[];
@@ -111,19 +115,27 @@ function scoreFamily(parsed: ParsedFamilyCert, answer: Answer): Omit<Row, 'file'
   let hit = 0;
 
   for (const want of expected) {
-    const index = got.findIndex((g) => g.relation === want.relation);
-    if (index === -1) {
+    // 같은 관계가 여러 명일 수 있다(자녀 3명). 관계가 같은 후보 중에서
+    // 생존·미성년까지 맞는 쪽을 먼저 집어야 짝이 어긋나지 않는다.
+    const candidates = got
+      .map((g, i) => ({ g, i }))
+      .filter(({ g }) => g.relation === want.relation);
+    if (candidates.length === 0) {
       misses.push(`${want.relation}: 누락`);
       continue;
     }
-    const [row] = got.splice(index, 1);
+    const exact = candidates.find(
+      ({ g }) => (g.alive ?? null) === want.alive && (g.is_minor ?? null) === want.is_minor,
+    );
+    const picked = exact ?? candidates[0];
+    const [row] = got.splice(picked.i, 1);
     const problems: string[] = [];
     if ((row.alive ?? null) !== want.alive) problems.push(`생존 ${row.alive}`);
     if ((row.is_minor ?? null) !== want.is_minor) problems.push(`미성년 ${row.is_minor}`);
     // 이름은 마스킹본이어야 한다. 원본이 새어 나오면 오답이다(절대규칙 4).
     if (row.name_masked && !/○/.test(row.name_masked)) problems.push(`마스킹 안 됨 ${row.name_masked}`);
     if (problems.length === 0) hit += 1;
-    else misses.push(`${want.relation}: ${problems.join(' / ')}`);
+    else misses.push(`${want.label ?? want.relation}: ${problems.join(' / ')}`);
   }
 
   return { total: expected.length, hit, extra: got.length, misses };
@@ -151,6 +163,7 @@ it('파싱 정확도 측정', { timeout: 900_000 }, async () => {
       documentType: answer.document_type,
       mediaType: MEDIA[extname(doc!).toLowerCase()],
       data: readFileSync(join(dir!, doc!)).toString('base64'),
+      ...(answer.today ? { today: answer.today } : {}),
     });
 
     if (result.status === 'failed') {

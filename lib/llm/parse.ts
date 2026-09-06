@@ -47,6 +47,15 @@ export interface ParseInput {
   mediaType: string;
   /** base64. 호출자는 파싱 후 원본을 즉시 버린다 */
   data: string;
+  /**
+   * 미성년 판정의 기준일 (YYYY-MM-DD).
+   *
+   * 이 값이 없으면 모델은 기준일을 알 수 없어 문서에 찍힌 발급일을 쓰거나
+   * 학습 시점을 가정한다. 실제로 2020년에 발급된 증명서에서 2003년생을
+   * 미성년으로 판정하는 오류가 측정에서 잡혔다. 미성년 여부는 특별대리인
+   * 선임 판정에 쓰이므로 기준일을 명시해서 넘긴다.
+   */
+  today?: string;
 }
 
 export type ParseFailureReason =
@@ -124,6 +133,23 @@ const USER_INSTRUCTION: Record<ParsedDocumentType, string> = {
   fss_query_result:
     '이 금융거래 조회 결과에서 기관별 조회 내역을 추출하세요. 금액이 명시되지 않은 항목은 amount를 null로 두세요.',
 };
+
+/** 오늘 날짜 (YYYY-MM-DD) */
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+/**
+ * 지시문에 기준일을 붙인다.
+ *
+ * 미성년 판정에는 기준일이 필요하다. 문서에 찍힌 발급일이 오래된 경우
+ * 그것을 기준으로 잡으면 이미 성년이 된 사람을 미성년으로 판정한다.
+ */
+function userInstruction(input: ParseInput): string {
+  const base = USER_INSTRUCTION[input.documentType];
+  if (input.documentType !== 'family_cert') return base;
+  return `${base}\n오늘 날짜는 ${input.today ?? todayIso()}입니다. 미성년(만 19세 미만) 여부는 문서 발급일이 아니라 이 날짜를 기준으로 판정하세요.`;
+}
 
 function isSupported(mediaType: string): mediaType is SupportedMediaType {
   return (SUPPORTED_MEDIA_TYPES as readonly string[]).includes(mediaType);
@@ -206,7 +232,7 @@ export async function parseDocument(
           role: 'user',
           content: [
             documentBlock(input),
-            { type: 'text', text: USER_INSTRUCTION[input.documentType] },
+            { type: 'text', text: userInstruction(input) },
           ],
         },
       ],
