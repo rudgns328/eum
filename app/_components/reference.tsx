@@ -272,16 +272,16 @@ export function GuardStats() {
         </span>
       </p>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+      <div className="mt-6 space-y-4">
         <div className="rounded-2xl border border-white/25 bg-white/[0.06] p-6">
           <p className="text-lg font-bold">AI가 맡는 일</p>
           <p className="mt-1 text-sm text-white/60">규칙만으로는 닿지 않는 자리</p>
-          <ul className="mt-4 space-y-5">
+          <ul className="mt-4 grid gap-5 md:grid-cols-2">
             {AI_WORK.map((item) => (
-              <li key={item.title}>
+              <li key={item.title} className="flex flex-col">
                 <p className="font-bold">{item.title}</p>
                 <p className="mt-1 text-white/80">{item.body}</p>
-                <div className="mt-2.5 rounded-xl bg-navy-dark/60 px-4 py-3 text-sm">
+                <div className="mt-2.5 rounded-xl bg-navy-dark/60 px-4 py-3 text-sm md:mt-auto md:pt-3">
                   <p className="text-white/60">{item.example.from}</p>
                   <p className="mt-1 font-semibold text-white">↓ {item.example.to}</p>
                 </div>
@@ -293,7 +293,7 @@ export function GuardStats() {
         <div className="rounded-2xl border border-white/25 p-6">
           <p className="text-lg font-bold">규칙 엔진이 맡는 일</p>
           <p className="mt-1 text-sm text-white/60">AI를 거치지 않습니다</p>
-          <ul className="mt-4 space-y-5">
+          <ul className="mt-4 grid gap-5 md:grid-cols-2">
             {RULE_WORK.map((item) => (
               <li key={item.title}>
                 <p className="font-bold">{item.title}</p>
