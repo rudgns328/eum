@@ -370,10 +370,14 @@ export default function UploadPage() {
               <a
                 href={
                   documentType === 'family_cert'
-                    ? '/sample/family-cert.png'
-                    : '/sample/fss-query-result.png'
+                    ? '/sample/가족관계증명서_예시.png'
+                    : '/sample/금융거래조회결과_예시.png'
                 }
-                download
+                download={
+                  documentType === 'family_cert'
+                    ? '가족관계증명서_예시.png'
+                    : '금융거래조회결과_예시.png'
+                }
                 className={btnOutline}
               >
                 예시 견본 내려받기

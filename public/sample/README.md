@@ -6,8 +6,8 @@
 
 | 파일 | 무엇인가 |
 |---|---|
-| `family-cert.png` | 가족관계증명서(상세). 대법원 전자가족관계등록시스템의 예시 서식 |
-| `fss-query-result.png` | 상속인 금융거래 조회 결과. 위 서식에 맞춰 만든 견본 |
+| `가족관계증명서_예시.png` | 가족관계증명서(상세). 대법원 전자가족관계등록시스템의 예시 서식 |
+| `금융거래조회결과_예시.png` | 상속인 금융거래 조회 결과. 위 서식에 맞춰 만든 견본 |
 
 배포본에 함께 나가므로 `/sample/…` 주소로 열린다. 입력 화면과 서류 등록
 화면이 이 주소를 건다.
@@ -45,5 +45,5 @@
 내용을 고치면 판독이 되는지 함께 확인한다.
 
     curl -s -X POST http://localhost:3000/api/case/draft/documents \
-      -F "file=@public/sample/fss-query-result.png" \
+      -F "file=@public/sample/금융거래조회결과_예시.png" \
       -F "document_type=fss_query_result"

@@ -744,7 +744,11 @@ export function DocumentFill({
            * 문서가 없는 사람도 바로 시험해 볼 수 있게 내려받기를 나란히 둔다.
            * 링크로 열어 두면 저장까지 한 단계가 더 걸린다.
            */
-          <a href={sample} download className={btnSmall}>
+          <a
+            href={sample}
+            download={decodeURIComponent(sample.split('/').pop() ?? '')}
+            className={btnSmall}
+          >
             예시 견본 내려받기
           </a>
         )}
