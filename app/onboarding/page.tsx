@@ -77,7 +77,14 @@ const STEPS = [
 
 interface HeirDraft {
   key: string;
-  relation: Relation;
+  /*
+   * 관계를 고르기 전에는 빈 값이다.
+   *
+   * 예전에는 '배우자'가 기본값이라, 사망일만 넣고 시작해도 배우자 1명이
+   * 케이스에 들어갔다. 사용자가 넣은 적 없는 상속인이 법정상속분에
+   * 나오고, 상속인 수가 소액 간소화 판정에도 들어갔다.
+   */
+  relation: Relation | '';
   name: string;
   is_minor: boolean;
   is_visiting: boolean;
@@ -119,9 +126,18 @@ function heirIdsByKey(drafts: readonly HeirDraft[]): Map<string, string> {
   return new Map(drafts.map((draft, index) => [draft.key, `h${index + 1}`]));
 }
 
+/** 관계가 정해진 상속인 줄 */
+type PickedHeir = HeirDraft & { relation: Relation };
+
+/** 관계를 고른 줄만 상속인이다. 고르지 않은 줄은 아직 아무것도 아니다 */
+function namedHeirs(drafts: readonly HeirDraft[]): PickedHeir[] {
+  return drafts.filter((draft): draft is PickedHeir => draft.relation !== '');
+}
+
 function toHeirInputs(drafts: readonly HeirDraft[]): HeirInput[] {
-  const ids = heirIdsByKey(drafts);
-  return drafts.map((draft, index) => {
+  const picked = namedHeirs(drafts);
+  const ids = heirIdsByKey(picked);
+  return picked.map((draft, index) => {
     const substitutes = draft.substitutes_for_key
       ? ids.get(draft.substitutes_for_key)
       : undefined;
@@ -193,7 +209,7 @@ function OnboardingForm() {
   const [hasVehicle, setHasVehicle] = useState(false);
   const [agreement, setAgreement] = useState<'' | 'yes' | 'no'>('');
   const [heirs, setHeirs] = useState<HeirDraft[]>([
-    { key: nextKey(), relation: 'spouse', name: '', is_minor: false, is_visiting: true, deceased: false },
+    { key: nextKey(), relation: '', name: '', is_minor: false, is_visiting: true, deceased: false },
   ]);
   const [assets, setAssets] = useState<AssetDraft[]>([]);
   const [debts, setDebts] = useState<DebtDraft[]>([]);
@@ -314,7 +330,14 @@ function OnboardingForm() {
       return at(1, '피상속인 호칭을 다시 확인해 주세요. 한글 또는 영문으로 적어 주세요.');
     }
 
-    if (heirs.length === 0) return at(2, '상속인을 한 명 이상 입력해 주세요.');
+    /*
+     * 상속인이 0명이어도 시작할 수 있다 — 사망일만으로 시작하는 것이 이
+     * 화면의 약속이다. 다만 관계 없이 이름만 적은 줄은 저장에서 빠지므로
+     * 자산·부채와 같은 기준으로 막는다.
+     */
+    if (heirs.some((heir) => heir.relation === '' && heir.name.trim() !== '')) {
+      return at(2, '관계를 고르지 않은 상속인이 있습니다. 관계를 고르시거나 그 줄을 지워 주세요.');
+    }
     if (heirs.some((heir) => !isValidName(heir.name))) {
       return at(2, '상속인 성함을 다시 확인해 주세요. 한글 또는 영문으로 적어 주세요.');
     }
@@ -367,7 +390,9 @@ function OnboardingForm() {
   );
 
   const previewShares = useMemo(() => {
-    if (heirs.length === 0) return null;
+    // 관계를 고른 사람이 없으면 계산할 것이 없다. 기본값으로 배우자를 넣고
+    // 100%를 보여 주던 것이 사용자에게는 '내가 넣지 않은 상속인'이었다.
+    if (namedHeirs(heirs).length === 0) return null;
     try {
       return calculateShares(toHeirInputs(heirs));
     } catch {
@@ -383,15 +408,23 @@ function OnboardingForm() {
     const label = isSubstitute ? '대습상속인' : '상속인';
     const nameField = `heir:${heir.key}`;
     const nameBad = !isValidName(heir.name) && showsError(nameField);
+    // 이름만 적고 관계를 고르지 않으면 그 줄은 저장에서 빠진다.
+    const relationBad = blocked && heir.relation === '' && heir.name.trim() !== '';
     return (
       <>
         <div className="grid gap-3 sm:grid-cols-[8rem_1fr_auto]">
           <select
-            className="rounded-lg border border-line-strong bg-surface px-3 py-2"
+            className={`rounded-lg border bg-surface px-3 py-2 ${
+              relationBad ? 'border-critical' : 'border-line-strong'
+            }`}
+            aria-invalid={relationBad}
             value={heir.relation}
-            onChange={(e) => updateHeir(heir.key, { relation: e.target.value as Relation })}
+            onChange={(e) =>
+              updateHeir(heir.key, { relation: e.target.value as Relation | '' })
+            }
             aria-label={`${label} 관계`}
           >
+            <option value="">관계 선택</option>
             {RELATIONS.map((r) => (
               <option key={r.value} value={r.value}>
                 {r.label}
@@ -484,7 +517,7 @@ function OnboardingForm() {
 
   function buildCase(): Case {
     const inputs = toHeirInputs(heirs);
-    const caseHeirs: CaseHeir[] = heirs.map((draft, index) => ({
+    const caseHeirs: CaseHeir[] = namedHeirs(heirs).map((draft, index) => ({
       ...inputs[index],
       // 마스킹본만 저장한다. 원본 이름은 여기서 버려진다.
       name_masked: maskName(draft.name) || '○○',
@@ -924,7 +957,7 @@ function OnboardingForm() {
                     ...prev,
                     {
                       key: nextKey(),
-                      relation: 'child',
+                      relation: '',
                       name: '',
                       is_minor: false,
                       is_visiting: false,
